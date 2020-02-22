@@ -23,8 +23,6 @@ ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC/MP3
 ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
 ammount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for....
 
-temptrackfile="${downloaddir}/temp-track"
-
 configuration () {
 	
 	if [ "$VerifyTrackCount" = "true" ]; then
@@ -576,6 +574,7 @@ TrackMethod () {
 	CleanDLPath
 	sleep 0.1
 	echo "Downloading $tracktotal Tracks..."
+	temptrackfile="${downloaddir}/temp-track"
 	trackid=($(echo "${albuminfo}" | jq -r ".tracks | .data | .[] | .id"))
 	for track in ${!trackid[@]}; do
 		tracknumber=$(( $track + 1 ))
@@ -671,7 +670,7 @@ Verify () {
 						else
 							echo "Verification Error: \"$trackname\" deleted..."
 							echo "Fallback quality disabled, skipping..."
-							echo "$artistname :: $albumname :: $fallbackqualitytext :: $trackname (${trackid[$track]})" >> "download-track-error.log"
+							error=1
 						fi
 					fi
 				done
