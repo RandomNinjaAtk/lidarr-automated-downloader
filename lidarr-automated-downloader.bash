@@ -9,7 +9,7 @@
 ############ Lidarr Settings
 LidarrUrl="http://127.0.0.1:8686" # Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s.
 LidarrApiKey="$(grep "<ApiKey>" /config/config.xml | sed "s/\  <ApiKey>//;s/<\/ApiKey>//")" # Lidarr API key.
-LidarrImportLocation="/downloads/lidarr-import" # Temporary location that completed downloads are moved to enable lidarr automated imports
+LidarrImportLocation="/downloads/lidarr-import" # Temporary location that completed downloads are moved to before lidarr attempts to match and import
 downloaddir="/downloads/deezloaderremix" # Deezloader download directory location
 deezloaderurl="http://127.0.0.1:1730" # Url to the download client
 downloadmethod="album" # album or track :: album method will fallback to track method if it runs into an issue
