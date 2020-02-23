@@ -154,7 +154,7 @@ ProcessLidarrAlbums () {
 		wantitalbumalbumType=$(echo "${wantitalbum}"| jq -r '.[] | .albumType')
 		wantitalbumartistname=$(echo "${wantitalbum}"| jq -r '.[] | .artist.artistName')
 		wantitalbumartistmbid=$(echo "${wantitalbum}"| jq -r '.[] | .artist.foreignArtistId')
-		wantitalbumartistdeezerid=$(echo "${wantitalbum}"| jq -r '.[] | .artist.links | .[] |  select(.name=="deezer") | .url')
+		wantitalbumartistdeezerid=($(echo "${wantitalbum}"| jq -r '.[] | .artist.links | .[] |  select(.name=="deezer") | .url'))
 		normalizetype="${wantitalbumalbumType,,}"
 		sanatizedwantitalbumtitle="$(echo "$wantitalbumtitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/' -e 's/./\L&/g')"
 		echo "Lidarr Artist Name: $wantitalbumartistname (ID: ${wantitalbumartistmbid})"
@@ -175,7 +175,12 @@ ProcessLidarrAlbums () {
 			echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/${wantitalbumartistmbid}/relationships for \"${wantitalbumartistname}\" with Deezer Artist Link" >> "musicbrainzerror.log"
 			continue
 		fi
-		GetDeezerArtistAlbumList
+		
+		for deezerid in "${!wantitalbumartistdeezerid[@]}"; do
+			deezeraritstid="${wantitalbumartistdeezerid[$deezerid]}"
+			GetDeezerArtistAlbumList
+		done
+	
 	done
 }
 
@@ -227,7 +232,7 @@ DownloadList () {
 
 GetDeezerArtistAlbumList () {
 
-	DeezerArtistID=$(printf -- "%s" "${wantitalbumartistdeezerid##*/}")
+	DeezerArtistID=$(printf -- "%s" "${deezeraritstid##*/}")
 	DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 	echo "Deezer Artist ID: $DeezerArtistID"
 	if [ -z "$DeezerArtistAlbumList" ]; then
