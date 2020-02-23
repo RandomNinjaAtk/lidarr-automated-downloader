@@ -6,22 +6,8 @@
 #                                           Script Start                                            #
 #####################################################################################################
 
-############ Lidarr Settings
-LidarrUrl="http://127.0.0.1:8686" # Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s.
-LidarrApiKey="$(grep "<ApiKey>" /config/config.xml | sed "s/\  <ApiKey>//;s/<\/ApiKey>//")" # Lidarr API key.
-LidarrImportLocation="/downloads/lidarr-import" # Temporary location that completed downloads are moved to before lidarr attempts to match and import
-downloaddir="/downloads/deezloaderremix" # Deezloader download directory location
-deezloaderurl="http://127.0.0.1:1730" # Url to the download client
-downloadmethod="album" # album or track :: album method will fallback to track method if it runs into an issue
-enablefallback="true" # enables fallback to lower quality if required...
-VerifyTrackCount="true" # true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import...
-dlcheck=2 # Set the number to desired wait time before checking for completed downloads (if your connection is unstable, longer may be better)
-albumtimeoutpercentage=8 # Set the number between 1 and 100 :: This number is used to caculate album download timeout length by multiplying Album Length by ##%
-tracktimeoutpercentage=25 # Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##%
-quality="FLAC" # SET TO: OPUS or AAC or MP3 or ALAC or FLAC - converts lossless FLAC files to set format
-ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC/MP3 format types
-ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
-ammount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for....
+############ Import Script Settings
+source ./config
 
 configuration () {
 	
@@ -118,8 +104,8 @@ LidarrAlbums () {
 
 	echo "Getting Lidarr missing and cutoff albums list for processing..."
 
-	curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/missing/?page=1&pagesize=${ammount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-missing.json
-	curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/cutoff/?page=1&pagesize=${ammount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-cutoff.json
+	curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/missing/?page=1&pagesize=${amount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-missing.json
+	curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/cutoff/?page=1&pagesize=${amount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-cutoff.json
 	missingtotal=$(cat "temp-lidarr-missing.json"| jq -r '.records | .[] | .id' | wc -l)
 	cuttofftotal=$(cat "temp-lidarr-cutoff.json"| jq -r '.records | .[] | .id' | wc -l)
 	jq -s '.[]' temp-lidarr-*.json > "lidarr-monitored-list.json"
