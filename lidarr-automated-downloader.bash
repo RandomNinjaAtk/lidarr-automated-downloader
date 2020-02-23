@@ -777,13 +777,13 @@ TrackCountDownloadVerification () {
 
 paths
 
-CleanDLPath
-
-CleanImportPath
-
 LidarrAlbums
 
 configuration
+
+CleanDLPath
+
+CleanImportPath
 
 ProcessLidarrAlbums
 
