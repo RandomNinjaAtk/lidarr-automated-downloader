@@ -193,7 +193,7 @@ if [ -x "$(command -v crontab)" ]; then
 		echo "job already added..."
 	else
 		echo "adding cron job to crontab..."
-		echo "0 */6 * * *   root   rm -rf \"/downloads/lidarr-import/*""  >> "/etc/crontab"
+		echo "0 */6 * * *   root   rm -rf \"/downloads/lidarr-import/*\""  >> "/etc/crontab"
 	fi
 	service cron restart
 else
