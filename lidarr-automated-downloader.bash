@@ -600,6 +600,9 @@ ImportProcess () {
 	for file in "$downloaddir"/*; do
 		mv "$file" "$LidarrImportLocation/$importalbumfolder"/
 	done
+	
+	chmod 0777 "$LidarrImportLocation/$importalbumfolder"
+	chmod 0666 "$LidarrImportLocation/$importalbumfolder"/*
 }
 
 NotifyLidarr () {
