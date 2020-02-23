@@ -68,10 +68,12 @@ paths () {
 }
 
 CleanDLPath () {
+	echo "Cleaning Download directory..."
 	rm -rf "$downloaddir"/*
 }
 
 CleanImportPath () {
+	echo "Cleaning Lidarr Import directory..."
 	rm -rf "$LidarrImportLocation"/*
 }
 
@@ -141,10 +143,6 @@ LidarrAlbums () {
 }
 
 ProcessLidarrAlbums () {
-		
-	LidarrAlbums
-	
-	configuration
 	
 	for id in ${!wantitid[@]}; do
 		currentprocess=$(( $id + 1 ))
@@ -782,6 +780,10 @@ paths
 CleanDLPath
 
 CleanImportPath
+
+configuration
+
+LidarrAlbums
 
 ProcessLidarrAlbums
 
