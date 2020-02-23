@@ -783,8 +783,6 @@ configuration
 
 CleanDLPath
 
-CleanImportPath
-
 ProcessLidarrAlbums
 
 CleanDLPath
