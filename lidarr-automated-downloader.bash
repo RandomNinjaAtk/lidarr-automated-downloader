@@ -309,66 +309,71 @@ GetDeezerArtistAlbumList () {
 		albumfallbacktimout=$(($albumduration*2))
 		importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (WEB)-DREMIX"
 		
-		TrackCountVerification		
+		if [ ! -d "$LidarrImportLocation/$importalbumfolder" ]; then
 		
-		if [ "$albumlyrictype" = true ]; then
-			albumlyrictype="Explicit"
-		elif [ "$albumlyrictype" = false ]; then
-			albumlyrictype="Clean"
-		fi
-		
-		echo "Deezer Matched Album Title: $albumname (ID: $albumid)"
-		echo "Album Link: $albumurl"
-		echo "Album Release Year: $albumyear"
-		echo "Album Release Type: $albumtype"
-		echo "Album Lyric Type: $albumlyrictype"
-		echo "Album Duration: $albumdurationdisplay"
-		echo "Album Track Count: $tracktotal"
-		
-		CleanDLPath
+			TrackCountVerification		
 
-		AlbumDL
-		
-		if [ $trackdlfallback = 1 ]; then
-			CleanDLPath
-			TrackMethod
-		fi
-
-		if [ $error = 1 ]; then
-			CleanDLPath
-			echo "ERROR: Download failed, skipping..."
-		else
-								
-			DLAlbumArtwork
-			
-			downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
-			downloadedlyriccount=$(find "$downloaddir" -type f -iname "*.lrc" | wc -l)
-			downloadedalbumartcount=$(find "$downloaddir" -type f -iname "folder.*" | wc -l)
-			replaygaintrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
-			converttrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
-			echo "Downloaded: $downloadedtrackcount Tracks"
-			echo "Downloaded: $downloadedlyriccount Synced Lyrics"
-			echo "Downloaded: $downloadedalbumartcount Album Cover"	
-			
-			TrackCountDownloadVerification
-			
-			if [ $error = 0 ]; then
-				
-				conversion "$downloaddir"
-				
-				if [ "${ReplaygainTagging}" = TRUE ]; then
-					replaygain "$downloaddir"
-				else
-					echo "REPLAYGAIN TAGGING DISABLED"
-				fi
-				
-				ImportProcess
-				
-				NotifyLidarr
-				
-				CleanDLPath
-
+			if [ "$albumlyrictype" = true ]; then
+				albumlyrictype="Explicit"
+			elif [ "$albumlyrictype" = false ]; then
+				albumlyrictype="Clean"
 			fi
+
+			echo "Deezer Matched Album Title: $albumname (ID: $albumid)"
+			echo "Album Link: $albumurl"
+			echo "Album Release Year: $albumyear"
+			echo "Album Release Type: $albumtype"
+			echo "Album Lyric Type: $albumlyrictype"
+			echo "Album Duration: $albumdurationdisplay"
+			echo "Album Track Count: $tracktotal"
+
+			CleanDLPath
+
+			AlbumDL
+
+			if [ $trackdlfallback = 1 ]; then
+				CleanDLPath
+				TrackMethod
+			fi
+
+			if [ $error = 1 ]; then
+				CleanDLPath
+				echo "ERROR: Download failed, skipping..."
+			else
+
+				DLAlbumArtwork
+
+				downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
+				downloadedlyriccount=$(find "$downloaddir" -type f -iname "*.lrc" | wc -l)
+				downloadedalbumartcount=$(find "$downloaddir" -type f -iname "folder.*" | wc -l)
+				replaygaintrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
+				converttrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
+				echo "Downloaded: $downloadedtrackcount Tracks"
+				echo "Downloaded: $downloadedlyriccount Synced Lyrics"
+				echo "Downloaded: $downloadedalbumartcount Album Cover"	
+
+				TrackCountDownloadVerification
+
+				if [ $error = 0 ]; then
+
+					conversion "$downloaddir"
+
+					if [ "${ReplaygainTagging}" = TRUE ]; then
+						replaygain "$downloaddir"
+					else
+						echo "REPLAYGAIN TAGGING DISABLED"
+					fi
+
+					ImportProcess
+
+					NotifyLidarr
+
+					CleanDLPath
+
+				fi
+			fi
+		else
+			echo "ERROR: Already downloaded, skipping..."
 		fi
 	fi
 	echo ""
