@@ -781,9 +781,9 @@ CleanDLPath
 
 CleanImportPath
 
-configuration
-
 LidarrAlbums
+
+configuration
 
 ProcessLidarrAlbums
 
