@@ -674,7 +674,7 @@ Verify () {
 							echo "Track Verification Error: \"$trackname\" deleted...retrying as MP3"
 							origdlquality="$dlquality"
 							dlquality="320"
-							DownloadURL
+							TackMethod
 							dlquality="$origdlquality"
 						else
 							echo "Verification Error: \"$trackname\" deleted..."
