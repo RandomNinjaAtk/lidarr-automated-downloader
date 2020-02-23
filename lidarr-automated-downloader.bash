@@ -156,7 +156,7 @@ ProcessLidarrAlbums () {
 		wantitalbumartistmbid=$(echo "${wantitalbum}"| jq -r '.[] | .artist.foreignArtistId')
 		wantitalbumartistdeezerid=($(echo "${wantitalbum}"| jq -r '.[] | .artist.links | .[] |  select(.name=="deezer") | .url'))
 		normalizetype="${wantitalbumalbumType,,}"
-		sanatizedwantitalbumtitle="$(echo "$wantitalbumtitle" | sed -e s/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/' | sed -e "s/[^[:alnum:]\ ]//g" -e 's/ +/ /g' -e 's/[[:space:]]/-/g' -e 's/./\L&/g')"
+		sanatizedwantitalbumtitle="$(echo "$wantitalbumtitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/' | sed -e "s/[^[:alnum:]\ ]//g" -e 's/ +/ /g' -e 's/[[:space:]]/-/g' -e 's/./\L&/g')"
 		echo "Lidarr Artist Name: $wantitalbumartistname (ID: ${wantitalbumartistmbid})"
 		echo "Lidarr Album Title: $wantitalbumtitle ($currentprocess of $wantittotal)"
 		echo "Lidarr Album Type: $normalizetype" 
@@ -201,7 +201,7 @@ DownloadList () {
 			if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "temp/${albumid}-temp-album.json"; then
 				sleep 0.1
 				albumtitle="$(cat "temp/${albumid}-temp-album.json" | jq ".title")"
-				sanatizedalbumtitle="$(echo "$albumtitle" | sed -e s/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/' | sed -e "s/[^[:alnum:]\ ]//g" -e 's/ +/ /g' -e 's/[[:space:]]/-/g' -e 's/./\L&/g')"
+				sanatizedalbumtitle="$(echo "$albumtitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/' | sed -e "s/[^[:alnum:]\ ]//g" -e 's/ +/ /g' -e 's/[[:space:]]/-/g' -e 's/./\L&/g')"
 				jq ". + {\"sanatized_album_name\": \"$sanatizedalbumtitle\"}" "temp/${albumid}-temp-album.json" > "temp/${albumid}-album.json"
 				rm "temp/${albumid}-temp-album.json"
 				sleep 0.1
