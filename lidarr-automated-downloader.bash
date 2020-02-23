@@ -71,6 +71,10 @@ CleanDLPath () {
 	rm -rf "$downloaddir"/*
 }
 
+CleanImportPath () {
+	rm -rf "$LidarrImportLocation"/*
+}
+
 DurationCalc () {
   local T=$1
   local D=$((T/60/60/24))
@@ -771,10 +775,11 @@ TrackCountDownloadVerification () {
 	fi
 }
 
+paths
 
 CleanDLPath
 
-paths
+CleanImportPath
 
 ProcessLidarrAlbums
 
