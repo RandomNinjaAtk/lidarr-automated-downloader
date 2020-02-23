@@ -191,7 +191,9 @@ ProcessLidarrAlbums () {
 DownloadList () {
 
 	if [ ! -f "cache/$DeezerArtistID-albumlist.json" ]; then
-			
+		
+		echo "Caching Deezer Artist (ID: ${DeezerArtistID}) Album List for matching..."
+		
 		if [ -d "temp" ]; then
 			sleep 0.1
 			rm -rf "temp"
