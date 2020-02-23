@@ -701,34 +701,31 @@ conversion () {
 		extension="m4a"
 		targetbitrate="lossless"
 	fi
-	if [ "${quality}" = FLAC ]; then
-		options="-acodec flac"
-		extension="flac"
-		targetbitrate="lossless"
-	fi
-	if [ -x "$(command -v ffmpeg)" ]; then
-		if find "$1"/ -name "*.flac" | read; then
-			echo "Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))"
-			for fname in "$1"/*.flac; do
-				filename="$(basename "${fname%.flac}")"
-				if ffmpeg -loglevel warning -hide_banner -nostats -i "$fname" -n -vn $options "${fname%.flac}.temp.$extension"; then
-					echo "Converted: $filename"
-					if [ -f "${fname%.flac}.temp.$extension" ]; then
-						rm "$fname"
+	if [ "${quality}" != FLAC ]; then
+		if [ -x "$(command -v ffmpeg)" ]; then
+			if find "$1"/ -name "*.flac" | read; then
+				echo "Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))"
+				for fname in "$1"/*.flac; do
+					filename="$(basename "${fname%.flac}")"
+					if ffmpeg -loglevel warning -hide_banner -nostats -i "$fname" -n -vn $options "${fname%.flac}.temp.$extension"; then
+						echo "Converted: $filename"
+						if [ -f "${fname%.flac}.temp.$extension" ]; then
+							rm "$fname"
+							sleep 0.1
+							mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
+						fi
+					else
+						echo "Conversion failed: $filename, performing cleanup..."
+						rm -rf "$1"/*
 						sleep 0.1
-						mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
+						exit 1
 					fi
-				else
-					echo "Conversion failed: $filename, performing cleanup..."
-					rm -rf "$1"/*
-					sleep 0.1
-					exit 1
-				fi
-			done
+				done
+			fi
+		else
+			echo "ERROR: ffmpeg not installed, please install ffmpeg to use this conversion feature"
+			sleep 5
 		fi
-	else
-		echo "ERROR: ffmpeg not installed, please install ffmpeg to use this conversion feature"
-		sleep 5
 	fi
 }
 
