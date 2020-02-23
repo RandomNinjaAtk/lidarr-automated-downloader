@@ -595,24 +595,28 @@ TrackMethod () {
 }
 
 ImportProcess () {
-	if [ -d "$LidarrImportLocation/$importalbumfolder" ]; then
-		rm -rf "$LidarrImportLocation/$importalbumfolder"
-	fi
 	if [ ! -d "$LidarrImportLocation/$importalbumfolder" ]; then
 		mkdir -p "$LidarrImportLocation/$importalbumfolder"
+		for file in "$downloaddir"/*; do
+			mv "$file" "$LidarrImportLocation/$importalbumfolder"/
+		done
+
+		chmod 0777 "$LidarrImportLocation/$importalbumfolder"
+		chmod 0666 "$LidarrImportLocation/$importalbumfolder"/*
+		import=1
 	fi
-	for file in "$downloaddir"/*; do
-		mv "$file" "$LidarrImportLocation/$importalbumfolder"/
-	done
-	
-	chmod 0777 "$LidarrImportLocation/$importalbumfolder"
-	chmod 0666 "$LidarrImportLocation/$importalbumfolder"/*
 }
 
 NotifyLidarr () {
-	echo "Notified Lidarr to scan \"$LidarrImportLocation/$importalbumfolder\" for import"
-	path="$LidarrImportLocation/$importalbumfolder"
-	LidarrProcessIt=$(curl -s "$LidarrUrl/api/v1/command" --header "X-Api-Key:"${LidarrApiKey} --data "{\"name\":\"DownloadedAlbumsScan\", \"path\":\"${path}\"}" );
+	if [ "$import" = 1 ]; then
+		echo "Notified Lidarr to scan \"$LidarrImportLocation/$importalbumfolder\" for import"
+		path="$LidarrImportLocation/$importalbumfolder"
+		LidarrProcessIt=$(curl -s "$LidarrUrl/api/v1/command" --header "X-Api-Key:"${LidarrApiKey} --data "{\"name\":\"DownloadedAlbumsScan\", \"path\":\"${path}\"}" );
+		import=0
+	else
+		echo "Already notified Lidarr to scan \"$LidarrImportLocation/$importalbumfolder\" for import, skipping..."
+		import=0
+	fi
 }
 
 Verify () {
