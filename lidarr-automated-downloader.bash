@@ -320,6 +320,17 @@ GetDeezerArtistAlbumList () {
 		albumfallbacktimout=$(($albumduration*2))
 		importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (${albumtypecap}) (WEB)-DREMIX"
 		
+		if ! [ -f "download.log" ]; then
+			touch "download.log"
+		fi
+		if cat "download.log" | grep "${albumid}" | read; then
+			continue
+		else
+			echo "ERROR: Previously downloaded ${albumname}, see: \"$(pwd)/download.log\" for more detail..."
+			echo "Downloaded :: ${albumid} :: ${albumname}" >> "musicbrainzerror.log"
+		fi
+		
+		
 		if [ ! -d "$LidarrImportLocation/$importalbumfolder" ]; then
 		
 			TrackCountVerification		
