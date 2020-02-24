@@ -382,6 +382,7 @@ GetDeezerArtistAlbumList () {
 			fi
 		else
 			echo "ERROR: Already downloaded, skipping..."
+			NotifyLidarr
 		fi
 	fi
 	echo ""
@@ -608,27 +609,21 @@ TrackMethod () {
 }
 
 ImportProcess () {
-	if [ ! -d "$LidarrImportLocation/$importalbumfolder" ]; then
-		mkdir -p "$LidarrImportLocation/$importalbumfolder"
+	if [ ! -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
+		mkdir -p "${LidarrImportLocation}/${importalbumfolder}"
 		for file in "$downloaddir"/*; do
-			mv "$file" "$LidarrImportLocation/$importalbumfolder"/
+			mv "$file" "${LidarrImportLocation}/${importalbumfolder}"/
 		done
 
-		FolderAccessPermissions "$LidarrImportLocation/$importalbumfolder"
-		FileAccessPermissions "$LidarrImportLocation/$importalbumfolder"
-		import=1
+		FolderAccessPermissions "${LidarrImportLocation}/${importalbumfolder}"
+		FileAccessPermissions "${LidarrImportLocation}/${importalbumfolder}"
 	fi
 }
 
 NotifyLidarr () {
-	if [ "$import" = 1 ]; then
-		echo "Notified Lidarr to scan \"$LidarrImportLocation/$importalbumfolder\" for import"
-		path="$LidarrImportLocation/$importalbumfolder"
-		LidarrProcessIt=$(curl -s "$LidarrUrl/api/v1/command" --header "X-Api-Key:"${LidarrApiKey} --data "{\"name\":\"DownloadedAlbumsScan\", \"path\":\"${path}\"}" );
-		import=0
-	else
-		echo "Already notified Lidarr to scan \"$LidarrImportLocation/$importalbumfolder\" for import, skipping..."
-		import=0
+	if [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
+		echo "Notified Lidarr to scan \"${LidarrImportLocation}/${importalbumfolder}\" for import"
+		LidarrProcessIt=$(curl -s "$LidarrUrl/api/v1/command" --header "X-Api-Key:"${LidarrApiKey} --data "{\"name\":\"DownloadedAlbumsScan\", \"path\":\"${LidarrImportLocation}/${importalbumfolder}\"}" );
 	fi
 }
 
