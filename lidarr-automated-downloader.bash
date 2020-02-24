@@ -325,7 +325,6 @@ GetDeezerArtistAlbumList () {
 				downloaded="true"
 			else
 				downloaded="false"
-				echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname}" >> "download.log"
 			fi
 
 			if [ ! -d "$LidarrImportLocation/$importalbumfolder" ] && [ "${downloaded}" = false ]; then
@@ -388,6 +387,12 @@ GetDeezerArtistAlbumList () {
 						NotifyLidarr
 
 						CleanDLPath
+						
+						if cat "download.log" | grep "${albumid}" | read; then
+							downloaded="true"
+						else
+							echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname}" >> "download.log"
+						fi
 
 					fi
 				fi
