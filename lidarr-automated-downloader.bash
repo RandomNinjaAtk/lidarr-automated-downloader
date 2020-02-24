@@ -77,6 +77,16 @@ CleanImportPath () {
 	rm -rf "$LidarrImportLocation"/*
 }
 
+FileAccessPermissions () {
+	echo "Setting file permissions (${FilePermissions})"
+	chmod ${FilePermissions} "$1"/*
+}
+
+FolderAccessPermissions () {
+	echo "Setting folder permissions (${FolderPermissions})"
+	chmod ${FolderPermissions} "$1"
+}
+
 DurationCalc () {
   local T=$1
   local D=$((T/60/60/24))
@@ -610,8 +620,8 @@ ImportProcess () {
 			mv "$file" "$LidarrImportLocation/$importalbumfolder"/
 		done
 
-		chmod 0777 "$LidarrImportLocation/$importalbumfolder"
-		chmod 0666 "$LidarrImportLocation/$importalbumfolder"/*
+		FolderAccessPermissions "$LidarrImportLocation/$importalbumfolder"
+		FileAccessPermissions "$LidarrImportLocation/$importalbumfolder"
 		import=1
 	fi
 }
