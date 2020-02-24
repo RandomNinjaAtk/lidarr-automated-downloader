@@ -176,13 +176,19 @@ if [ -x "$(command -v crontab)" ]; then
 		echo "job already added..."
 	else
 		echo "adding cron job to crontab..."
-		echo "0 18 * * *   root   rm \"/config/scripts/lidarr-automated-downloader/musicbrainzerror.log\" && touch \"/config/scripts/lidarr-automated-downloader/musicbrainzerror.log\""  >> "/etc/crontab"
+		echo "0 */8 * * *   root   rm \"/config/scripts/lidarr-automated-downloader/musicbrainzerror.log\" && touch \"/config/scripts/lidarr-automated-downloader/musicbrainzerror.log\""  >> "/etc/crontab"
+	fi
+	if grep "download.log" /etc/crontab | read; then
+		echo "job already added..."
+	else
+		echo "adding cron job to crontab..."
+		echo "0 0 * * SAT   root   rm \"/config/scripts/lidarr-automated-downloader/download.log\""  >> "/etc/crontab"
 	fi
 	if grep "lidarr-automated-downloader/cache/" /etc/crontab | read; then
 		echo "job already added..."
 	else
 		echo "adding cron job to crontab..."
-		echo "5 18 * * FRI   root   rm -rf \"/config/scripts/lidarr-automated-downloader/cache/*.json\""  >> "/etc/crontab"
+		echo "0 0 * * SAT   root   rm -rf \"/config/scripts/lidarr-automated-downloader/cache/*.json\""  >> "/etc/crontab"
 	fi
 	if grep "/downloads/lidarr-import" /etc/crontab | read; then
 		echo "job already added..."
