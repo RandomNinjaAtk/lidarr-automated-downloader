@@ -323,13 +323,10 @@ GetDeezerArtistAlbumList () {
 			
 			if cat "download.log" | grep "${albumid}" | read; then
 				downloaded="true"
-				echo "ERROR: Previously downloaded ${albumname}, see: \"$(pwd)/download.log\" for more detail..."
-
 			else
 				downloaded="false"
 				echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname}" >> "download.log"
 			fi
-
 
 			if [ ! -d "$LidarrImportLocation/$importalbumfolder" ] && [ "${downloaded}" = false ]; then
 
@@ -401,7 +398,7 @@ GetDeezerArtistAlbumList () {
 		fi
 	fi
 	echo ""
-	sleep 2
+	sleep 0.5
 }
 
 AlbumDL () {
