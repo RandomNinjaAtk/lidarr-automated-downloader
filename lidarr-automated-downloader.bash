@@ -323,9 +323,10 @@ GetDeezerArtistAlbumList () {
 			
 			if cat "download.log" | grep "${albumid}" | read; then
 				downloaded="true"
+				echo "ERROR: Previously downloaded ${albumname}, see: \"$(pwd)/download.log\" for more detail..."
+
 			else
 				downloaded="false"
-				echo "ERROR: Previously downloaded ${albumname}, see: \"$(pwd)/download.log\" for more detail..."
 				echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname}" >> "download.log"
 			fi
 
