@@ -296,6 +296,7 @@ GetDeezerArtistAlbumList () {
 		
 		if [ -z "$albuminfo" ]; then
 			echo "ERROR: Cannot communicate with Deezer"
+			continue
 		fi
 					
 		albumname=$(echo "${albuminfo}" | jq -r ".title")
