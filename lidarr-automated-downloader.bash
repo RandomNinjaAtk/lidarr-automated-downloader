@@ -252,44 +252,42 @@ GetDeezerArtistAlbumList () {
 
 	DeezerArtistID=$(printf -- "%s" "${deezeraritstid##*/}")
 	echo "Deezer Artist ID: $DeezerArtistID"
-	
+	DeezerArtistMatchID=""
 	DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 	if [ -z "$DeezerArtistAlbumList" ]; then
 		echo "ERROR: Unable to retrieve albums from Deezer"
-		continue
-	fi
-	
-	DownloadList
-	
-	DeezerArtistAlbumListSortTotal=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l)
-	echo "Checking.... $DeezerArtistAlbumListSortTotal Albums for match"
-	
-	if [ "$normalizetype" = "single" ]; then
-		DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1)
 	else
-		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
-	fi
-		
-	if [ -z "$DeezerArtistMatchID" ]; then
-		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
-	fi
 	
-	if [ -z "$DeezerArtistMatchID" ]; then
-		echo "ERROR: Not found, fallback to fuzzy search"
+		DownloadList
+
+		DeezerArtistAlbumListSortTotal=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l)
+		echo "Checking.... $DeezerArtistAlbumListSortTotal Albums for match"
+
 		if [ "$normalizetype" = "single" ]; then
-			DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1)
+			DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1)
 		else
-			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
+			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
 		fi
+
 		if [ -z "$DeezerArtistMatchID" ]; then
-			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
+			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
 		fi
+
 		if [ -z "$DeezerArtistMatchID" ]; then
-			echo "ERROR: Not found, skipping..."
+			echo "ERROR: Not found, fallback to fuzzy search"
+			if [ "$normalizetype" = "single" ]; then
+				DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1)
+			else
+				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
+			fi
+			if [ -z "$DeezerArtistMatchID" ]; then
+				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
+			fi
+			if [ -z "$DeezerArtistMatchID" ]; then
+				echo "ERROR: Not found, skipping..."
+			fi
 		fi
-	fi
-	
-	
+	fi	
 	
 	if [ ! -z "$DeezerArtistMatchID" ]; then
 		albumid="${DeezerArtistMatchID}"
@@ -298,105 +296,107 @@ GetDeezerArtistAlbumList () {
 		
 		if [ -z "$albuminfo" ]; then
 			echo "ERROR: Cannot communicate with Deezer"
-			continue
-		fi
+		else
 					
-		albumname=$(echo "${albuminfo}" | jq -r ".title")
-		sanatizedalbumname="$(echo "${albumname}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-		sanatizedartistname="$(echo "${wantitalbumartistname}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-		tracktotal=$(echo "${albuminfo}" | jq -r ".nb_tracks")
-		actualtracktotal=$(echo "$albuminfo" | jq -r ".tracks.data | .[] | .id" | wc -l)
-		albumdartistid=$(echo "${albuminfo}" | jq -r ".artist | .id")
-		albumlyrictype="$(echo "${albuminfo}" | jq -r ".explicit_lyrics")"
-		albumartworkurl="$(echo "${albuminfo}" | jq -r ".cover_xl")"
-		albumdate="$(echo "${albuminfo}" | jq -r ".release_date")"
-		albumyear=$(echo ${albumdate::4})
-		albumtype="$(echo "${albuminfo}" | jq -r ".record_type")"
-		albumtypecap="${albumtype^^}"
-		albumduration=$(echo "${albuminfo}" | jq -r ".duration")
-		albumdurationdisplay=$(DurationCalc $albumduration)
-		albumtimeout=$(($albumduration*$albumtimeoutpercentage/100))
-		albumtimeoutdisplay=$(DurationCalc $albumtimeout)
-		albumfallbacktimout=$(($albumduration*2))
-		importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (${albumtypecap}) (WEB)-DREMIX"
-		
-		if ! [ -f "download.log" ]; then
-			touch "download.log"
-		fi
-		if cat "download.log" | grep "${albumid}" | read; then
-			continue
-		else
-			echo "ERROR: Previously downloaded ${albumname}, see: \"$(pwd)/download.log\" for more detail..."
-			echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname}" >> "download.log"
-		fi
-		
-		
-		if [ ! -d "$LidarrImportLocation/$importalbumfolder" ]; then
-		
-			TrackCountVerification		
+			albumname=$(echo "${albuminfo}" | jq -r ".title")
+			sanatizedalbumname="$(echo "${albumname}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
+			sanatizedartistname="$(echo "${wantitalbumartistname}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
+			tracktotal=$(echo "${albuminfo}" | jq -r ".nb_tracks")
+			actualtracktotal=$(echo "$albuminfo" | jq -r ".tracks.data | .[] | .id" | wc -l)
+			albumdartistid=$(echo "${albuminfo}" | jq -r ".artist | .id")
+			albumlyrictype="$(echo "${albuminfo}" | jq -r ".explicit_lyrics")"
+			albumartworkurl="$(echo "${albuminfo}" | jq -r ".cover_xl")"
+			albumdate="$(echo "${albuminfo}" | jq -r ".release_date")"
+			albumyear=$(echo ${albumdate::4})
+			albumtype="$(echo "${albuminfo}" | jq -r ".record_type")"
+			albumtypecap="${albumtype^^}"
+			albumduration=$(echo "${albuminfo}" | jq -r ".duration")
+			albumdurationdisplay=$(DurationCalc $albumduration)
+			albumtimeout=$(($albumduration*$albumtimeoutpercentage/100))
+			albumtimeoutdisplay=$(DurationCalc $albumtimeout)
+			albumfallbacktimout=$(($albumduration*2))
+			importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (${albumtypecap}) (WEB)-DREMIX"
 
-			if [ "$albumlyrictype" = true ]; then
-				albumlyrictype="Explicit"
-			elif [ "$albumlyrictype" = false ]; then
-				albumlyrictype="Clean"
+			if ! [ -f "download.log" ]; then
+				touch "download.log"
 			fi
-
-			echo "Deezer Matched Album Title: $albumname (ID: $albumid)"
-			echo "Album Link: $albumurl"
-			echo "Album Release Year: $albumyear"
-			echo "Album Release Type: $albumtype"
-			echo "Album Lyric Type: $albumlyrictype"
-			echo "Album Duration: $albumdurationdisplay"
-			echo "Album Track Count: $tracktotal"
-
-			CleanDLPath
-
-			AlbumDL
-
-			if [ $trackdlfallback = 1 ]; then
-				CleanDLPath
-				TrackMethod
-			fi
-
-			if [ $error = 1 ]; then
-				CleanDLPath
-				echo "ERROR: Download failed, skipping..."
+			
+			if cat "download.log" | grep "${albumid}" | read; then
+				downloaded="true"
 			else
-
-				DLAlbumArtwork
-
-				downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
-				downloadedlyriccount=$(find "$downloaddir" -type f -iname "*.lrc" | wc -l)
-				downloadedalbumartcount=$(find "$downloaddir" -type f -iname "folder.*" | wc -l)
-				replaygaintrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
-				converttrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
-				echo "Downloaded: $downloadedtrackcount Tracks"
-				echo "Downloaded: $downloadedlyriccount Synced Lyrics"
-				echo "Downloaded: $downloadedalbumartcount Album Cover"	
-
-				TrackCountDownloadVerification
-
-				if [ $error = 0 ]; then
-
-					conversion "$downloaddir"
-
-					if [ "${ReplaygainTagging}" = TRUE ]; then
-						replaygain "$downloaddir"
-					else
-						echo "REPLAYGAIN TAGGING DISABLED"
-					fi
-
-					ImportProcess
-
-					NotifyLidarr
-
-					CleanDLPath
-
-				fi
+				downloaded="false"
+				echo "ERROR: Previously downloaded ${albumname}, see: \"$(pwd)/download.log\" for more detail..."
+				echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname}" >> "download.log"
 			fi
-		else
-			echo "ERROR: Already downloaded, skipping..."
-			NotifyLidarr
+
+
+			if [ ! -d "$LidarrImportLocation/$importalbumfolder" ] && [ "${downloaded}" = false ]; then
+
+				TrackCountVerification		
+
+				if [ "$albumlyrictype" = true ]; then
+					albumlyrictype="Explicit"
+				elif [ "$albumlyrictype" = false ]; then
+					albumlyrictype="Clean"
+				fi
+
+				echo "Deezer Matched Album Title: $albumname (ID: $albumid)"
+				echo "Album Link: $albumurl"
+				echo "Album Release Year: $albumyear"
+				echo "Album Release Type: $albumtype"
+				echo "Album Lyric Type: $albumlyrictype"
+				echo "Album Duration: $albumdurationdisplay"
+				echo "Album Track Count: $tracktotal"
+
+				CleanDLPath
+
+				AlbumDL
+
+				if [ $trackdlfallback = 1 ]; then
+					CleanDLPath
+					TrackMethod
+				fi
+
+				if [ $error = 1 ]; then
+					CleanDLPath
+					echo "ERROR: Download failed, skipping..."
+				else
+
+					DLAlbumArtwork
+
+					downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
+					downloadedlyriccount=$(find "$downloaddir" -type f -iname "*.lrc" | wc -l)
+					downloadedalbumartcount=$(find "$downloaddir" -type f -iname "folder.*" | wc -l)
+					replaygaintrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
+					converttrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
+					echo "Downloaded: $downloadedtrackcount Tracks"
+					echo "Downloaded: $downloadedlyriccount Synced Lyrics"
+					echo "Downloaded: $downloadedalbumartcount Album Cover"	
+
+					TrackCountDownloadVerification
+
+					if [ $error = 0 ]; then
+
+						conversion "$downloaddir"
+
+						if [ "${ReplaygainTagging}" = TRUE ]; then
+							replaygain "$downloaddir"
+						else
+							echo "REPLAYGAIN TAGGING DISABLED"
+						fi
+
+						ImportProcess
+
+						NotifyLidarr
+
+						CleanDLPath
+
+					fi
+				fi
+			else
+				echo "ERROR: Already downloaded, skipping..."
+				NotifyLidarr
+			fi
 		fi
 	fi
 	echo ""
