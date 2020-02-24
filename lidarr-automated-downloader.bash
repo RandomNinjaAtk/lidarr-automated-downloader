@@ -321,7 +321,7 @@ GetDeezerArtistAlbumList () {
 		albumtimeout=$(($albumduration*$albumtimeoutpercentage/100))
 		albumtimeoutdisplay=$(DurationCalc $albumtimeout)
 		albumfallbacktimout=$(($albumduration*2))
-		importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (WEB)-DREMIX"
+		importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (${albumtypecap}) (WEB)-DREMIX"
 		
 		if [ ! -d "$LidarrImportLocation/$importalbumfolder" ]; then
 		
