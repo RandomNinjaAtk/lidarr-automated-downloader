@@ -251,8 +251,9 @@ DownloadList () {
 GetDeezerArtistAlbumList () {
 
 	DeezerArtistID=$(printf -- "%s" "${deezeraritstid##*/}")
-	DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 	echo "Deezer Artist ID: $DeezerArtistID"
+	
+	DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 	if [ -z "$DeezerArtistAlbumList" ]; then
 		echo "ERROR: Unable to retrieve albums from Deezer"
 		continue
