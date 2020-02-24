@@ -327,7 +327,7 @@ GetDeezerArtistAlbumList () {
 			continue
 		else
 			echo "ERROR: Previously downloaded ${albumname}, see: \"$(pwd)/download.log\" for more detail..."
-			echo "Downloaded :: ${albumid} :: ${albumname}" >> "download.log"
+			echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname}" >> "download.log"
 		fi
 		
 		
