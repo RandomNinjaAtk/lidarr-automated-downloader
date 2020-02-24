@@ -167,33 +167,33 @@ find /config/scripts -type d -exec chmod 0777 {} \;
 
 if [ -x "$(command -v crontab)" ]; then	
 	if grep "lidarr-automated-downloader-start.bash" /etc/crontab | read; then
-		echo "job already added..."
+		echo "Script start cron job already added..."
 	else
-		echo "adding cron job to crontab..."
+		echo "Adding script start cron job to crontab..."
 		echo "*/15 * * * *   root   bash /config/scripts/lidarr-automated-downloader-start.bash > /config/scripts/cron-job.log" >> "/etc/crontab"
 	fi
 	if grep "musicbrainzerror.log" /etc/crontab | read; then
-		echo "job already added..."
+		echo "Musicbrainzerror log cleaner cron job already added..."
 	else
-		echo "adding cron job to crontab..."
-		echo "0 */8 * * *   root   rm \"/config/scripts/lidarr-automated-downloader/musicbrainzerror.log\" && touch \"/config/scripts/lidarr-automated-downloader/musicbrainzerror.log\""  >> "/etc/crontab"
+		echo "Adding musicbrainzerror log cleaner cron job to crontab..."
+		echo "0 */8 * * *   root   rm \"/config/scripts/lidarr-automated-downloader/musicbrainzerror.log\""  >> "/etc/crontab"
 	fi
 	if grep "download.log" /etc/crontab | read; then
-		echo "job already added..."
+		echo "Download log cleaner cron job already added..."
 	else
-		echo "adding cron job to crontab..."
+		echo "Adding download log cleaner cron job to crontab..."
 		echo "0 0 * * SAT   root   rm \"/config/scripts/lidarr-automated-downloader/download.log\""  >> "/etc/crontab"
 	fi
 	if grep "lidarr-automated-downloader/cache/" /etc/crontab | read; then
-		echo "job already added..."
+		echo "Cache cleaner cron job already added..."
 	else
-		echo "adding cron job to crontab..."
+		echo "Adding cache cleaner cron job to crontab..."
 		echo "0 0 * * SAT   root   rm -rf \"/config/scripts/lidarr-automated-downloader/cache/*.json\""  >> "/etc/crontab"
 	fi
 	if grep "/downloads/lidarr-import" /etc/crontab | read; then
-		echo "job already added..."
+		echo "Lidarr Import folder cleanup job already added..."
 	else
-		echo "adding cron job to crontab..."
+		echo "Adding Lidarr Import folder cleanup cron job to crontab..."
 		echo "0 */6 * * *   root   rm -rf \"/downloads/lidarr-import\"/*"  >> "/etc/crontab"
 	fi
 	service cron restart
