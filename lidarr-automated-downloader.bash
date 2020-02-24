@@ -254,7 +254,8 @@ GetDeezerArtistAlbumList () {
 	DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 	echo "Deezer Artist ID: $DeezerArtistID"
 	if [ -z "$DeezerArtistAlbumList" ]; then
-		echo "ERROR: Cannot communicate with Deezer"
+		echo "ERROR: Unable to retrieve albums from Deezer"
+		continue
 	fi
 	
 	DownloadList
