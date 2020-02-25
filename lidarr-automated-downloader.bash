@@ -74,6 +74,9 @@ CleanDLPath () {
 
 CleanImportPath () {
 	echo "Cleaning Lidarr Import directory..."
+	if [ -f "${LidarrImportLocation}/cleanup" ]; then
+		rm "${LidarrImportLocation}/cleanup"
+	fi
 	touch -d "3 hours ago" "${LidarrImportLocation}/cleanup"
 	find "${LidarrImportLocation}" -type d -not -newer "${LidarrImportLocation}/cleanup" -exec rm -rf "{}" \; 
 	rm "${LidarrImportLocation}/cleanup"
