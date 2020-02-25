@@ -158,6 +158,7 @@ ProcessLidarrAlbums () {
 		currentprocess=$(( $id + 1 ))
 		albumid="${wantitid[$id]}"
 		wantitalbum=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/album?albumIds=${albumid}")
+		wantitalbumrecordtitles=("$(echo "${wantitalbum}" | jq '.[] |  .releases | .[] | .title')")
 		if [ -z "$wantitalbum" ]; then
 			echo "ERROR: Cannot communicate with Lidarr"
 			exit 1
@@ -175,7 +176,7 @@ ProcessLidarrAlbums () {
 				
 		if [ -z "${wantitalbumartistdeezerid}" ]; then	
 			echo "ERROR: Fallback to musicbrainz for url..."
-			mbjson=$(curl -s "http://musicbrainz.org/ws/2/artist/${wantitalbumartistdeezerid}?inc=url-rels&fmt=json")
+			mbjson=$(curl -s "http://musicbrainz.org/ws/2/artist/${wantitalbumartistmbid}?inc=url-rels&fmt=json")
 			wantitalbumartistdeezerid=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 		fi	
 
@@ -198,6 +199,60 @@ ProcessLidarrAlbums () {
 		done
 	
 	done
+}
+
+DeezerMatching () {
+
+	DeezerArtistMatchID=""
+	DeezerArtistAlbumListSortTotal=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l)
+	echo "Checking.... $DeezerArtistAlbumListSortTotal Albums for match"
+
+	if [ "$normalizetype" = "single" ]; then
+		DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1)
+	else
+		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
+	fi
+
+	if [ -z "$DeezerArtistMatchID" ]; then
+		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
+	fi
+
+	if [ -z "$DeezerArtistMatchID" ]; then
+		# Check Album release records for match as backup because primary album title did not match
+		for recordstitle in "${!wantitalbumrecordtitles[@]}"; do
+			sanatizedrecordstitle="$(echo "${wantitalbumrecordtitles[$recordstitle]}" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
+			
+			if [ "$normalizetype" = "single" ]; then
+				DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name==\"${sanatizedrecordstitle}\") | .id" | head -n1)
+			else
+				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name==\"${sanatizedrecordstitle}\") | .id" | head -n1))
+			fi
+
+			if [ -z "$DeezerArtistMatchID" ]; then
+				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name==\"${sanatizedrecordstitle}\") | .id" | head -n1))
+			fi
+			
+			if [ ! -z "$DeezerArtistMatchID" ]; then
+				continue
+			fi
+		done
+	fi
+	
+	if [ -z "$DeezerArtistMatchID" ]; then
+		echo "ERROR: Not found, fallback to fuzzy search"
+		if [ "$normalizetype" = "single" ]; then
+			DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1)
+		else
+			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
+		fi
+		if [ -z "$DeezerArtistMatchID" ]; then
+			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
+		fi
+		if [ -z "$DeezerArtistMatchID" ]; then
+			echo "ERROR: Not found, skipping..."
+		fi
+	fi
+
 }
 
 DownloadList () {
@@ -261,10 +316,8 @@ DownloadList () {
 
 GetDeezerArtistAlbumList () {
 
-	DeezerArtistID=$(printf -- "%s" "${deezeraritstid##*/}")
+	DeezerArtistID=$(echo "${deezeraritstid}" | grep -o '[[:digit:]]*')
 	echo "Deezer Artist ID: $DeezerArtistID"
-	DeezerArtistMatchID=""
-	newalbumlist=""
 	DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 	newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
 	if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
@@ -272,34 +325,9 @@ GetDeezerArtistAlbumList () {
 	else
 	
 		DownloadList
-
-		DeezerArtistAlbumListSortTotal=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l)
-		echo "Checking.... $DeezerArtistAlbumListSortTotal Albums for match"
-
-		if [ "$normalizetype" = "single" ]; then
-			DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1)
-		else
-			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
-		fi
-
-		if [ -z "$DeezerArtistMatchID" ]; then
-			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
-		fi
-
-		if [ -z "$DeezerArtistMatchID" ]; then
-			echo "ERROR: Not found, fallback to fuzzy search"
-			if [ "$normalizetype" = "single" ]; then
-				DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1)
-			else
-				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
-			fi
-			if [ -z "$DeezerArtistMatchID" ]; then
-				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
-			fi
-			if [ -z "$DeezerArtistMatchID" ]; then
-				echo "ERROR: Not found, skipping..."
-			fi
-		fi
+		
+		DeezerMatching
+		
 	fi	
 	
 	if [ ! -z "$DeezerArtistMatchID" ]; then
