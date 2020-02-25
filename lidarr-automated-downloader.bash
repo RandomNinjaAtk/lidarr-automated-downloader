@@ -163,7 +163,7 @@ ProcessLidarrAlbums () {
 		currentprocess=$(( $id + 1 ))
 		albumid="${wantitid[$id]}"
 		wantitalbum=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/album?albumIds=${albumid}")
-		wantitalbumrecordtitles=("$(echo "${wantitalbum}" | jq '.[] |  .releases | .[] | .title')")
+		wantitalbumrecordtitles=($(echo "${wantitalbum}" | jq '.[] | .releases | .[] | .id'))
 		if [ -z "$wantitalbum" ]; then
 			echo "ERROR: Cannot communicate with Lidarr"
 			exit 1
@@ -227,22 +227,23 @@ DeezerMatching () {
 
 	if [ -z "$DeezerArtistMatchID" ]; then
 		# Check Album release records for match as backup because primary album title did not match
-		for recordstitle in "${!wantitalbumrecordtitles[@]}"; do
-			sanatizedrecordstitle="$(echo "${wantitalbumrecordtitles[$recordstitle]}" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
-			
+		for id in "${!wantitalbumrecordtitles[@]}"; do
+			recordid=${wantitalbumrecordtitles[$id]}
+			recordtitle="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .title")"
+			sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 			if [ "$normalizetype" = "single" ]; then
-				DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name==\"${sanatizedrecordstitle}\") | .id" | head -n1)
+				DeezerArtistMatchID=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type==\"single\") | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1)
 			else
-				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name==\"${sanatizedrecordstitle}\") | .id" | head -n1))
+				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.record_type!=\"single\") | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
 			fi
 
 			if [ -z "$DeezerArtistMatchID" ]; then
-				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name==\"${sanatizedrecordstitle}\") | .id" | head -n1))
+				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
 			fi
 			
 			if [ ! -z "$DeezerArtistMatchID" ]; then
-				echo "Lidarr Matched Album Release Title: ${wantitalbumrecordtitles[$recordstitle]}"
-				continue
+				echo "Lidarr Matched Album Release Title: $recordtitle"
+				break
 			fi
 		done
 	fi
