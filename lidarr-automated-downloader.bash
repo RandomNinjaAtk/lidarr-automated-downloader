@@ -189,14 +189,17 @@ ProcessLidarrAlbums () {
 			else
 				echo "ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 				echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/${wantitalbumartistmbid}/relationships for \"${wantitalbumartistname}\" with Deezer Artist Link" >> "musicbrainzerror.log"
+				echo ""
 				continue
 			fi
 		fi
 		
-		for deezerid in "${!wantitalbumartistdeezerid[@]}"; do
-			deezeraritstid="${wantitalbumartistdeezerid[$deezerid]}"
-			GetDeezerArtistAlbumList
-		done
+		if [ ! -z "$wantitalbumartistdeezerid" ]; then
+			for deezerid in "${!wantitalbumartistdeezerid[@]}"; do
+				deezeraritstid="${wantitalbumartistdeezerid[$deezerid]}"
+				GetDeezerArtistAlbumList
+			done
+		fi
 	
 	done
 }
