@@ -184,12 +184,6 @@ if [ -x "$(command -v crontab)" ]; then
 		echo "Adding download log cleaner cron job to crontab..."
 		echo "0 0 * * SAT   root   rm \"/config/scripts/lidarr-automated-downloader/download.log\""  >> "/etc/crontab"
 	fi
-	if grep "/downloads/lidarr-import" /etc/crontab | read; then
-		echo "Lidarr Import folder cleanup job already added..."
-	else
-		echo "Adding Lidarr Import folder cleanup cron job to crontab..."
-		echo "0 */6 * * *   root   rm -rf \"/downloads/lidarr-import\"/*"  >> "/etc/crontab"
-	fi
 	service cron restart
 else
 	echo "cron NOT INSTALLED"
