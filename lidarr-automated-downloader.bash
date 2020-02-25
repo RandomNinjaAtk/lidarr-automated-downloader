@@ -380,7 +380,7 @@ GetDeezerArtistAlbumList () {
 
 			TrackCountVerification
 			
-			if [ ! -d "$LidarrImportLocation/$importalbumfolder" ] && [ "${downloaded}" = false ]  && [ $error = 0 ]; then		
+			if [ ! -d "$LidarrImportLocation/$importalbumfolder" ] && [ "${downloaded}" = false ] && [ $error = 0 ]; then		
 
 				if [ "$albumlyrictype" = true ]; then
 					albumlyrictype="Explicit"
