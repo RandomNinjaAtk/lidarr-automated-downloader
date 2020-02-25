@@ -76,7 +76,7 @@ CleanImportPath () {
 	echo "Cleaning Lidarr Import directory..."
 	touch -d "3 hours ago" "${LidarrImportLocation}/cleanup"
 	find "${LidarrImportLocation}" -type d -not -newer "${LidarrImportLocation}/cleanup" -exec rm -rf "{}" \; 
-	rm -rf "${LidarrImportLocation}/cleanup"
+	rm "${LidarrImportLocation}/cleanup"
 }
 
 FileAccessPermissions () {
