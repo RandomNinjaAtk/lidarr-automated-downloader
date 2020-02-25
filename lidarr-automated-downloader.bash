@@ -241,6 +241,7 @@ DeezerMatching () {
 			fi
 			
 			if [ ! -z "$DeezerArtistMatchID" ]; then
+				echo "Lidarr Matched Album Release Title: ${wantitalbumrecordtitles[$recordstitle]}"
 				continue
 			fi
 		done
