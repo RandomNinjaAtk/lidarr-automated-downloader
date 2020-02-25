@@ -203,7 +203,6 @@ ProcessLidarrAlbums () {
 DownloadList () {
 	
 	if [ -f "cache/$DeezerArtistID-albumlist.json" ]; then
-		newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
 		cachealbumlist="$(cat "cache/$DeezerArtistID-albumlist.json" | jq '.[].id' | wc -l)"
 		if [ "${newalbumlist}" -ne "${cachealbumlist}" ]; then
 			echo "Existing Cached Deezer Artist Album list is out of date, updating..."
@@ -265,8 +264,10 @@ GetDeezerArtistAlbumList () {
 	DeezerArtistID=$(printf -- "%s" "${deezeraritstid##*/}")
 	echo "Deezer Artist ID: $DeezerArtistID"
 	DeezerArtistMatchID=""
+	newalbumlist=""
 	DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
-	if [ -z "$DeezerArtistAlbumList" ]; then
+	newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
+	if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
 		echo "ERROR: Unable to retrieve albums from Deezer"
 	else
 	
