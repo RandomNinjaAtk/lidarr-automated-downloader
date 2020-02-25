@@ -201,6 +201,18 @@ ProcessLidarrAlbums () {
 }
 
 DownloadList () {
+	
+	if [ -f "cache/$DeezerArtistID-albumlist.json" ]; then
+		newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
+		cachealbumlist="$(cat "cache/$DeezerArtistID-albumlist.json" | jq '.[].id' | wc -l)"
+		if [ "${newalbumlist}" -ne "${cachealbumlist}" ]; then
+			echo "Existing Cached Deezer Artist Album list is out of date, updating..."
+			rm "cache/$DeezerArtistID-albumlist.json"
+			sleep 0.1
+		else
+			echo "Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
+		fi
+	fi	
 
 	if [ ! -f "cache/$DeezerArtistID-albumlist.json" ]; then
 		
