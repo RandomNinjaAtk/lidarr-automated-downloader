@@ -444,7 +444,6 @@ GetDeezerArtistAlbumList () {
 		fi
 	fi
 	echo ""
-	sleep 0.5
 }
 
 AlbumDL () {
@@ -506,7 +505,7 @@ TrackDL () {
 			if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
 				check=2
 			else
-				sleep 1s
+				sleep 1
 				retry=0
 				if [ "$j" = "$tracktimeout" ]; then
 					dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
@@ -531,7 +530,7 @@ TrackDL () {
 				if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
 					retry=2
 				else
-					sleep 1s
+					sleep 1
 					fallback=0
 					if [ "$k" = "$trackfallbacktimout" ]; then
 						dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
@@ -565,7 +564,7 @@ TrackDL () {
 					if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
 						fallback=2
 					else
-						sleep 1s
+						sleep 1
 						if [ "$l" = $tracktimeout ]; then
 							dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
 							if curl -s --request GET "$deezloaderurl/api/canceldownload/?queueId=$dlid" >/dev/null; then
@@ -601,7 +600,7 @@ TrackDL () {
 					if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
 						fallbackbackup=2
 					else
-						sleep 1s
+						sleep 1
 						if [ "$l" = $trackfallbacktimout ]; then
 							dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
 							if curl -s --request GET "$deezloaderurl/api/canceldownload/?queueId=$dlid" >/dev/null; then
@@ -698,7 +697,7 @@ Verify () {
 					else
 						echo "Track Verification Error: \"$filename\" deleted...retrying download via track method"
 						rm -rf "$downloaddir"/*
-						sleep 0.5
+						sleep 0.1
 						trackdlfallback=1
 					fi
 				done
