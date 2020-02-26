@@ -78,7 +78,7 @@ CleanImportPath () {
 		rm "${LidarrImportLocation}/cleanup"
 	fi
 	touch -d "3 hours ago" "${LidarrImportLocation}/cleanup"
-	find "${LidarrImportLocation}" -type d -not -newer "${LidarrImportLocation}/cleanup" -exec rm -rf "{}" \; 
+	find "${LidarrImportLocation}" -type d -not -newer "${LidarrImportLocation}/cleanup" -exec rm -rf "{}" \; > /dev/null 2>&1
 	rm "${LidarrImportLocation}/cleanup"
 }
 
