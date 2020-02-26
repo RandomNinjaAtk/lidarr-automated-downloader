@@ -46,7 +46,7 @@ configuration () {
 	echo ""
 	echo "Begin finding downloads..."
 	echo ""
-	sleep 5
+	sleep 1.5
 	
 	if [ "$quality" != "MP3" ]; then
 		dlquality="flac"
