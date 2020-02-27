@@ -172,12 +172,6 @@ if [ -x "$(command -v crontab)" ]; then
 		echo "Adding script start cron job to crontab..."
 		echo "*/15 * * * *   root   bash /config/scripts/lidarr-automated-downloader-start.bash > /config/scripts/cron-job.log" >> "/etc/crontab"
 	fi
-	if grep "musicbrainzerror.log" /etc/crontab | read; then
-		echo "Musicbrainzerror log cleaner cron job already added..."
-	else
-		echo "Adding musicbrainzerror log cleaner cron job to crontab..."
-		echo "0 */8 * * *   root   rm \"/config/scripts/lidarr-automated-downloader/musicbrainzerror.log\""  >> "/etc/crontab"
-	fi
 	if grep "download.log" /etc/crontab | read; then
 		echo "Download log cleaner cron job already added..."
 	else
