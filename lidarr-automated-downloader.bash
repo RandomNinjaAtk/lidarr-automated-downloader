@@ -90,7 +90,7 @@ CleanMusicbrainzLog () {
 		rm "cleanup-musicbrainzerrorlog"
 	fi
 	if [ -f "cleanup-musicbrainzerrorlog" ]; then
-		touch -d "1 hours ago" "cleanup-musicbrainzerrorlog"
+		touch -d "3 hours ago" "cleanup-musicbrainzerrorlog"
 		if find -type f -iname "musicbrainzerror.log" -not -newer "cleanup-musicbrainzerrorlog" | read; then
 			echo "Cleaning  musicbrainzerror.log..."
 			find find -type f -iname "musicbrainzerror.log" -not -newer "cleanup-musicbrainzerrorlog" -delete
