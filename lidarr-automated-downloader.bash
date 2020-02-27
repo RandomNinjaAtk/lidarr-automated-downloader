@@ -258,12 +258,12 @@ DeezerMatching () {
 	
 	# Match using Sanatized Album Name + Track Count + Year
 	if [ -z "$DeezerArtistMatchID" ]; then
-		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$wantitalbumtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
+		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$wantitalbumtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
 	fi
 	
 	# Match using Sanatized Album Name + Track Count
 	if [ -z "$DeezerArtistMatchID" ]; then
-		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$wantitalbumtrackcount) | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
+		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$wantitalbumtrackcount) | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
 	fi
 
 	if [ -z "$DeezerArtistMatchID" ]; then
@@ -276,12 +276,12 @@ DeezerMatching () {
 			
 			# Match using Sanatized Release Record Album Name + Track Count + Year
 			if [ -z "$DeezerArtistMatchID" ]; then
-				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$recordtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
+				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
 			fi
 			
 			# Match using Sanatized Album Name + Track Count
 			if [ -z "$DeezerArtistMatchID" ]; then
-				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$recordtrackcount) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
+				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
 			fi
 			
 			if [ ! -z "$DeezerArtistMatchID" ]; then
@@ -297,7 +297,7 @@ DeezerMatching () {
 		
 		# Fallback Match using Sanatized Album Name (Contains) + Track Count + Year
 		if [ -z "$DeezerArtistMatchID" ]; then
-			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$wantitalbumtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
+			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$wantitalbumtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
 		fi
 		
 		if [ -z "$DeezerArtistMatchID" ]; then
@@ -343,8 +343,9 @@ DownloadList () {
 			if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "temp/${albumid}-temp-album.json"; then
 				sleep 0.1
 				albumtitle="$(cat "temp/${albumid}-temp-album.json" | jq ".title")"
+				actualtracktotal=$(cat "temp/${albumid}-temp-album.json" | jq -r ".tracks.data | .[] | .id" | wc -l)
 				sanatizedalbumtitle="$(echo "$albumtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
-				jq ". + {\"sanatized_album_name\": \"$sanatizedalbumtitle\"}" "temp/${albumid}-temp-album.json" > "temp/${albumid}-album.json"
+				jq ". + {\"sanatized_album_name\": \"$sanatizedalbumtitle\"} + {\"actualtracktotal\": $actualtracktotal}" "temp/${albumid}-temp-album.json" > "temp/${albumid}-album.json"
 				rm "temp/${albumid}-temp-album.json"
 				sleep 0.1
 			else
@@ -399,8 +400,8 @@ GetDeezerArtistAlbumList () {
 	if [ ! -z "$DeezerArtistMatchID" ]; then
 		albumid="${DeezerArtistMatchID}"
 		albumurl="https://www.deezer.com/album/${albumid}"
-		albuminfo=$(curl -sL --fail "https://api.deezer.com/album/$albumid")
-		
+		albuminfo="$(cat "cache/$DeezerArtistID-albumlist.json" | jq ".[] | select(.id==${albumid})")"
+
 		if [ -z "$albuminfo" ]; then
 			echo "ERROR: Cannot communicate with Deezer"
 		else
@@ -409,12 +410,12 @@ GetDeezerArtistAlbumList () {
 			sanatizedalbumname="$(echo "${albumname}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			sanatizedartistname="$(echo "${wantitalbumartistname}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			tracktotal=$(echo "${albuminfo}" | jq -r ".nb_tracks")
-			actualtracktotal=$(echo "$albuminfo" | jq -r ".tracks.data | .[] | .id" | wc -l)
+			actualtracktotal=$(echo "$albuminfo" | jq -r ".actualtracktotal")
 			albumdartistid=$(echo "${albuminfo}" | jq -r ".artist | .id")
 			albumlyrictype="$(echo "${albuminfo}" | jq -r ".explicit_lyrics")"
 			albumartworkurl="$(echo "${albuminfo}" | jq -r ".cover_xl")"
 			albumdate="$(echo "${albuminfo}" | jq -r ".release_date")"
-			albumyear=$(echo ${albumdate::4})
+			albumyear=$(echo ${albumdate:0:4})
 			albumtype="$(echo "${albuminfo}" | jq -r ".record_type")"
 			albumtypecap="${albumtype^^}"
 			albumduration=$(echo "${albuminfo}" | jq -r ".duration")
@@ -436,7 +437,6 @@ GetDeezerArtistAlbumList () {
 			
 			error=0
 
-			TrackCountVerification
 			
 			if [ ! -d "$LidarrImportLocation/$importalbumfolder" ] && [ "${downloaded}" = false ] && [ $error = 0 ]; then		
 
@@ -890,15 +890,6 @@ DLAlbumArtwork () {
 		sleep 0.1
 	else
 		echo "Failed downloading album cover picture..."
-	fi
-}
-
-TrackCountVerification () {
-	if [ "$VerifyTrackCount" = true ]; then
-		if [ "$tracktotal" -ne "$actualtracktotal" ]; then
-			echo "ERROR: Listed Track Count does not match actual track count"
-			error=1
-		fi
 	fi
 }
 
