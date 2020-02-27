@@ -162,6 +162,15 @@ if [ ! -f "/config/scripts/lidarr-automated-downloader/config" ]; then
     echo "done"
 fi
 
+# Clear cache
+if [ -d "/config/scripts/lidarr-automated-downloader/cache" ]; then
+	if find "/config/scripts/lidarr-automated-downloader/cache"/ -type f | read; then
+		echo "Clearing cache..."
+		find "/config/scripts/lidarr-automated-downloader/cache"/ -type f -delete
+	fi
+fi
+
+# Set permissions
 find /config/scripts -type f -exec chmod 0666 {} \;
 find /config/scripts -type d -exec chmod 0777 {} \;
 
