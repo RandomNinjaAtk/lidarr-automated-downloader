@@ -164,10 +164,13 @@ ProcessLidarrAlbums () {
 		albumid="${wantitid[$id]}"
 		wantitalbum=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/album?albumIds=${albumid}")
 		wantitalbumrecordtitles=($(echo "${wantitalbum}" | jq '.[] | .releases | .[] | .id'))
+		
 		if [ -z "$wantitalbum" ]; then
 			echo "ERROR: Cannot communicate with Lidarr"
 			exit 1
 		fi
+		
+		# Get album information from lidarr
 		wantitalbumtitle=$(echo "${wantitalbum}"| jq -r '.[] | .title')
 		wantitalbumyear="$(echo "${wantitalbum}"| jq -r '.[] | .releaseDate')"
 		wantitalbumyear="${wantitalbumyear:0:4}"
@@ -183,13 +186,15 @@ ProcessLidarrAlbums () {
 		echo "Lidarr Album Year: $wantitalbumyear"
 		echo "Lidarr Album Type: $normalizetype" 
 		echo "Lidarr Album Track Count: $wantitalbumtrackcount"
-				
+		
+		# Get Deezer ArtistID from Musicbrainz if not found in Lidarr
 		if [ -z "${wantitalbumartistdeezerid}" ]; then	
 			echo "ERROR: Fallback to musicbrainz for url..."
 			mbjson=$(curl -s "http://musicbrainz.org/ws/2/artist/${wantitalbumartistmbid}?inc=url-rels&fmt=json")
 			wantitalbumartistdeezerid=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 		fi	
-
+		
+		# If Deezer ArtistID is not found, log it...
 		if [ -z "$wantitalbumartistdeezerid" ]; then
 			if ! [ -f "musicbrainzerror.log" ]; then
 				touch "musicbrainzerror.log"
@@ -220,10 +225,12 @@ DeezerMatching () {
 	DeezerArtistAlbumListSortTotal=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l)
 	echo "Checking.... $DeezerArtistAlbumListSortTotal Albums for match"
 	
+	# Match using Sanatized Album Name + Track Count + Year
 	if [ -z "$DeezerArtistMatchID" ]; then
 		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$wantitalbumtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
 	fi
-
+	
+	# Match using Sanatized Album Name + Track Count
 	if [ -z "$DeezerArtistMatchID" ]; then
 		DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$wantitalbumtrackcount) | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
 	fi
@@ -236,10 +243,12 @@ DeezerMatching () {
 			recordtrackcount="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
 			sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 			
+			# Match using Sanatized Release Record Album Name + Track Count + Year
 			if [ -z "$DeezerArtistMatchID" ]; then
 				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$recordtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
 			fi
-
+			
+			# Match using Sanatized Album Name + Track Count
 			if [ -z "$DeezerArtistMatchID" ]; then
 				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$recordtrackcount) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
 			fi
@@ -254,9 +263,12 @@ DeezerMatching () {
 	
 	if [ -z "$DeezerArtistMatchID" ]; then
 		echo "ERROR: Not found, fallback to fuzzy search"
+		
+		# Fallback Match using Sanatized Album Name (Contains) + Track Count + Year
 		if [ -z "$DeezerArtistMatchID" ]; then
 			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.nb_tracks==$wantitalbumtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
 		fi
+		
 		if [ -z "$DeezerArtistMatchID" ]; then
 			echo "ERROR: Not found, skipping..."
 		fi
@@ -264,7 +276,7 @@ DeezerMatching () {
 }
 
 DownloadList () {
-	
+	# Check cache deezer artistid album list for matching discography album count, if different, delete
 	if [ -f "cache/$DeezerArtistID-albumlist.json" ]; then
 		cachealbumlist="$(cat "cache/$DeezerArtistID-albumlist.json" | jq '.[].id' | wc -l)"
 		if [ "${newalbumlist}" -ne "${cachealbumlist}" ]; then
@@ -274,8 +286,9 @@ DownloadList () {
 		else
 			echo "Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
 		fi
-	fi	
-
+	fi
+	
+	# Cahche deezer artistid album list and save to file for re-use...
 	if [ ! -f "cache/$DeezerArtistID-albumlist.json" ]; then
 		
 		echo "Caching Deezer Artist (ID: ${DeezerArtistID}) Album List for matching..."
@@ -284,6 +297,7 @@ DownloadList () {
 			sleep 0.1
 			rm -rf "temp"
 		fi
+		
 		DeezerArtistAlbumListID=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id"))
 		for id in ${!DeezerArtistAlbumListID[@]}; do
 			albumid="${DeezerArtistAlbumListID[$id]}"
@@ -302,6 +316,7 @@ DownloadList () {
 			fi				
 		done
 		
+		# Cleanup temp files...
 		if [ -f "downloadlist.json" ]; then
 			rm "downloadlist.json"
 			sleep 0.1
