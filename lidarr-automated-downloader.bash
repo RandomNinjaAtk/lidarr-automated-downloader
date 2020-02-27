@@ -404,6 +404,7 @@ DownloadList () {
 		fi
 		
 		jq -s '.' temp/*-album.json > "cache/$DeezerArtistID-albumlist.json"
+		touch "cache/$DeezerArtistID-checked"
 		
 		if [ -d "temp" ]; then
 			sleep 0.1
