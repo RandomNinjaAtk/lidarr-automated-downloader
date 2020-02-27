@@ -166,7 +166,7 @@ fi
 if [ -d "/config/scripts/lidarr-automated-downloader/cache" ]; then
 	if find "/config/scripts/lidarr-automated-downloader/cache"/ -type f | read; then
 		echo "Clearing cache..."
-		find "/config/scripts/lidarr-automated-downloader/cache"/ -type f -delete
+		find "/config/scripts/lidarr-automated-downloader/cache"/ -type f -iname "*.json" -delete
 	fi
 fi
 
