@@ -67,18 +67,36 @@ paths () {
 }
 
 CleanDLPath () {
-	echo "Cleaning Download directory..."
-	rm -rf "$downloaddir"/*
+	if find "${downloaddir}" -type f | read; then
+		echo "Cleaning Download directory..."
+		find "${downloaddir}" -type f -delete
+	fi
 }
 
 CleanImportPath () {
-	echo "Cleaning Lidarr Import directory..."
-	if [ -f "${LidarrImportLocation}/cleanup" ]; then
-		rm "${LidarrImportLocation}/cleanup"
+	if [ -f "cleanup-imports" ]; then
+		rm "cleanup-imports"
 	fi
-	touch -d "3 hours ago" "${LidarrImportLocation}/cleanup"
-	find "${LidarrImportLocation}" -type d -not -newer "${LidarrImportLocation}/cleanup" -exec rm -rf "{}" \; > /dev/null 2>&1
-	rm "${LidarrImportLocation}/cleanup"
+	touch -d "3 hours ago" "cleanup-imports"
+	if find "${LidarrImportLocation}" -type d -not -newer "cleanup-imports" | read; then
+		echo "Cleaning Lidarr Import directory..."
+		find "${LidarrImportLocation}" -type d -not -newer "cleanup-imports" -exec rm -rf "{}" \; > /dev/null 2>&1
+	fi
+	rm "cleanup-imports"
+}
+
+CleanMusicbrainzLog () {
+	if [ -f "cleanup-musicbrainzerrorlog" ]; then
+		rm "cleanup-musicbrainzerrorlog"
+	fi
+	if [ -f "cleanup-musicbrainzerrorlog" ]; then
+		touch -d "1 hours ago" "cleanup-musicbrainzerrorlog"
+		if find -type f -iname "musicbrainzerror.log" -not -newer "cleanup-musicbrainzerrorlog" | read; then
+			echo "Cleaning  musicbrainzerror.log..."
+			find find -type f -iname "musicbrainzerror.log" -not -newer "cleanup-musicbrainzerrorlog" -delete
+		fi
+		rm "cleanup-musicbrainzerrorlog"
+	fi
 }
 
 CleanCacheCheck () {
@@ -205,11 +223,15 @@ ProcessLidarrAlbums () {
 		
 		# If Deezer ArtistID is not found, log it...
 		if [ -z "$wantitalbumartistdeezerid" ]; then
+			
+			CleanMusicbrainzLog
+		
 			if ! [ -f "musicbrainzerror.log" ]; then
 				touch "musicbrainzerror.log"
 			fi
 			if cat "musicbrainzerror.log" | grep "${wantitalbumartistmbid}" | read; then
 				echo "ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+				echo ""
 			else
 				echo "ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 				echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/${wantitalbumartistmbid}/relationships for \"${wantitalbumartistname}\" with Deezer Artist Link" >> "musicbrainzerror.log"
