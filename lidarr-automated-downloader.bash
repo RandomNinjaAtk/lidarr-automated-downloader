@@ -223,6 +223,7 @@ ProcessLidarrAlbums () {
 		if [ -z "${wantitalbumartistdeezerid}" ]; then	
 			if [ -f "cache/${wantitalbumartisid}-fuzzymatch" ]; then
 				wantitalbumartistdeezerid="$(cat "cache/${wantitalbumartisid}-fuzzymatch")"
+				echo "Using cached fuzzymatch for processing this request..."
 			fi
 		elif [ -f "cache/${wantitalbumartisid}-fuzzymatch" ]; then
 			rm "cache/${wantitalbumartisid}-fuzzymatch"
