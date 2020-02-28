@@ -223,8 +223,19 @@ ProcessLidarrAlbums () {
 		if [ -z "${wantitalbumartistdeezerid}" ]; then	
 			if [ -f "cache/${wantitalbumartisid}-fuzzymatch" ]; then
 				wantitalbumartistdeezerid="$(cat "cache/${wantitalbumartisid}-fuzzymatch")"
-				echo "Using cached fuzzymatch for processing this request..."
-			fi
+			
+				CleanMusicbrainzLog
+		
+				if ! [ -f "musicbrainzerror.log" ]; then
+					touch "musicbrainzerror.log"
+				fi
+				if cat "musicbrainzerror.log" | grep "${wantitalbumartistmbid}" | read; then
+					echo "Using cached fuzzymatch for processing this request... update musicbrainz id: ${wantitalbumartistmbid} with missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+				else
+					echo "Using cached fuzzymatch for processing this request... update musicbrainz id: ${wantitalbumartistmbid} with missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+					echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/${wantitalbumartistmbid}/relationships for \"${wantitalbumartistname}\" with Deezer Artist Link" >> "musicbrainzerror.log"
+				fi
+			fi			
 		elif [ -f "cache/${wantitalbumartisid}-fuzzymatch" ]; then
 			rm "cache/${wantitalbumartisid}-fuzzymatch"
 		fi
