@@ -260,10 +260,12 @@ ProcessLidarrAlbums () {
 				echo ""
 				albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
 				wantitalbumartistdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .artist.id" | sort -u))
-				echo "Attemtping fuzzy search"
+				echo "Attemtping fuzzy search for Artist: $sanatizedwantitalbumartistnamefuzzy :: Alubm: $sanatizedwantitalbumtitlefuzzy"
 				for id in "${!wantitalbumartistdeezeridfuzzy[@]}"; do
+					currentprocess=$(( $id + 1 ))
 					fuzzyaritstid=${wantitalbumartistdeezeridfuzzy[$id]}
-					fuzzyaritstname="$(echo "$albumfuzzy" | jq ".data | .[] | .artist | select(.id==$fuzzyaritstid) | .name" | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
+					echo "$fuzzyaritstid"
+					fuzzyaritstname="$(echo "$albumfuzzy" | jq ".data | .[] | .artist | select(.id==$fuzzyaritstid) | .name" | sort -u | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 					if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
 						echo "Match found!"
 						touch "cache/${wantitalbumartisid}-fuzzymatch"
@@ -282,10 +284,12 @@ ProcessLidarrAlbums () {
 				echo ""
 				albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
 				wantitalbumartistdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .artist.id" | sort -u))
-				echo "Attemtping fuzzy search"
+				echo "Attemtping fuzzy search for Artist: $sanatizedwantitalbumartistnamefuzzy :: Alubm: $sanatizedwantitalbumtitlefuzzy"
 				for id in "${!wantitalbumartistdeezeridfuzzy[@]}"; do
+					currentprocess=$(( $id + 1 ))
 					fuzzyaritstid=${wantitalbumartistdeezeridfuzzy[$id]}
-					fuzzyaritstname="$(echo "$albumfuzzy" | jq ".data | .[] | .artist | select(.id==$fuzzyaritstid) | .name" | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
+					echo "$fuzzyaritstid"
+					fuzzyaritstname="$(echo "$albumfuzzy" | jq ".data | .[] | .artist | select(.id==$fuzzyaritstid) | .name" | sort -u | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 					if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
 						echo "Match found!"
 						touch "cache/${wantitalbumartisid}-fuzzymatch"
