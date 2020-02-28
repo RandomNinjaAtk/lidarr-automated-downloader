@@ -257,7 +257,6 @@ ProcessLidarrAlbums () {
 			fi
 			if cat "musicbrainzerror.log" | grep "${wantitalbumartistmbid}" | read; then
 				echo "ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
-				echo ""
 				albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
 				wantitalbumartistdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .artist.id" | sort -u))
 				echo "Attemtping fuzzy search for Artist: $sanatizedwantitalbumartistnamefuzzy :: Alubm: $sanatizedwantitalbumtitlefuzzy"
