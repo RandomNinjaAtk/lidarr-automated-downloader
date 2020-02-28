@@ -264,7 +264,6 @@ ProcessLidarrAlbums () {
 				for id in "${!wantitalbumartistdeezeridfuzzy[@]}"; do
 					currentprocess=$(( $id + 1 ))
 					fuzzyaritstid=${wantitalbumartistdeezeridfuzzy[$id]}
-					echo "$fuzzyaritstid"
 					fuzzyaritstname="$(echo "$albumfuzzy" | jq ".data | .[] | .artist | select(.id==$fuzzyaritstid) | .name" | sort -u | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 					if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
 						echo "Match found!"
@@ -275,20 +274,19 @@ ProcessLidarrAlbums () {
 					fi					
 				done
 				if [ -z "$wantitalbumartistdeezerid" ]; then
-					echo "ERROR: Not found"
+					echo "ERROR: No fuzzy match found..."
+					echo ""
 					continue
 				fi
 			else
 				echo "ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 				echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/${wantitalbumartistmbid}/relationships for \"${wantitalbumartistname}\" with Deezer Artist Link" >> "musicbrainzerror.log"
-				echo ""
 				albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
 				wantitalbumartistdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .artist.id" | sort -u))
 				echo "Attemtping fuzzy search for Artist: $sanatizedwantitalbumartistnamefuzzy :: Alubm: $sanatizedwantitalbumtitlefuzzy"
 				for id in "${!wantitalbumartistdeezeridfuzzy[@]}"; do
 					currentprocess=$(( $id + 1 ))
 					fuzzyaritstid=${wantitalbumartistdeezeridfuzzy[$id]}
-					echo "$fuzzyaritstid"
 					fuzzyaritstname="$(echo "$albumfuzzy" | jq ".data | .[] | .artist | select(.id==$fuzzyaritstid) | .name" | sort -u | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 					if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
 						echo "Match found!"
@@ -299,7 +297,8 @@ ProcessLidarrAlbums () {
 					fi					
 				done
 				if [ -z "$wantitalbumartistdeezerid" ]; then
-					echo "ERROR: Not found"
+					echo "ERROR: No fuzzy match found..."
+					echo ""
 					continue
 				fi
 			fi
