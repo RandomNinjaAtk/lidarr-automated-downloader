@@ -281,7 +281,7 @@ ProcessLidarrAlbums () {
 					echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/${wantitalbumartistmbid}/relationships for \"${wantitalbumartistname}\" with Deezer Artist Link" >> "musicbrainzerror.log"
 					albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
 					wantitalbumartistdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .artist.id" | sort -u))
-					echo "Attemtping fuzzy search for Artist: $sanatizedwantitalbumartistnamefuzzy :: Alubm: $sanatizedwantitalbumtitlefuzzy"
+					echo "Attemtping fuzzy search for Artist: $wantitalbumartistname :: Album: $wantitalbumtitle"
 					for id in "${!wantitalbumartistdeezeridfuzzy[@]}"; do
 						currentprocess=$(( $id + 1 ))
 						fuzzyaritstid=${wantitalbumartistdeezeridfuzzy[$id]}
