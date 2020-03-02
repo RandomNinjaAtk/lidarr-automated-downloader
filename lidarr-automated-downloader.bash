@@ -6,61 +6,8 @@
 #                                           Script Start                                            #
 #####################################################################################################
 
-if [ "$docker" = true ]; then
-	echo "DOCKER DETECTED"
-	LidarrApiKey="$(grep "<ApiKey>" /config/config.xml | sed "s/\  <ApiKey>//;s/<\/ApiKey>//")" # Lidarr API key.
-	if [ -z "$downloadmethod" ]; then
-		downloadmethod="album"
-	fi
-	if [ -z "$enablefallback" ]; then
-		enablefallback="true"
-	fi
-	if [ -z "$VerifyTrackCount" ]; then
-		VerifyTrackCount="true"
-	fi
-	if [ -z "$dlcheck" ]; then
-		dlcheck=3
-	fi
-	if [ -z "$albumtimeoutpercentage" ]; then
-		albumtimeoutpercentage=8
-	fi
-	if [ -z "$tracktimeoutpercentage" ]; then
-		tracktimeoutpercentage=25
-	fi
-	if [ -z "$ReplaygainTagging" ]; then
-		ReplaygainTagging="FALSE"
-	fi
-	if [ -z "$FilePermissions" ]; then
-		FilePermissions="666"
-	fi
-	if [ -z "$FolderPermissions" ]; then
-		FolderPermissions="777"
-	fi
-	if [ -z "$amount" ]; then
-		amount="1000000000"
-	fi
-	if [ -z "$quality" ]; then
-		quality="FLAC"
-	fi
-	if [ -z "$ConversionBitrate" ]; then
-		ConversionBitrate="320"
-	fi
-	if [ -z "$deezloaderurl" ]; then
-		deezloaderurl="http://127.0.0.1:1730"
-	fi
-	if [ -z "$LidarrUrl" ]; then
-		LidarrUrl="http://127.0.0.1:8686"
-	fi
-	if [ -z "$LidarrImportLocation" ]; then
-		LidarrImportLocation="/downloads/lidarr-import"
-	fi
-	if [ -z "$downloaddir" ]; then
-		downloaddir="/downloads/deezloaderremix"
-	fi
-else
-	############ Import Script Settings
-	source ./config
-fi
+############ Import Script Settings
+source ./config
 
 configuration () {
 	
