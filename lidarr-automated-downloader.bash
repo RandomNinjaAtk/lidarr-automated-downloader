@@ -16,8 +16,6 @@ if [ "$docker" = true ]; then
 	tracktimeoutpercentage=25 # Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##%
 
 	############ File Options
-	quality="FLAC" # SET TO: OPUS or AAC or MP3 or ALAC or FLAC :: Set desired library format (Flac is converted for opus, aac, and alac types)
-	ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC/MP3 format types
 	ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
 	FilePermissions="666" # Based on chmod linux permissions
 	FolderPermissions="777" # Based on chmod linux permissions
