@@ -7,6 +7,7 @@
 #####################################################################################################
 
 if [ "$docker" = true ]; then
+	echo "DOCKER DETECTED"
 	LidarrApiKey="$(grep "<ApiKey>" /config/config.xml | sed "s/\  <ApiKey>//;s/<\/ApiKey>//")" # Lidarr API key.
 	if [ -z "$downloadmethod" ]; then
 		downloadmethod="album"
