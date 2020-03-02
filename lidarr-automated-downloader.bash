@@ -8,20 +8,54 @@
 
 if [ "$docker" = true ]; then
 	LidarrApiKey="$(grep "<ApiKey>" /config/config.xml | sed "s/\  <ApiKey>//;s/<\/ApiKey>//")" # Lidarr API key.
-	downloadmethod="album" # album or track :: album method will fallback to track method if it runs into an issue
-	enablefallback="true" # enables fallback to lower quality if required...
-	VerifyTrackCount="true" # true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import...
-	dlcheck=3 # Set the number to desired wait time before checking for completed downloads (if your connection is unstable, longer may be better)
-	albumtimeoutpercentage=8 # Set the number between 1 and 100 :: This number is used to caculate album download timeout length by multiplying Album Length by ##%
-	tracktimeoutpercentage=25 # Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##%
-
-	############ File Options
-	ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
-	FilePermissions="666" # Based on chmod linux permissions
-	FolderPermissions="777" # Based on chmod linux permissions
-
-	############ Script Options
-	amount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for....
+	if [ -z "$downloadmethod" ]; then
+		downloadmethod="album"
+	fi
+	if [ -z "$enablefallback" ]; then
+		enablefallback="true"
+	fi
+	if [ -z "$VerifyTrackCount" ]; then
+		VerifyTrackCount="true"
+	fi
+	if [ -z "$dlcheck" ]; then
+		dlcheck=3
+	fi
+	if [ -z "$albumtimeoutpercentage" ]; then
+		albumtimeoutpercentage=8
+	fi
+	if [ -z "$tracktimeoutpercentage" ]; then
+		tracktimeoutpercentage=25
+	fi
+	if [ -z "$ReplaygainTagging" ]; then
+		ReplaygainTagging="FALSE"
+	fi
+	if [ -z "$FilePermissions" ]; then
+		FilePermissions="666"
+	fi
+	if [ -z "$FolderPermissions" ]; then
+		FolderPermissions="777"
+	fi
+	if [ -z "$amount" ]; then
+		amount="1000000000"
+	fi
+	if [ -z "$quality" ]; then
+		quality="FLAC"
+	fi
+	if [ -z "$ConversionBitrate" ]; then
+		ConversionBitrate="320"
+	fi
+	if [ -z "$deezloaderurl" ]; then
+		deezloaderurl="http://127.0.0.1:1730"
+	fi
+	if [ -z "$LidarrUrl" ]; then
+		LidarrUrl="http://127.0.0.1:8686"
+	fi
+	if [ -z "$LidarrImportLocation" ]; then
+		LidarrImportLocation="/downloads/lidarr-import"
+	fi
+	if [ -z "$downloaddir" ]; then
+		downloaddir="/downloads/deezloaderremix"
+	fi
 else
 	############ Import Script Settings
 	source ./config
