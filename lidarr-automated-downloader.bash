@@ -465,6 +465,27 @@ DeezerMatching () {
 			if [ -z "$DeezerArtistMatchID" ]; then
 				DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$wantitalbumtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name | contains(\"${sanatizedwantitalbumtitle}\")) | .id" | head -n1))
 			fi
+
+			if [ -z "$DeezerArtistMatchID" ]; then
+				# Check Album release records for match as backup because primary album title did not match
+				for id in "${!wantitalbumrecordtitles[@]}"; do
+					recordid=${wantitalbumrecordtitles[$id]}
+					recordtitle="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .title")"
+					recordtrackcount="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
+					sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
+
+					# Match using Sanatized Release Record Album Name + Track Count + Year
+					if [ -z "$DeezerArtistMatchID" ]; then
+						DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name | contains(\"${sanatizedrecordtitle}\")) | .id" | head -n1))
+					fi
+					
+					if [ ! -z "$DeezerArtistMatchID" ]; then
+						echo "Lidarr Matched Album Release Title: $recordtitle"
+						echo "Lidarr Matched Album Track Count: $recordtrackcount"
+						break
+					fi
+				done
+			fi
 			
 			if [ -z "$DeezerArtistMatchID" ]; then
 				echo "ERROR: Not found, skipping..."
