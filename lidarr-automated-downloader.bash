@@ -59,10 +59,12 @@ paths () {
 
 	if [ ! -d "$downloaddir" ]; then
 		mkdir -p "$downloaddir"
+		FolderAccessPermissions "$downloaddir"
 	fi
 	
 	if [ ! -d "$LidarrImportLocation" ]; then
 		mkdir -p "$LidarrImportLocation"
+		FolderAccessPermissions "$downloaddir"
 	fi	
 }
 
