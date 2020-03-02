@@ -6,8 +6,28 @@
 #                                           Script Start                                            #
 #####################################################################################################
 
-############ Import Script Settings
-source ./config
+if [ "$docker" = true ]; then
+	LidarrApiKey="$(grep "<ApiKey>" /config/config.xml | sed "s/\  <ApiKey>//;s/<\/ApiKey>//")" # Lidarr API key.
+	downloadmethod="album" # album or track :: album method will fallback to track method if it runs into an issue
+	enablefallback="true" # enables fallback to lower quality if required...
+	VerifyTrackCount="true" # true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import...
+	dlcheck=3 # Set the number to desired wait time before checking for completed downloads (if your connection is unstable, longer may be better)
+	albumtimeoutpercentage=8 # Set the number between 1 and 100 :: This number is used to caculate album download timeout length by multiplying Album Length by ##%
+	tracktimeoutpercentage=25 # Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##%
+
+	############ File Options
+	quality="FLAC" # SET TO: OPUS or AAC or MP3 or ALAC or FLAC :: Set desired library format (Flac is converted for opus, aac, and alac types)
+	ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC/MP3 format types
+	ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
+	FilePermissions="666" # Based on chmod linux permissions
+	FolderPermissions="777" # Based on chmod linux permissions
+
+	############ Script Options
+	amount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for....
+else
+	############ Import Script Settings
+	source ./config
+fi
 
 configuration () {
 	
