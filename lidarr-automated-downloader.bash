@@ -1056,7 +1056,7 @@ conversion () {
 				for fname in "$1"/*.flac; do
 					filename="$(basename "${fname%.flac}")"
 					if [ "${quality}" = OPUS ]; then
-						if opusenc --bitrate $bitrate --vbr --music "$fname" "${fname%.flac}.temp.$extension" 2> /dev/null; then
+						if opusenc --bitrate $bitrate --vbr "$fname" "${fname%.flac}.temp.$extension" 2> /dev/null; then
 							echo "Converted: $filename"
 							if [ -f "${fname%.flac}.temp.$extension" ]; then
 								rm "$fname"
