@@ -202,6 +202,7 @@ ProcessLidarrAlbums () {
 		# Get album information from lidarr
 		wantitalbumtitle=$(echo "${wantitalbum}"| jq -r '.[] | .title')
 		wantitalbumid=$(echo "${wantitalbum}"| jq -r '.[] | .id')
+		wantitalbummbid=$(echo "${wantitalbum}"| jq -r '.[] | .foreignAlbumId')
 		wantitalbumyear="$(echo "${wantitalbum}"| jq -r '.[] | .releaseDate')"
 		wantitalbumyear="${wantitalbumyear:0:4}"
 		wantitalbumtrackcount=$(echo "${wantitalbum}"| jq -r '.[] | .statistics.trackCount')
@@ -501,11 +502,11 @@ DeezerMatching () {
 					if ! [ -f "notfound.log" ]; then
 						touch "notfound.log"
 					fi
-					if cat "notfound.log" | grep "ID:${wantitalbumid}" | read; then
+					if cat "notfound.log" | grep "${wantitalbummbid}" | read; then
 						echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 					else
 						echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
-						echo "{wantitalbumartistname} :: $wantitalbumtitle (ID:${wantitalbumid}) :: Could not find a match using Release or Record Name, Track Count and Release Year" >> "notfound.log"
+						echo "${wantitalbumartistname} :: $wantitalbumtitle (ID: ${wantitalbummbid}) :: Could not find a match using Release or Record Name, Track Count and Release Year" >> "notfound.log"
 					fi
 				fi
 			fi
