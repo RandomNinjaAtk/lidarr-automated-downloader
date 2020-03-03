@@ -1134,7 +1134,7 @@ DLArtistArtwork () {
 			fi
 		fi
 		if [ "$wantitalbumartistname" != "Various Artists" ]; then
-			if [ -z "${deezeraritstid}" ]; then
+			if [ ! -z "${deezeraritstid}" ]; then
 				artistartwork="$(curl -s "https://api.deezer.com/artist/${deezeraritstid}" | jq '.picture_xl')"
 				if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then					
 					if curl -sL --fail "${artistartwork}" -o "$wantitalbumartispath/folder.jpg"; then
