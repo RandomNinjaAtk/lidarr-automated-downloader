@@ -1113,7 +1113,7 @@ DLArtistArtwork () {
 		echo ""
 		echo "Archiving Artist Profile Picture"
 		if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then	
-			if curl -sL --fail "${LidarrUrl}/api/v1/MediaCover/Artist/${wantitalbumartisid}/poster.jpg?apikey=${LidarrApiKey}" -o "$fullartistpath/folder.jpg"; then
+			if curl -sL --fail "${LidarrUrl}/api/v1/MediaCover/Artist/${wantitalbumartisid}/poster.jpg?apikey=${LidarrApiKey}" -o "$wantitalbumartispath/folder.jpg"; then
 				if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
 					echo "ERROR: Artist artwork is smaller than \"16k\""
 					echo "Fallback to deezer..."
