@@ -697,7 +697,9 @@ GetDeezerArtistAlbumList () {
 
 						CleanDLPath
 						
-						DLArtistArtwork
+						if [ "${DownLoadArtistArtwork}" = true ]; then
+							DLArtistArtwork
+						fi
 						
 						if cat "download.log" | grep "${albumid}" | read; then
 							downloaded="true"
@@ -1114,14 +1116,18 @@ DLArtistArtwork () {
 		echo "Archiving Artist Profile Picture"
 		if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then	
 			if curl -sL --fail "${LidarrUrl}/api/v1/MediaCover/Artist/${wantitalbumartisid}/poster.jpg?apikey=${LidarrApiKey}" -o "$wantitalbumartispath/folder.jpg"; then
-				if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
-					echo "ERROR: Artist artwork is smaller than \"16k\""
-					echo "Fallback to deezer..."
-					rm "$wantitalbumartispath/folder.jpg"
-					echo ""
+				if [ -f "$wantitalbumartispath/folder.jpg"  ]; then	
+					if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
+						echo "ERROR: Artist artwork is smaller than \"16k\""
+						echo "Fallback to deezer..."
+						rm "$wantitalbumartispath/folder.jpg"
+						echo ""
+					else
+						echo "Downloaded 1 profile picture"
+						echo ""
+					fi
 				else
-					echo "Downloaded 1 profile picture"
-					echo ""
+					echo "ERROR: Lidarr artist artwork failure, fallback to deezer"
 				fi
 			else
 				echo "ERROR: Lidarr artist artwork failure, fallback to deezer"
@@ -1132,12 +1138,17 @@ DLArtistArtwork () {
 				artistartwork="$(curl -s "https://api.deezer.com/artist/${deezeraritstid}" | jq '.picture_xl')"
 				if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then					
 					if curl -sL --fail "${artistartwork}" -o "$wantitalbumartispath/folder.jpg"; then
-						if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
-							echo "ERROR: Artist artwork is smaller than \"16k\""
-							rm "$wantitalbumartispath/folder.jpg"
-							echo ""
+						if [ -f "$wantitalbumartispath/folder.jpg"  ]; then	
+							if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
+								echo "ERROR: Artist artwork is smaller than \"16k\""
+								rm "$wantitalbumartispath/folder.jpg"
+								echo ""
+							else
+								echo "Downloaded 1 profile picture"
+								echo ""
+							fi
 						else
-							echo "Downloaded 1 profile picture"
+							echo "Error downloading artist artwork"
 							echo ""
 						fi
 					else
