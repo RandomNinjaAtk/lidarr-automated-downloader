@@ -26,6 +26,7 @@ VerifyTrackCount="true" # true = enabled :: This will verify album track count v
 dlcheck=3 # Set the number to desired wait time before checking for completed downloads (if your connection is unstable, longer may be better)
 albumtimeoutpercentage=8 # Set the number between 1 and 100 :: This number is used to caculate album download timeout length by multiplying Album Length by ##%
 tracktimeoutpercentage=25 # Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##%
+DownLoadArtistArtwork="false" # true = enabled :: Uses Lidarr Artist artwork first and fallsback to Deezer
 
 ############ File Options
 quality="FLAC" # SET TO: OPUS or AAC or MP3 or ALAC or FLAC :: Set desired library format (Flac is converted for opus, aac, and alac types)
