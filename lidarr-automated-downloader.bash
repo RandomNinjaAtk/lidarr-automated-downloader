@@ -1027,8 +1027,7 @@ conversion () {
 	converttrackcount=$(find  "$1"/ -name "*.flac" | wc -l)
 	targetformat="$quality"
 	bitrate="$ConversionBitrate"
-	if [ "${quality}" = OPUS ]; then
-		options="-acodec libopus -ab ${bitrate}k -application audio"
+	if [ "${quality}" = OPUS ]; then		
 		extension="opus"
 		targetbitrate="${bitrate}k"
 	fi
@@ -1053,18 +1052,32 @@ conversion () {
 				echo "Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))"
 				for fname in "$1"/*.flac; do
 					filename="$(basename "${fname%.flac}")"
-					if ffmpeg -loglevel warning -hide_banner -nostats -i "$fname" -n -vn $options "${fname%.flac}.temp.$extension"; then
-						echo "Converted: $filename"
-						if [ -f "${fname%.flac}.temp.$extension" ]; then
-							rm "$fname"
+					if [ "${quality}" = OPUS ]; then
+						if opusenc --bitrate $bitrate --vbr --music "$fname" "${fname%.flac}.temp.$extension" 2> /dev/null; then
+							echo "Converted: $filename"
+							if [ -f "${fname%.flac}.temp.$extension" ]; then
+								rm "$fname"
+								sleep 0.1
+								mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
+							fi
+						else
+							echo "Conversion failed: $filename, performing cleanup..."
+							rm -rf "$1"/*
 							sleep 0.1
-							mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
 						fi
 					else
-						echo "Conversion failed: $filename, performing cleanup..."
-						rm -rf "$1"/*
-						sleep 0.1
-						exit 1
+						if ffmpeg -loglevel warning -hide_banner -nostats -i "$fname" -n -vn $options "${fname%.flac}.temp.$extension"; then
+							echo "Converted: $filename"
+							if [ -f "${fname%.flac}.temp.$extension" ]; then
+								rm "$fname"
+								sleep 0.1
+								mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
+							fi
+						else
+							echo "Conversion failed: $filename, performing cleanup..."
+							rm -rf "$1"/*
+							sleep 0.1
+						fi
 					fi
 				done
 			fi
