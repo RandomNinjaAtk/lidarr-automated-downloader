@@ -587,6 +587,7 @@ GetDeezerArtistAlbumList () {
 	if [ "$wantitalbumartistname" != "Various Artists" ]; then
 		DeezerArtistID=$(echo "${deezeraritstid}" | grep -o '[[:digit:]]*')
 		echo "Deezer Artist ID: $DeezerArtistID"
+		DLArtistArtwork
 		if [ ! -f "cache/$DeezerArtistID-checked" ]; then
 			DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 			newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
