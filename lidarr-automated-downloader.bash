@@ -1152,9 +1152,9 @@ DLArtistArtwork () {
 		fi
 		if [ "$wantitalbumartistname" != "Various Artists" ]; then
 			if [ ! -z "${DeezerArtistID}" ]; then
-				artistartwork="$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}" | jq '.picture_xl')"
-				if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then					
-					if curl -sL --fail ${artistartwork} -o "$wantitalbumartispath/folder.jpg"; then
+				artistartwork=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}" | jq -r '.picture_xl')
+				if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then
+					if curl -sL --fail "${artistartwork}" -o "$wantitalbumartispath/folder.jpg"; then
 						if [ -f "$wantitalbumartispath/folder.jpg"  ]; then	
 							if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
 								echo "ERROR: Artist artwork is smaller than \"16k\""
