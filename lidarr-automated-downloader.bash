@@ -549,7 +549,7 @@ DownloadList () {
 				mkdir -p "temp" 
 			fi
 			if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "temp/${albumid}-temp-album.json"; then
-				sleep 0.1
+				sleep 0.5
 				albumtitle="$(cat "temp/${albumid}-temp-album.json" | jq ".title")"
 				actualtracktotal=$(cat "temp/${albumid}-temp-album.json" | jq -r ".tracks.data | .[] | .id" | wc -l)
 				sanatizedalbumtitle="$(echo "$albumtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
