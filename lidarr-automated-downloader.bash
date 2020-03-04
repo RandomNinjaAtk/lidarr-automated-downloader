@@ -1130,9 +1130,8 @@ DLAlbumArtwork () {
 
 DLArtistArtwork () {
 	if [ -d "$wantitalbumartispath" ]; then
-		echo ""
-		echo "Archiving Artist Profile Picture"
-		if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then	
+		if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then
+			echo "Archiving Artist Profile Picture"
 			if curl -sL --fail "${LidarrUrl}/api/v1/MediaCover/Artist/${wantitalbumartisid}/poster.jpg?apikey=${LidarrApiKey}" -o "$wantitalbumartispath/folder.jpg"; then
 				if [ -f "$wantitalbumartispath/folder.jpg"  ]; then	
 					if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
