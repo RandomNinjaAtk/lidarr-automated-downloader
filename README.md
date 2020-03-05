@@ -1,10 +1,16 @@
 
-# LAD Information
+# lidarr-automated-downloader (LAD) Information
+## Setup
+1. Edit "config" with a text editor that can write in Unix line endings... see: [Configuration](https://github.com/RandomNinjaAtk/lidarr-automated-downloader#configuration)
+
+## Eecution
+Execute script via CLI with the following command: `bash lidarr-automated-downloader.bash`
+
 ## Files
 * lidarr-automated-downloader.bash
   * script to execute
 * config
-  * File contains all configuration settings, see [Configuration](https://github.com/RandomNinjaAtk/lidarr-automated-downloader#configuration)
+  * File contains all configuration settings, see: [Configuration](https://github.com/RandomNinjaAtk/lidarr-automated-downloader#configuration)
 * notfound.log
   * Log file containing list of albums that could not be found using normal or fuzzy matching, automatically cleared every Saturday via cron
 * musicbrainzerror.log
@@ -58,3 +64,7 @@ Modify the "config" file to set your configuration settings using a text editor 
  
 #### Permissions
 * Enable Set Permissions
+
+# Official Docker: [lidarr-lad](https://github.com/RandomNinjaAtk/docker-lidarr-lad)
+* Pre-configured, no setup required, includes Lidarr
+
