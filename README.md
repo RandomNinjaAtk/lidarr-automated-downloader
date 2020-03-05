@@ -1,16 +1,16 @@
 
 # LAD Information
-* File explanations:
-  * lidarr-automated-downloader.bash
-    * LAD script, this file is updated on every container start from the github repo
-  * config
-    * File contains all configuration settings, see [Configuration](https://github.com/RandomNinjaAtk/lidarr-automated-downloader#configuration)
-  * notfound.log
-    * Log file containing list of albums that could not be found using normal or fuzzy matching, automatically cleared every Saturday via cron
-  * musicbrainzerror.log
-    * Log file containing list of artists without links, open log for more details
-  * download.log
-    * Log file containing list of albums that were downloaded, automatically cleared every Saturday via cron
+## Files
+* lidarr-automated-downloader.bash
+  * script to execute
+* config
+  * File contains all configuration settings, see [Configuration](https://github.com/RandomNinjaAtk/lidarr-automated-downloader#configuration)
+* notfound.log
+  * Log file containing list of albums that could not be found using normal or fuzzy matching, automatically cleared every Saturday via cron
+* musicbrainzerror.log
+  * Log file containing list of artists without links, open log for more details
+* download.log
+  * Log file containing list of albums that were downloaded, automatically cleared every Saturday via cron
 
 ## Configuration
 
