@@ -16,7 +16,7 @@ LidarrImportLocation="/downloads/lidarr-import" # Temporary location that comple
 
 ############ Lidarr Settings
 LidarrUrl="http://127.0.0.1:8686" # Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s.
-LidarrApiKey="$(grep "<ApiKey>" /config/config.xml | sed "s/\  <ApiKey>//;s/<\/ApiKey>//")" # Lidarr API key.
+LidarrApiKey="08d108d108d108d108d108d108d108d1" # Lidarr API key.
 
 ############ Download Client Settings
 deezloaderurl="http://127.0.0.1:1730" # Url to the download client
