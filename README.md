@@ -1,5 +1,5 @@
 
-# lidarr-automated-downloader (LAD) Information
+# lidarr-automated-downloader (LAD)
 ## Setup
 1. Edit "config" with a text editor that can write in Unix line endings... see: [Configuration](https://github.com/RandomNinjaAtk/lidarr-automated-downloader#configuration)
 
