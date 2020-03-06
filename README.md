@@ -32,7 +32,6 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `downloadmethod` | SET TO: album or track :: album method will fallback to track method if it runs into an issue |
 | `enablefallback` | true = enabled :: enables fallback to lower quality if required... |
 | `VerifyTrackCount` | true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import... |
-| `dlcheck` | Set the number to desired wait time before checking for completed downloads (if your connection is unstable, longer may be better) |
 | `albumtimeoutpercentage` | Set the number between 1 and 100 :: This number is used to caculate album download timeout length by multiplying Album Length by ##% |
 | `tracktimeoutpercentage` | Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##% |
 | `amount` | Maximum: 1000000000 :: Number of missing/cutoff albums to look for... |
