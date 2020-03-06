@@ -744,7 +744,10 @@ AlbumDL () {
 		if curl -s --request GET "$deezloaderurl/api/download/?url=$albumurl&quality=$dlquality" >/dev/null; then
 			echo "Download Timeout: $albumtimeoutdisplay"
 			echo "Downloading $tracktotal Tracks..."
-			sleep $dlcheck
+			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+			while [[ -z "$started" ]]; do
+				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+			done
 			let j=0
 			while [[ "$check" -le 1 ]]; do
 				let j++
@@ -788,7 +791,10 @@ TrackDL () {
 	fallbackbackup=0
 	fallbackquality="$dlquality"
 	if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$dlquality" >/dev/null; then
-		sleep $dlcheck
+		started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+		while [[ -z "$started" ]]; do
+			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+		done
 		let j=0
 		while [[ "$check" -le 1 ]]; do
 			let j++
@@ -813,7 +819,10 @@ TrackDL () {
 	fi
 	if [ $retry = 1 ]; then
 		if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$dlquality" >/dev/null; then
-			sleep $dlcheck
+			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+			while [[ -z "$started" ]]; do
+				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+			done
 			let k=0
 			while [[ "$retry" -le 1 ]]; do
 				let k++
@@ -847,7 +856,10 @@ TrackDL () {
 				bitrate="128"
 			fi
 			if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$fallbackquality" >/dev/null; then
-				sleep $dlcheck
+				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+				while [[ -z "$started" ]]; do
+					started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+				done
 				let l=0
 				while [[ "$fallback" -le 1 ]]; do
 					let l++
@@ -883,7 +895,10 @@ TrackDL () {
 			fallbackquality="128"
 			bitrate="128"
 			if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$fallbackquality" >/dev/null; then
-				sleep $dlcheck
+				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+				while [[ -z "$started" ]]; do
+					started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+				done
 				let l=0
 				while [[ "$fallbackbackup" -le 1 ]]; do
 					let l++
