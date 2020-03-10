@@ -28,7 +28,7 @@ tracktimeoutpercentage=25 # Set the number between 1 and 100 :: This number is u
 DownLoadArtistArtwork="false" # true = enabled :: Uses Lidarr Artist artwork first and fallsback to Deezer
 
 ############ File Options
-quality="FLAC" # SET TO: OPUS or AAC or MP3 or ALAC or FLAC :: Set desired library format (Flac is converted for opus, aac, and alac types)
+quality="FLAC" # SET TO: OPUS or AAC or FDK-AAC or MP3 or ALAC or FLAC :: Set desired library format (Flac is converted for opus, aac, and alac types)
 ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC/MP3 format types
 ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
 FilePermissions="666" # Based on chmod linux permissions
