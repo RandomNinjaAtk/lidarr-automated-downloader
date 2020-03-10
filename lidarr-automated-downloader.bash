@@ -33,6 +33,8 @@ configuration () {
 		echo "Download Bitrate: ${ConversionBitrate}k"
 	elif [ "$quality" = "AAC" ]; then
 		echo "Download Bitrate: ${ConversionBitrate}k"
+	elif [ "$quality" = "FDK-AAC" ]; then
+		echo "Download Bitrate: ${ConversionBitrate}k"
 	elif [ "$quality" = "MP3" ]; then
 		echo "Download Bitrate: ${ConversionBitrate}k"
 	else
@@ -1065,26 +1067,31 @@ conversion () {
 	converttrackcount=$(find  "$1"/ -name "*.flac" | wc -l)
 	targetformat="$quality"
 	bitrate="$ConversionBitrate"
-	if [ "${quality}" = OPUS ]; then		
+	if [ "${quality}" = "OPUS" ]; then		
 		extension="opus"
 		targetbitrate="${bitrate}k"
 	fi
-	if [ "${quality}" = AAC ]; then
+	if [ "${quality}" = "AAC" ]; then
 		options="-acodec aac -ab ${bitrate}k -movflags faststart"
 		extension="m4a"
 		targetbitrate="${bitrate}k"
 	fi
-	if [ "${quality}" = MP3 ]; then
+	if [ "${quality}" = "FDK-AAC" ]; then
+		options="-acodec libfdk_aac -ab ${bitrate}k -movflags faststart"
+		extension="m4a"
+		targetbitrate="${bitrate}k"
+	fi
+	if [ "${quality}" = "MP3" ]; then
 		options="-acodec libmp3lame -ab ${bitrate}k"
 		extension="mp3"
 		targetbitrate="${bitrate}k"
 	fi
-	if [ "${quality}" = ALAC ]; then
+	if [ "${quality}" = "ALAC" ]; then
 		options="-acodec alac -movflags faststart"
 		extension="m4a"
 		targetbitrate="lossless"
 	fi
-	if [ "${quality}" != FLAC ]; then
+	if [ "${quality}" != "FLAC" ]; then
 		if [ -x "$(command -v ffmpeg)" ]; then
 			if find "$1"/ -name "*.flac" | read; then
 				echo "Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))"
