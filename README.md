@@ -35,8 +35,8 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `albumtimeoutpercentage` | Set the number between 1 and 100 :: This number is used to caculate album download timeout length by multiplying Album Length by ##% |
 | `tracktimeoutpercentage` | Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##% |
 | `amount` | Maximum: 1000000000 :: Number of missing/cutoff albums to look for... |
-| `quality` | SET TO: FLAC or MP3 or OPUS or AAC or ALAC |
-| `ConversionBitrate` | FLAC -> OPUS/AAC will be converted using this bitrate |
+| `quality` | SET TO: FLAC or MP3 or OPUS or AAC or FDK-AAC or ALAC |
+| `ConversionBitrate` | FLAC -> OPUS/AAC/FDK-AAC will be converted using this bitrate |
 | `ReplaygainTagging` | TRUE = ENABLED :: adds replaygain tags for compatible players (FLAC ONLY) |
 | `FolderPermissions` | Based on chmod linux permissions |
 | `FilePermissions` | Based on chmod linux permissions |
