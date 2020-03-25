@@ -44,6 +44,11 @@ configuration () {
 	if [ "$quality" = "FLAC" ]; then
 		echo "Replaygain Tagging: $gain"
 	fi
+	if [ "$TagWithBeets" = "true" ]; then
+		echo "Beets Tagging: Enabled"
+	else
+		echo "Beets Tagging: Disabled"
+	fi
 	echo "Total Number of Albums To Process: $wantittotal"
 	echo ""
 	echo "Begin finding downloads..."
@@ -134,6 +139,37 @@ DurationCalc () {
   (( $M > 0 )) && printf '%02d:' $M
   (( $D > 0 || $H > 0 || $M > 0 )) && printf ''
   printf '%02ds\n' $S
+}
+
+beetstagging () {
+	echo ""
+	trackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
+	echo "Matching $trackcount tracks with Beets"
+	if [ -f "${BeetLibrary}" ]; then
+		rm "${BeetLibrary}"
+		sleep 0.1
+	fi
+	if [ -f "${BeetLog}" ]; then 
+		rm "${BeetLog}"
+		sleep 0.1
+	fi
+	
+	touch "$downloaddir/beets-match"
+	sleep 0.1
+	
+	if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
+		beet -c "${BeetConfig}" --library="${BeetLibrary}" -l "${BeetLog}" --directory="$downloaddir" import -q "$downloaddir" > /dev/null
+		if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" -newer "$downloaddir/beets-match" | read; then
+			echo "SUCCESS: Matched with beets!"
+		else
+			echo "ERROR: Unable to match using beets, fallback to lidarr import matching..."
+		fi	
+	fi
+	
+	if [ -f "$downloaddir/beets-match" ]; then 
+		rm "$downloaddir/beets-match"
+		sleep 0.1
+	fi
 }
 
 LidarrAlbums () {
@@ -710,6 +746,10 @@ GetDeezerArtistAlbumList () {
 						else
 							echo "REPLAYGAIN TAGGING DISABLED"
 						fi
+						
+						if [ "${TagWithBeets}" = true ]; then
+							beetstagging
+						fi						
 
 						ImportProcess
 
