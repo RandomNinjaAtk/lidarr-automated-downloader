@@ -18,6 +18,11 @@ LidarrImportLocation="/downloads/lidarr-import" # Temporary location that comple
 LidarrUrl="http://127.0.0.1:8686" # Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s.
 LidarrApiKey="08d108d108d108d108d108d108d108d1" # Lidarr API key.
 
+############ Beets File locaitons
+BeetConfig="beets-config.yaml"
+BeetLibrary="beets-library.blb"
+BeetLog="beets.log"
+
 ############ Download Client Settings
 deezloaderurl="http://127.0.0.1:1730" # Url to the download client
 downloadmethod="album" # album or track :: album method will fallback to track method if it runs into an issue
@@ -33,6 +38,7 @@ ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC/MP3
 ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
 FilePermissions="666" # Based on chmod linux permissions
 FolderPermissions="777" # Based on chmod linux permissions
+TagWithBeets="false" # enable beet tagging to improve matching accuracy, requires beets installation and beets file path configuration
 
 ############ Script Options
 amount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for....
