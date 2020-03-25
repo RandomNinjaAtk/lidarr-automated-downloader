@@ -68,3 +68,4 @@ import:
 
 embedart:
     auto: yes
+    ifempty: yes
