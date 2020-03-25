@@ -1,5 +1,4 @@
 plugins: chroma embedart
-library: /config/scripts/beets-library.blb
 art_filename: folder
 threaded: no
 per_disc_numbering: yes
@@ -64,7 +63,6 @@ import:
     quiet_fallback: skip
     timid: no
     duplicate_action: skip
-    log: /config/scripts/beets.log
     languages: ['en']
     group_albums: no
 
