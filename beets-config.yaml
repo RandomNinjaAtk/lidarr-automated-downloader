@@ -1,4 +1,4 @@
-plugins: chroma embedart
+plugins: embedart
 art_filename: folder
 threaded: no
 per_disc_numbering: yes
@@ -65,9 +65,6 @@ import:
     duplicate_action: skip
     languages: ['en']
     group_albums: no
-
-chroma:
-    auto: yes
 
 embedart:
     auto: yes
