@@ -1013,6 +1013,10 @@ TrackMethod () {
 }
 
 ImportProcess () {
+	if [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
+		rm -rf "${LidarrImportLocation}/${importalbumfolder}"
+		sleep 0.1
+	fi
 	if [ ! -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
 		mkdir -p "${LidarrImportLocation}/${importalbumfolder}"
 		for file in "$downloaddir"/*; do
