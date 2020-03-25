@@ -158,7 +158,7 @@ beetstagging () {
 	sleep 0.1
 	
 	if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
-		beet -c "${BeetConfig}" --library="${BeetLibrary}" -l "${BeetLog}" --directory="$downloaddir" import -q "$downloaddir" > /dev/null
+		beet -c "${BeetConfig}" -l "${BeetLibrary}" -d "$downloaddir" import -q "$downloaddir" > /dev/null
 		if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" -newer "$downloaddir/beets-match" | read; then
 			echo "SUCCESS: Matched with beets!"
 		else
