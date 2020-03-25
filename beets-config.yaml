@@ -39,14 +39,14 @@ match:
     preferred:
         countries: [] # []
         media: ['CD|Digital Media'] # []
-        original_year: no # no
+        original_year: yes # no
     ignored: ['missing_tracks', 'track_length', 'unmatched_tracks', 'mediums', 'year', 'media'] # []
     required: ['year', 'album', 'artist'] # []
     ignored_media: [] # []
     ignore_data_tracks: yes # yes
     ignore_video_tracks: yes # yes
-    track_length_grace: 5 # 10
-    track_length_max: 15 # 30
+    track_length_grace: 10 # 10
+    track_length_max: 30 # 30
 
 paths:
     default: $disc$track - $title
