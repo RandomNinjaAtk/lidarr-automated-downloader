@@ -121,13 +121,13 @@ CleanCacheCheck () {
 FileAccessPermissions () {
 	echo "Setting file permissions (${FilePermissions})"
 	chmod ${FilePermissions} "$1"/*
-	# docker-chown
+	# docker-chown-01
 }
 
 FolderAccessPermissions () {
 	echo "Setting folder permissions (${FolderPermissions})"
 	chmod ${FolderPermissions} "$1"
-	# docker-chown
+	# docker-chown-02
 }
 
 DurationCalc () {
