@@ -265,7 +265,7 @@ ProcessLidarrAlbums () {
 		echo "Lidarr Album Type: $normalizetype" 
 		echo "Lidarr Album Track Count: $wantitalbumtrackcount"
 		if [ -f "notfound.log" ]; then
-			if cat "notfound.log" | grep "ID:${wantitalbumid}" | read; then
+			if cat "notfound.log" | grep "${wantitalbumid}" | read; then
 				echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 				continue
 			fi
@@ -413,7 +413,7 @@ DeezerMatching () {
 	if ! [ -f "notfound.log" ]; then
 		touch "notfound.log"
 	fi
-	if cat "notfound.log" | grep "ID:${wantitalbumid}" | read; then
+	if cat "notfound.log" | grep "${wantitalbumid}" | read; then
 		echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 	else
 		if [ -z "$DeezerArtistMatchID" ]; then
