@@ -264,6 +264,12 @@ ProcessLidarrAlbums () {
 		echo "Lidarr Album Year: $wantitalbumyear"
 		echo "Lidarr Album Type: $normalizetype" 
 		echo "Lidarr Album Track Count: $wantitalbumtrackcount"
+		if [ -f "notfound.log" ]; then
+			if cat "notfound.log" | grep "ID:${wantitalbumid}" | read; then
+				echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
+				continue
+			fi
+		fi
 		if [ "$wantitalbumartistname" != "Various Artists" ]; then
 			if [ -z "${wantitalbumartistdeezerid}" ]; then	
 				if [ -f "cache/${wantitalbumartisid}-fuzzymatch" ]; then
