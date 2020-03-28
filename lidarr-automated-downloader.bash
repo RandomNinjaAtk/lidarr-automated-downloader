@@ -835,9 +835,9 @@ TrackDL () {
 	fallbackbackup=0
 	fallbackquality="$dlquality"
 	if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$dlquality" >/dev/null; then
-		started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+		started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
 		while [[ -z "$started" ]]; do
-			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
 		done
 		let j=0
 		while [[ "$check" -le 1 ]]; do
@@ -863,9 +863,9 @@ TrackDL () {
 	fi
 	if [ $retry = 1 ]; then
 		if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$dlquality" >/dev/null; then
-			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
 			while [[ -z "$started" ]]; do
-				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
 			done
 			let k=0
 			while [[ "$retry" -le 1 ]]; do
@@ -900,9 +900,9 @@ TrackDL () {
 				bitrate="128"
 			fi
 			if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$fallbackquality" >/dev/null; then
-				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
 				while [[ -z "$started" ]]; do
-					started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+					started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
 				done
 				let l=0
 				while [[ "$fallback" -le 1 ]]; do
@@ -939,9 +939,9 @@ TrackDL () {
 			fallbackquality="128"
 			bitrate="128"
 			if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$fallbackquality" >/dev/null; then
-				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
 				while [[ -z "$started" ]]; do
-					started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
+					started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
 				done
 				let l=0
 				while [[ "$fallbackbackup" -le 1 ]]; do
