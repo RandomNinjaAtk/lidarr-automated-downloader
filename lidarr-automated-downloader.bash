@@ -165,6 +165,10 @@ beetstagging () {
 			echo "SUCCESS: Matched with beets!"
 		else
 			echo "ERROR: Unable to match using beets, fallback to lidarr import matching..."
+			if [ "$RequireBeetsMatch" = true ]; then
+				echo "ERROR: RequireBeetsMatch enabled, performing cleanup"
+				CleanDLPath
+			fi
 		fi	
 	fi
 	
@@ -757,16 +761,17 @@ GetDeezerArtistAlbumList () {
 						
 						if [ "${TagWithBeets}" = true ]; then
 							beetstagging
-						fi						
-
-						ImportProcess
-
-						NotifyLidarr
-
-						CleanDLPath
+						fi
 						
-						if [ "${DownLoadArtistArtwork}" = true ]; then
-							DLArtistArtwork
+						if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
+
+							ImportProcess
+
+							NotifyLidarr
+
+							if [ "${DownLoadArtistArtwork}" = true ]; then
+								DLArtistArtwork
+							fi
 						fi
 						
 						if cat "download.log" | grep "${albumid}" | read; then
