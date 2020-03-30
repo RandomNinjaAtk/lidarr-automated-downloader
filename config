@@ -38,7 +38,8 @@ ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC/MP3
 ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
 FilePermissions="666" # Based on chmod linux permissions
 FolderPermissions="777" # Based on chmod linux permissions
-TagWithBeets="false" # enable beet tagging to improve matching accuracy, requires beets installation and beets file path configuration
+TagWithBeets="false" # true = enabled :: enable beet tagging to improve matching accuracy, requires beets installation and beets file path configuration
+RequireBeetsMatch="false" # true = enabled :: skips importing files that could not be matched using beets
 
 ############ Script Options
 amount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for....
