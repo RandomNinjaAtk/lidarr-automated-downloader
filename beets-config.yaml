@@ -1,4 +1,4 @@
-plugins: embedart lastgenre fetchart chroma
+plugins: lastgenre chroma
 art_filename: folder
 threaded: no
 per_disc_numbering: yes
@@ -68,16 +68,7 @@ import:
 
 chroma:
     auto: yes
-
-embedart:
-    auto: yes
     
-fetchart:
-    auto: yes
-    cautious: true
-    enforce_ratio: yes
-    maxwidth: 1400
-
 lastgenre:
     auto: yes
     force: yes
