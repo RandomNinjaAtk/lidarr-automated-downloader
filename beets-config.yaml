@@ -1,4 +1,4 @@
-plugins: embedart
+plugins: embedart lastgenre fetchart chroma
 art_filename: folder
 threaded: no
 per_disc_numbering: yes
@@ -20,7 +20,7 @@ match:
         source: 2.0 # 2.0
         artist: 3.0 # 3.0
         album: 3.0 # 3.0
-        media: 9.0 # 1.0
+        media: 1.0 # 1.0
         mediums: 9.0 # 1.0
         year: 9.0 # 1.0
         country: 0.5 # 0.5
@@ -40,13 +40,13 @@ match:
         countries: [] # []
         media: ['CD|Digital Media'] # []
         original_year: yes # no
-    ignored: ['missing_tracks', 'track_length', 'unmatched_tracks', 'mediums', 'year', 'media'] # []
+    ignored: ['missing_tracks', 'track_length', 'unmatched_tracks', 'mediums', 'year'] # []
     required: ['year', 'album', 'artist'] # []
     ignored_media: [] # []
     ignore_data_tracks: yes # yes
     ignore_video_tracks: yes # yes
-    track_length_grace: 10 # 10
-    track_length_max: 30 # 30
+    track_length_grace: 1 # 10
+    track_length_max: 1 # 30
 
 paths:
     default: $disc$track - $title
@@ -66,6 +66,21 @@ import:
     languages: ['en']
     group_albums: no
 
+chroma:
+    auto: yes
+
 embedart:
     auto: yes
-    ifempty: yes
+    
+fetchart:
+    auto: yes
+    cautious: true
+    enforce_ratio: yes
+    maxwidth: 1400
+
+lastgenre:
+    auto: yes
+    force: yes
+    count: 5
+    separator: '; '
+    prefer_specific: no
