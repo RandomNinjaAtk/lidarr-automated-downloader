@@ -1,5 +1,17 @@
 
 # lidarr-automated-downloader (LAD)
+## Requirements
+Linux Packages: <br/>
+* jq
+* find
+* ffmpeg
+* beets
+* flac
+* mp3val
+* curl<br/>
+
+Baseline OS used for testing is Ubuntu 18.04, so use equivalent package versions
+
 ## Setup
 1. Edit "config" with a text editor that can write in Unix line endings... see: [Configuration](https://github.com/RandomNinjaAtk/lidarr-automated-downloader#configuration)
 
@@ -26,6 +38,8 @@ Modify the "config" file to set your configuration settings using a text editor 
 | --- | --- |
 | `downloaddir` |  Deezloader download directory location |
 | `LidarrImportLocation` | Temporary location that completed downloads are moved to before lidarr attempts to match and import |
+| `BeetConfig` | Location of beets configuration file |
+| `BeetLibrary` | Location of beets library file, this file is self-cleaned after every download |
 | `LidarrUrl` | Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s. |
 | `LidarrApiKey` | Lidarr API key |
 | `deezloaderurl` | Url to the download client |
@@ -41,6 +55,8 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `FolderPermissions` | Based on chmod linux permissions |
 | `FilePermissions` | Based on chmod linux permissions |
 | `DownLoadArtistArtwork` | true = enabled :: Uses Lidarr Artist artwork first with a fallback using LAD as the source |
+| `TagWithBeets` | # true = enabled :: enable beet tagging to improve matching accuracy, requires beets installation and beets file path configuration |
+| `RequireBeetsMatch` | # true = enabled :: skips importing files that could not be matched using beets |
 
 # Lidarr Configuration Recommendations
 
