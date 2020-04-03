@@ -705,7 +705,6 @@ GetDeezerArtistAlbumList () {
 			
 			error=0
 
-			
 			if [ "${downloaded}" = false ] && [ $error = 0 ]; then		
 
 				if [ "$albumlyrictype" = true ]; then
@@ -737,7 +736,7 @@ GetDeezerArtistAlbumList () {
 				else
 
 					DLAlbumArtwork
-
+					
 					downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
 					downloadedlyriccount=$(find "$downloaddir" -type f -iname "*.lrc" | wc -l)
 					downloadedalbumartcount=$(find "$downloaddir" -type f -iname "folder.*" | wc -l)
@@ -750,7 +749,10 @@ GetDeezerArtistAlbumList () {
 					TrackCountDownloadVerification
 
 					if [ $error = 0 ]; then
-
+						
+						FolderAccessPermissions "${downloaddir}"
+						FileAccessPermissions "${downloaddir}"
+						
 						if [ "${TagWithBeets}" = true ]; then
 							beetstagging
 						fi				
