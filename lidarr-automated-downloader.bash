@@ -117,6 +117,19 @@ CleanCacheCheck () {
 	fi
 }
 
+QualityVerification () {
+	if [ "$quality" = "MP3" ]; then
+		if find "$downloaddir" -iname "*.flac" | read; then
+			echo "ERROR: All tracks did not meet target quality..."
+			CleanDLPath
+		fi
+	else
+		if find "$downloaddir" -iname "*.mp3" | read; then
+			echo "ERROR: All tracks did not meet target quality..."
+			CleanDLPath
+		fi
+	fi
+}
 
 FileAccessPermissions () {
 	echo "Setting file permissions (${FilePermissions})"
@@ -749,9 +762,9 @@ GetDeezerArtistAlbumList () {
 					TrackCountDownloadVerification
 
 					if [ $error = 0 ]; then
-						
-						FolderAccessPermissions "${downloaddir}"
-						FileAccessPermissions "${downloaddir}"
+						if [ "${RequireQuality}" = true ]; then
+							QualityVerification
+						fi
 						
 						if [ "${TagWithBeets}" = true ]; then
 							beetstagging
