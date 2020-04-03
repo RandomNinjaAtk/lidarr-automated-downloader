@@ -753,18 +753,18 @@ GetDeezerArtistAlbumList () {
 
 						if [ "${TagWithBeets}" = true ]; then
 							beetstagging
-						fi
-						
-						conversion "$downloaddir"
-
-						if [ "${ReplaygainTagging}" = TRUE ]; then
-							replaygain "$downloaddir"
-						else
-							echo "REPLAYGAIN TAGGING DISABLED"
-						fi						
+						fi				
 						
 						if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
+						
+							conversion "$downloaddir"
 
+							if [ "${ReplaygainTagging}" = TRUE ]; then
+								replaygain "$downloaddir"
+							else
+								echo "REPLAYGAIN TAGGING DISABLED"
+							fi
+							
 							ImportProcess
 
 							NotifyLidarr
