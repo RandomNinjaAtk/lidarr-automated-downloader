@@ -99,7 +99,7 @@ Modify the "config" file to set your configuration settings using a text editor 
 | Tags | leave blank |
 | Path | `/path/to/artwork.bash` |
 
-This script will extract the embedded file artwork and store it in the folder local ablum folder
+This script will extract the embedded file artwork and store it in the local ablum folder
 
 # Official Docker: [lidarr-lad](https://github.com/RandomNinjaAtk/docker-lidarr-lad)
 * Pre-configured, no setup required, includes Lidarr
