@@ -55,15 +55,15 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `FolderPermissions` | Based on chmod linux permissions |
 | `FilePermissions` | Based on chmod linux permissions |
 | `DownLoadArtistArtwork` | true = enabled :: Uses Lidarr Artist artwork first with a fallback using LAD as the source |
-| `TagWithBeets` | # true = enabled :: enable beet tagging to improve matching accuracy, requires beets installation and beets file path configuration |
-| `RequireBeetsMatch` | # true = enabled :: skips importing files that could not be matched using beets |
+| `TagWithBeets` | true = enabled :: enable beet tagging to improve matching accuracy, requires beets installation and beets file path configuration |
+| `RequireBeetsMatch` | true = enabled :: skips importing files that could not be matched using beets |
+| `RequireQuality` | true = enabled :: skips importing files that do not match quality settings |
 
 # Lidarr Configuration Recommendations
 
 ## Media Management Settings:
 * Disable Track Naming
   * Disabling track renaming enables synced lyrics that are imported as extras to be utilized by media players that support using them
-
 
 #### Track Naming:
 
@@ -79,6 +79,27 @@ Modify the "config" file to set your configuration settings using a text editor 
  
 #### Permissions
 * Enable Set Permissions
+
+## Connect Settings
+
+ ### Add Custom Script
+* Settings -> Connect -> + Add -> custom Script
+
+| Parameter | Value |
+| --- | --- |
+| Name | Album Artwork Extractor |
+| On Grab | No |
+| On Release Import | Yes |
+| On Upgrade | Yes |
+| On Download Failure | No |
+| On Import Failure | No |
+| On Rename | Yes |
+| On Track Retag | Yes |
+| On Health Issue | No |
+| Tags | leave blank |
+| Path | `/path/to/artwork.bash` |
+
+This script will extract the embedded file artwork and store it in the folder local ablum folder
 
 # Official Docker: [lidarr-lad](https://github.com/RandomNinjaAtk/docker-lidarr-lad)
 * Pre-configured, no setup required, includes Lidarr
