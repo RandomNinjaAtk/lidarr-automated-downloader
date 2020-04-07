@@ -63,9 +63,11 @@ configuration () {
 }
 
 UpdateARLToken () {
-	cd "${PathToDLClient}"
-	chmod 0777 "d-fi"
-	./d-fi -a "${ARLToken}"
+	if [ ! -z "${ARLToken}" ]; then
+		cd "${PathToDLClient}"
+		chmod 0777 "d-fi"
+		./d-fi -a "${ARLToken}"
+	fi
 }
 
 paths () {
