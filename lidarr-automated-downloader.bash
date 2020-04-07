@@ -56,10 +56,16 @@ configuration () {
 	sleep 1.5
 	
 	if [ "$quality" != "MP3" ]; then
-		dlquality="flac"
+		dlquality="FLAC"
 	else
-		dlquality="mp3"
+		dlquality="320"
 	fi
+}
+
+UpdateARLToken () {
+	cd "${PathToDLClient}"
+	chmod 0777 "d-fi"
+	./d-fi -a "${ARLToken}"
 }
 
 paths () {
@@ -192,7 +198,6 @@ beetstagging () {
 }
 
 LidarrAlbums () {
-
 	
 	if [ -f "temp-lidarr-missing.json" ]; then
 		rm "temp-lidarr-missing.json"
@@ -738,11 +743,6 @@ GetDeezerArtistAlbumList () {
 
 				AlbumDL
 
-				if [ $trackdlfallback = 1 ]; then
-					CleanDLPath
-					TrackMethod
-				fi
-
 				if [ $error = 1 ]; then
 					CleanDLPath
 					echo "ERROR: Download failed, skipping..."
@@ -807,237 +807,23 @@ GetDeezerArtistAlbumList () {
 }
 
 AlbumDL () {
-	check=1
-	error=0
-	trackdlfallback=0
-	if [ "$downloadmethod" = "album" ]; then
-		if curl -s --request GET "$deezloaderurl/api/download/?url=$albumurl&quality=$dlquality" >/dev/null; then
-			echo "Download Timeout: $albumtimeoutdisplay"
-			echo "Downloading $tracktotal Tracks..."
-			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
-			while [[ -z "$started" ]]; do
-				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -print -quit)
-			done
-			let j=0
-			while [[ "$check" -le 1 ]]; do
-				let j++
-				if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
-					check=2
-				else
-					sleep 1s
-					if [ "$j" = "$albumtimeout" ]; then
-						dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
-						if curl -s --request GET "$deezloaderurl/api/canceldownload/?queueId=$dlid" >/dev/null; then
-							echo "Error downloading $albumname ($dlquality), retrying...via track method "
-							trackdlfallback=1
-							error=1
-						fi
-					fi
-				fi
-			done
-			if find "$downloaddir" -iname "*.flac" | read; then
-				fallbackqualitytext="FLAC"
-			elif find "$downloaddir" -iname "*.mp3" | read; then
-				fallbackqualitytext="MP3"
-			fi
-			if [ $error = 0 ]; then
-				echo "Downloaded Album: $albumname (Format: $fallbackqualitytext; Length: $albumdurationdisplay)"
-				Verify
-			fi
-		else
-			echo "Error sending download to Deezloader-Remix (Attempt 1)"
-			trackdlfallback=1
+	CleanDLPath
+	echo "Downloading $tracktotal Tracks..."
+	cd "${PathToDLClient}"
+	chmod 0777 "d-fi"
+	if ./d-fi -q ${$dlquality} -p "$downloaddir" -u "$albumurl" -c ${concurrency} -n; then
+		find "$downloaddir" -type f -exec mv "{}" "${downloaddir}"/ \;
+		find "$downloaddir" -type d -mindepth 1 -delete
+		if find "$downloaddir" -iname "*.flac" | read; then
+			fallbackqualitytext="FLAC"
+		elif find "$downloaddir" -iname "*.mp3" | read; then
+			fallbackqualitytext="MP3"
 		fi
-	else
-		trackdlfallback=1
-	fi
-}
-
-TrackDL () {
-	check=1
-	error=0
-	retry=0
-	fallback=0
-	fallbackbackup=0
-	fallbackquality="$dlquality"
-	if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$dlquality" >/dev/null; then
-		started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
-		while [[ -z "$started" ]]; do
-			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
-		done
-		let j=0
-		while [[ "$check" -le 1 ]]; do
-			let j++
-			if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
-				check=2
-			else
-				sleep 1
-				retry=0
-				if [ "$j" = "$tracktimeout" ]; then
-					dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
-					if curl -s --request GET "$deezloaderurl/api/canceldownload/?queueId=$dlid" >/dev/null; then
-						echo "Error downloading track $tracknumber: $trackname ($dlquality), retrying...download"
-						retry=1
-						find "$downloaddir" -type f -iname "*.flac" -newer "$temptrackfile" -delete
-						find "$downloaddir" -type f -iname "*.mp3" -newer "$temptrackfile" -delete
-					fi
-				fi
-			fi
-		done
-	else
-	    echo "Error sending download to Deezloader-Remix (Attempt 2)"
-	fi
-	if [ $retry = 1 ]; then
-		if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$dlquality" >/dev/null; then
-			started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
-			while [[ -z "$started" ]]; do
-				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
-			done
-			let k=0
-			while [[ "$retry" -le 1 ]]; do
-				let k++
-				if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
-					retry=2
-				else
-					sleep 1
-					fallback=0
-					if [ "$k" = "$trackfallbacktimout" ]; then
-						dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
-						if curl -s --request GET "$deezloaderurl/api/canceldownload/?queueId=$dlid" >/dev/null; then
-							echo "Error downloading track $tracknumber: $trackname ($dlquality), retrying...as mp3 320"
-							fallback=1
-							find "$downloaddir" -type f -iname "*.flac" -newer "$temptrackfile" -delete
-							find "$downloaddir" -type f -iname "*.mp3" -newer "$temptrackfile" -delete
-						fi
-					fi
-				fi
-			done
-		else
-			echo "Error sending download to Deezloader-Remix (Attempt 3)"
-		fi
-	fi
-	if [ $fallback = 1 ]; then
-		if [ "$enablefallback" = true ]; then
-			if [ "$dlquality" = flac ]; then
-				fallbackquality="320"
-				bitrate="320"
-			elif [ "$dlquality" = 320 ]; then
-				fallbackquality="128"
-				bitrate="128"
-			fi
-			if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$fallbackquality" >/dev/null; then
-				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
-				while [[ -z "$started" ]]; do
-					started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
-				done
-				let l=0
-				while [[ "$fallback" -le 1 ]]; do
-					let l++
-					if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
-						fallback=2
-					else
-						sleep 1
-						if [ "$l" = $tracktimeout ]; then
-							dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
-							if curl -s --request GET "$deezloaderurl/api/canceldownload/?queueId=$dlid" >/dev/null; then
-								if [ "$fallbackquality" = 128 ]; then
-									echo "Error downloading track $tracknumber: $trackname (mp3 128), skipping..."
-									error=1
-								else
-									echo "Error downloading track $tracknumber: $trackname (mp3 320), retrying...as mp3 128"
-									fallbackbackup=1
-								fi
-								find "$downloaddir" -type f -iname "*.mp3" -newer "$temptrackfile" -delete
-							fi
-						fi
-					fi
-				done
-			else
-				echo "Error sending download to Deezloader-Remix (Attempt 4)"
-			fi
-		else
-			echo "Error downloading track $tracknumber: $trackname ($dlquality), skipping..."
-			error=1
-		fi
-	fi
-	if [ $fallbackbackup = 1 ]; then
-		if [ "$enablefallback" = true ]; then
-			fallbackquality="128"
-			bitrate="128"
-			if curl -s --request GET "$deezloaderurl/api/download/?url=$trackurl&quality=$fallbackquality" >/dev/null; then
-				started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
-				while [[ -z "$started" ]]; do
-					started=$(find "${downloaddir}" -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" -print -quit)
-				done
-				let l=0
-				while [[ "$fallbackbackup" -le 1 ]]; do
-					let l++
-					if curl -s --request GET "$deezloaderurl/api/queue/" | grep "length\":0,\"items\":\[\]" >/dev/null; then
-						fallbackbackup=2
-					else
-						sleep 1
-						if [ "$l" = $trackfallbacktimout ]; then
-							dlid=$(curl -s --request GET "$deezloaderurl/api/queue/" | jq -r ".items | .[] | .queueId")
-							if curl -s --request GET "$deezloaderurl/api/canceldownload/?queueId=$dlid" >/dev/null; then
-								echo "Error downloading track $tracknumber: $trackname (mp3 128), skipping..."
-								error=1
-								find "$downloaddir" -type f -iname "*.mp3" -newer "$temptrackfile" -delete
-							fi
-						fi
-					fi
-				done
-			else
-				echo "Error sending download to Deezloader-Remix (Attempt 5)"
-			fi
-		else
-			echo "Error downloading track $tracknumber: $trackname ($dlquality), skipping..."
-			error=1
-		fi
-	fi
-
-	if find "$downloaddir" -iname "*.flac" -newer "$temptrackfile" | read; then
-		fallbackqualitytext="FLAC"
-	elif find "$downloaddir" -iname "*.mp3" -newer "$temptrackfile" | read; then
-		fallbackqualitytext="MP3"
-	fi
-	
-	if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|mp3\)" -newer "$temptrackfile" | read; then
-		echo "Download Track $tracknumber of $tracktotal: $trackname (Format: $fallbackqualitytext; Length: $trackdurationdisplay)"
+		echo "Downloaded Album: $albumname (Format: $fallbackqualitytext; Length: $albumdurationdisplay)"
 		Verify
 	else
 		error=1
 	fi
-}
-
-TrackMethod () {
-	CleanDLPath
-	sleep 0.1
-	echo "Downloading $tracktotal Tracks..."
-	temptrackfile="${downloaddir}/temp-track"
-	trackid=($(echo "${albuminfo}" | jq -r ".tracks | .data | .[] | .id"))
-	for track in ${!trackid[@]}; do
-		tracknumber=$(( $track + 1 ))
-		trackname=$(echo "${albuminfo}" | jq -r ".tracks | .data | .[] | select(.id=="${trackid[$track]}") | .title")
-		trackduration=$(echo "${albuminfo}" | jq -r ".tracks | .data | .[] | select(.id=="${trackid[$track]}") | .duration")
-		trackdurationdisplay=$(DurationCalc $trackduration)
-		trackurl="https://www.deezer.com/track/${trackid[$track]}"
-		tracktimeout=$(($trackduration*$tracktimeoutpercentage/100))
-		trackfallbacktimout=$(($tracktimeout*2))
-		if [[ "$tracktimeout" -le 60 ]]; then
-			tracktimeout="60"
-			trackfallbacktimout=$(($tracktimeout*2))
-		fi
-		if [ -f "$temptrackfile" ]; then
-			rm "$temptrackfile"
-			sleep 0.1
-		fi
-		touch "$temptrackfile"
-		TrackDL
-		if [ -f "$temptrackfile" ]; then
-			rm "$temptrackfile"
-			sleep 0.1
-		fi
-	done
 }
 
 ImportProcess () {
@@ -1064,73 +850,33 @@ NotifyLidarr () {
 }
 
 Verify () {
-	if [ $trackdlfallback = 0 ]; then
-		if find "$downloaddir" -iname "*.flac" | read; then
-			if ! [ -x "$(command -v flac)" ]; then
-				echo "ERROR: FLAC verification utility not installed (ubuntu: apt-get install -y flac)"
-			else
-				for fname in "${downloaddir}"/*.flac; do
-					filename="$(basename "$fname")"
-					if flac -t --totally-silent "$fname"; then
-						echo "Verified Track: $filename"
-					else
-						echo "Track Verification Error: \"$filename\" deleted...retrying download via track method"
-						rm -rf "$downloaddir"/*
-						sleep 0.1
-						trackdlfallback=1
-					fi
-				done
-			fi
-		fi
-		if find "$downloaddir" -iname "*.mp3" | read; then
-			if ! [ -x "$(command -v mp3val)" ]; then
-				echo "MP3VAL verification utility not installed (ubuntu: apt-get install -y mp3val)"
-			else
-				for fname in "${downloaddir}"/*.mp3; do
-					filename="$(basename "$fname")"
-					if mp3val -f -nb "$fname" > /dev/null; then
-						echo "Verified Track: $filename"
-					fi
-				done
-			fi
-		fi
-	elif [ $trackdlfallback = 1 ]; then
+	if find "$downloaddir" -iname "*.flac" | read; then
 		if ! [ -x "$(command -v flac)" ]; then
 			echo "ERROR: FLAC verification utility not installed (ubuntu: apt-get install -y flac)"
 		else
-			if find "$downloaddir" -iname "*.flac" -newer "$temptrackfile" | read; then
-				find "$downloaddir" -iname "*.flac" -newer "$temptrackfile" -print0 | while IFS= read -r -d '' file; do
-					filename="$(basename "$file")"
-					if flac -t --totally-silent "$file"; then
-						echo "Verified Track $tracknumber of $tracktotal: $trackname (Format: $fallbackqualitytext; Length: $trackdurationdisplay)"
-					else
-						rm "$file"
-						if [ "$enablefallback" = true ]; then
-							echo "Track Verification Error: \"$trackname\" deleted...retrying as MP3"
-							origdlquality="$dlquality"
-							dlquality="320"
-							TrackDL
-							dlquality="$origdlquality"
-						else
-							echo "Verification Error: \"$trackname\" deleted..."
-							echo "Fallback quality disabled, skipping..."
-							error=1
-						fi
-					fi
-				done
-			fi
+			for fname in "${downloaddir}"/*.flac; do
+				filename="$(basename "$fname")"
+				if flac -t --totally-silent "$fname"; then
+					echo "Verified Track: $filename"
+				else
+					echo "ERROR: Track Verification failed, skipping album"
+					rm -rf "$downloaddir"/*
+					sleep 0.1
+					error=1
+				fi
+			done
 		fi
+	fi
+	if find "$downloaddir" -iname "*.mp3" | read; then
 		if ! [ -x "$(command -v mp3val)" ]; then
 			echo "MP3VAL verification utility not installed (ubuntu: apt-get install -y mp3val)"
 		else
-			if find "$downloaddir" -iname "*.mp3" -newer "$temptrackfile" | read; then
-				find "$downloaddir" -iname "*.mp3" -newer "$temptrackfile" -print0 | while IFS= read -r -d '' file; do
-					filename="$(basename "$file")"
-					if mp3val -f -nb "$file" > /dev/null; then
-						echo "Verified Track $tracknumber of $tracktotal: $trackname (Format: $fallbackqualitytext; Length: $trackdurationdisplay)"
-					fi
-				done
-			fi
+			for fname in "${downloaddir}"/*.mp3; do
+				filename="$(basename "$fname")"
+				if mp3val -f -nb "$fname" > /dev/null; then
+					echo "Verified Track: $filename"
+				fi
+			done
 		fi
 	fi
 }
@@ -1282,6 +1028,8 @@ TrackCountDownloadVerification () {
 		fi
 	fi
 }
+
+UpdateARLToken
 
 paths
 
