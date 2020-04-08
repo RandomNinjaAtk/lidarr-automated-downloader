@@ -49,24 +49,29 @@ configuration () {
 	else
 		echo "Beets Tagging: Disabled"
 	fi
-	echo "Total Number of Albums To Process: $wantittotal"
-	echo ""
-	echo "Begin finding downloads..."
-	echo ""
-	sleep 1.5
-	
+	echo "Total Number of Albums To Process: $wantittotal"	
 	if [ "$quality" != "MP3" ]; then
 		dlquality="FLAC"
 	else
 		dlquality="320"
 	fi
+	if [ -z "${concurrency}" ]; then
+		concurrency="1"
+	fi
+	echo "DL Client Concurrency: $concurrency"
+	echo ""
+	echo "Begin finding downloads..."
+	echo ""
+	sleep 1.5
 }
 
 UpdateARLToken () {
+	echo "Updating ARL Token"
 	if [ ! -z "${ARLToken}" ]; then
-		cd "${PathToDLClient}"
-		chmod 0777 "d-fi"
-		./d-fi -a "${ARLToken}"
+		chmod 0777 "${PathToDLClient}/d-fi"
+		."${PathToDLClient}"/d-fi -a "${ARLToken}"
+	else
+		echo "WARNING: Update DL CLient ARL Token as soon as possible"
 	fi
 }
 
@@ -808,9 +813,8 @@ GetDeezerArtistAlbumList () {
 AlbumDL () {
 	CleanDLPath
 	echo "Downloading $tracktotal Tracks..."
-	cd "${PathToDLClient}"
-	chmod 0777 "d-fi"
-	if ./d-fi -q ${dlquality} -p "$downloaddir" -u "$albumurl" -c ${concurrency} -n; then
+	chmod 0777 "${PathToDLClient}/d-fi"
+	if ."${PathToDLClient}"/d-fi -q ${dlquality} -p "$downloaddir" -u "$albumurl" -c ${concurrency} -n; then
 		find "$downloaddir" -type f -exec mv "{}" "${downloaddir}"/ \;
 		find "$downloaddir" -type d -mindepth 1 -delete
 		if find "$downloaddir" -iname "*.flac" | read; then
