@@ -69,7 +69,7 @@ UpdateARLToken () {
 	echo "Updating ARL Token"
 	if [ ! -z "${ARLToken}" ]; then
 		chmod 0777 "${PathToDLClient}/d-fi"
-		."${PathToDLClient}"/d-fi -a "${ARLToken}"
+		bash -c "cd \"${PathToDLClient}\" && ./d-fi -a \"${ARLToken}\""
 	else
 		echo "WARNING: Update DL CLient ARL Token as soon as possible"
 	fi
@@ -814,7 +814,7 @@ AlbumDL () {
 	CleanDLPath
 	echo "Downloading $tracktotal Tracks..."
 	chmod 0777 "${PathToDLClient}/d-fi"
-	if ."${PathToDLClient}"/d-fi -q ${dlquality} -p "$downloaddir" -u "$albumurl" -c ${concurrency} -n; then
+	if bash -c "cd \"${PathToDLClient}\" && ./d-fi -q ${dlquality} -p \"$downloaddir\" -u \"$albumurl\" -c ${concurrency} -n"; then
 		find "$downloaddir" -type f -exec mv "{}" "${downloaddir}"/ \;
 		find "$downloaddir" -type d -mindepth 1 -delete
 		if find "$downloaddir" -iname "*.flac" | read; then
