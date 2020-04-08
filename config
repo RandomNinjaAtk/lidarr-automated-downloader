@@ -11,7 +11,8 @@
 #####################################################################################################
 
 ############ Paths
-downloaddir="/downloads/deezloaderremix" # Deezloader download directory location
+downloaddir="/downloads/dlclient" # Dl client download directory location
+PathToDLClient="/path/to/dlclient" # Path to DL client directory (d-fi)
 LidarrImportLocation="/downloads/lidarr-import" # Temporary location that completed downloads are moved to before lidarr attempts to match and import
 
 ############ Lidarr Settings
@@ -21,15 +22,11 @@ LidarrApiKey="08d108d108d108d108d108d108d108d1" # Lidarr API key.
 ############ Beets File locaitons
 BeetConfig="beets-config.yaml"
 BeetLibrary="beets-library.blb"
-BeetLog="beets.log"
 
 ############ Download Client Settings
-deezloaderurl="http://127.0.0.1:1730" # Url to the download client
-downloadmethod="album" # album or track :: album method will fallback to track method if it runs into an issue
-enablefallback="true" # enables fallback to lower quality if required...
+ARLToken="" # User token for dl client
+concurrency="4" # Number of concurrent tracks to download via the client. Increasing can speed things up but is more resource intensive, lower is safer...
 VerifyTrackCount="true" # true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import...
-albumtimeoutpercentage=8 # Set the number between 1 and 100 :: This number is used to caculate album download timeout length by multiplying Album Length by ##%
-tracktimeoutpercentage=25 # Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##%
 DownLoadArtistArtwork="false" # true = enabled :: Uses Lidarr Artist artwork first and fallsback to Deezer
 
 ############ File Options

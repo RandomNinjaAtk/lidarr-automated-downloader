@@ -38,16 +38,14 @@ Modify the "config" file to set your configuration settings using a text editor 
 | --- | --- |
 | `downloaddir` |  Deezloader download directory location |
 | `LidarrImportLocation` | Temporary location that completed downloads are moved to before lidarr attempts to match and import |
+| `PathToDLClient` | Path to DL client directory (d-fi) |
 | `BeetConfig` | Location of beets configuration file |
 | `BeetLibrary` | Location of beets library file, this file is self-cleaned after every download |
 | `LidarrUrl` | Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s. |
 | `LidarrApiKey` | Lidarr API key |
-| `deezloaderurl` | Url to the download client |
-| `downloadmethod` | SET TO: album or track :: album method will fallback to track method if it runs into an issue |
-| `enablefallback` | true = enabled :: enables fallback to lower quality if required... |
+| `ARLToken` | User token for dl client, for instructions on obtaining key: https://notabug.org/RemixDevs/DeezloaderRemix/wiki/Login+via+userToken#how-do-i-get-my-usertoken |
+| `concurrency` | Number of concurrent tracks to download via the client. Increasing can speed things up but is more resource intensive, lower is safer... |
 | `VerifyTrackCount` | true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import... |
-| `albumtimeoutpercentage` | Set the number between 1 and 100 :: This number is used to caculate album download timeout length by multiplying Album Length by ##% |
-| `tracktimeoutpercentage` | Set the number between 1 and 100 :: This number is used to caculate  track download timeout length by multiplying Track Length by ##% |
 | `amount` | Maximum: 1000000000 :: Number of missing/cutoff albums to look for... |
 | `quality` | SET TO: FLAC or MP3 or OPUS or AAC or FDK-AAC or ALAC |
 | `ConversionBitrate` | FLAC -> OPUS/AAC/FDK-AAC will be converted using this bitrate |
