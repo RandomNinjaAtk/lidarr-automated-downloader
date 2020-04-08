@@ -708,9 +708,6 @@ GetDeezerArtistAlbumList () {
 			albumtypecap="${albumtype^^}"
 			albumduration=$(echo "${albuminfo}" | jq -r ".duration")
 			albumdurationdisplay=$(DurationCalc $albumduration)
-			albumtimeout=$(($albumduration*$albumtimeoutpercentage/100))
-			albumtimeoutdisplay=$(DurationCalc $albumtimeout)
-			albumfallbacktimout=$(($albumduration*2))
 			importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (${albumtypecap}) (WEB)-DREMIX"
 
 			if ! [ -f "download.log" ]; then
@@ -813,7 +810,7 @@ AlbumDL () {
 	echo "Downloading $tracktotal Tracks..."
 	cd "${PathToDLClient}"
 	chmod 0777 "d-fi"
-	if ./d-fi -q ${$dlquality} -p "$downloaddir" -u "$albumurl" -c ${concurrency} -n; then
+	if ./d-fi -q ${dlquality} -p "$downloaddir" -u "$albumurl" -c ${concurrency} -n; then
 		find "$downloaddir" -type f -exec mv "{}" "${downloaddir}"/ \;
 		find "$downloaddir" -type d -mindepth 1 -delete
 		if find "$downloaddir" -iname "*.flac" | read; then
