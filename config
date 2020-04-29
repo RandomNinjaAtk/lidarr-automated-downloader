@@ -12,7 +12,7 @@
 
 ############ Paths
 downloaddir="/downloads/dlclient" # Dl client download directory location
-PathToDLClient="/path/to/dlclient" # Path to DL client directory (d-fi)
+PathToDLClient="/path/to/dlclient" # Path to DL client directory (deemix)
 LidarrImportLocation="/downloads/lidarr-import" # Temporary location that completed downloads are moved to before lidarr attempts to match and import
 
 ############ Lidarr Settings
@@ -24,8 +24,6 @@ BeetConfig="beets-config.yaml"
 BeetLibrary="beets-library.blb"
 
 ############ Download Client Settings
-ARLToken="" # User token for dl client
-concurrency="4" # Number of concurrent tracks to download via the client. Increasing can speed things up but is more resource intensive, lower is safer...
 VerifyTrackCount="true" # true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import...
 DownLoadArtistArtwork="false" # true = enabled :: Uses Lidarr Artist artwork first and fallsback to Deezer
 
@@ -40,4 +38,3 @@ RequireBeetsMatch="false" # true = enabled :: skips importing files that could n
 RequireQuality="false" # true = enabled :: skips importing files that do not match quality settings
 ############ Script Options
 amount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for....
-
