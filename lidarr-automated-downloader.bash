@@ -698,7 +698,7 @@ GetDeezerArtistAlbumList () {
 			albumtypecap="${albumtype^^}"
 			albumduration=$(echo "${albuminfo}" | jq -r ".duration")
 			albumdurationdisplay=$(DurationCalc $albumduration)
-			importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (${albumtypecap}) (WEB)-DREMIX"
+			importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (${albumtypecap}) (WEB)-DLCLIENT"
 
 			if ! [ -f "download.log" ]; then
 				touch "download.log"
