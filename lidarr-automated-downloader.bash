@@ -51,7 +51,7 @@ configuration () {
 	fi
 	echo "Total Number of Albums To Process: $wantittotal"	
 	if [ "$quality" != "MP3" ]; then
-		dlquality="FLAC"
+		dlquality="flac"
 	else
 		dlquality="320"
 	fi
