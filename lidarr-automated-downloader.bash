@@ -243,7 +243,6 @@ LidarrAlbums () {
 		exit 1
 	fi
 }
-
 ProcessLidarrAlbums () {
 	
 	for id in ${!wantitid[@]}; do
@@ -278,12 +277,12 @@ ProcessLidarrAlbums () {
 		sanatizedwantitalbumartistnamefuzzy="$(echo "${wantitalbumartistname}" | sed -e "s/’/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 		sanatizedwantitalbumartistnamefuzzy="${sanatizedwantitalbumartistnamefuzzy// /%20}"
 		echo "Lidarr Artist Name: $wantitalbumartistname (LID: $wantitalbumartisid :: MBID: ${wantitalbumartistmbid})"
-		echo "Lidarr Album Title: $wantitalbumtitle ($currentprocess of $wantittotal)"
+		echo "Lidarr Album Title: $wantitalbumtitle [$wantitalbummbid] ($currentprocess of $wantittotal)"
 		echo "Lidarr Album Year: $wantitalbumyear"
 		echo "Lidarr Album Type: $normalizetype" 
 		echo "Lidarr Album Track Count: $wantitalbumtrackcount"
 		if [ -f "notfound.log" ]; then
-			if cat "notfound.log" | grep "${wantitalbumid}" | read; then
+			if cat "notfound.log" | grep "${wantitalbummbid}" | read; then
 				echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 				continue
 			fi
@@ -390,17 +389,14 @@ DeezerMatching () {
 	if [ "$wantitalbumartistname" != "Various Artists" ]; then
 		DeezerArtistAlbumListSortTotal=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l)
 		echo "Checking.... $DeezerArtistAlbumListSortTotal Albums for match"
-		
 		# Match using Sanatized Album Name + Track Count + Year
 		if [ -z "$DeezerArtistMatchID" ]; then
 			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$wantitalbumtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
 		fi
-		
 		# Match using Sanatized Album Name + Track Count
 		if [ -z "$DeezerArtistMatchID" ]; then
 			DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$wantitalbumtrackcount) | select(.sanatized_album_name==\"${sanatizedwantitalbumtitle}\") | .id" | head -n1))
 		fi
-
 		if [ -z "$DeezerArtistMatchID" ]; then
 			# Check Album release records for match as backup because primary album title did not match
 			for id in "${!wantitalbumrecordtitles[@]}"; do
@@ -408,7 +404,7 @@ DeezerMatching () {
 				recordtitle="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .title")"
 				recordtrackcount="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
 				sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
-				
+				echo "Matching against: $recordtitle ($recordtrackcount Tracks)..."
 				# Match using Sanatized Release Record Album Name + Track Count + Year
 				if [ -z "$DeezerArtistMatchID" ]; then
 					DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
@@ -431,7 +427,7 @@ DeezerMatching () {
 	if ! [ -f "notfound.log" ]; then
 		touch "notfound.log"
 	fi
-	if cat "notfound.log" | grep "${wantitalbumid}" | read; then
+	if cat "notfound.log" | grep "${wantitalbummbid}" | read; then
 		echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 	else
 		if [ -z "$DeezerArtistMatchID" ]; then
@@ -494,6 +490,7 @@ DeezerMatching () {
 					recordtrackcount="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
 					sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"				
 					fuzzymatcherror="false"
+					echo "Matching against: $recordtitle ($recordtrackcount Tracks)..."
 					if [ "$fuzzymatcherror" != true ]; then
 						if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
 							fuzzymatcherror="false"
@@ -577,7 +574,6 @@ DeezerMatching () {
 		fi
 	fi
 }
-
 DownloadList () {
 	# Check cache deezer artistid album list for matching discography album count, if different, delete
 	if [ ! -f "cache/$DeezerArtistID-checked" ]; then
@@ -805,8 +801,8 @@ AlbumDL () {
 	chmod 0777 -R "${PathToDLClient}"
 	currentpwd="$(pwd)"
 	if cd "${PathToDLClient}" && $python -m deemix -b ${dlquality} "$albumurl" && cd "${currentpwd}"; then
-		find "$downloaddir" -type f -mindepth 2 -exec mv "{}" "${downloaddir}"/ \;
-		find "$downloaddir" -type d -mindepth 1 -delete
+		find "$downloaddir" -mindepth 2 -type f -exec mv "{}" "${downloaddir}"/ \;
+		find "$downloaddir" -mindepth 1 -type d -delete
 		if find "$downloaddir" -iname "*.flac" | read; then
 			fallbackqualitytext="FLAC"
 		elif find "$downloaddir" -iname "*.mp3" | read; then
@@ -819,6 +815,7 @@ AlbumDL () {
 		error=1
 	fi
 }
+
 ImportProcess () {
 	if [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
 		rm -rf "${LidarrImportLocation}/${importalbumfolder}"
