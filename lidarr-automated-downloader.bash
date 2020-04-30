@@ -800,7 +800,8 @@ AlbumDL () {
 	CleanDLPath
 	echo "Downloading $tracktotal Tracks..."
 	chmod 0777 -R "${PathToDLClient}"
-	if bash -c "cd \"${PathToDLClient}\" && $python -m deemix -b ${dlquality} \"$albumurl\""; then
+	currentpwd="$(pwd)"
+	if cd "${PathToDLClient}" && $python -m deemix -b ${dlquality} "$albumurl" && cd "${currentpwd}"; then
 		find "$downloaddir" -type f -mindepth 2 -exec mv "{}" "${downloaddir}"/ \;
 		find "$downloaddir" -type d -mindepth 1 -delete
 		if find "$downloaddir" -iname "*.flac" | read; then
@@ -811,10 +812,10 @@ AlbumDL () {
 		echo "Downloaded Album: $albumname (Format: $fallbackqualitytext; Length: $albumdurationdisplay)"
 		Verify
 	else
+		cd "${currentpwd}"
 		error=1
 	fi
 }
-
 ImportProcess () {
 	if [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
 		rm -rf "${LidarrImportLocation}/${importalbumfolder}"
