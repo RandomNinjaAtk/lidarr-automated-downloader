@@ -801,7 +801,7 @@ AlbumDL () {
 	echo "Downloading $tracktotal Tracks..."
 	chmod 0777 -R "${PathToDLClient}"
 	if bash -c "cd \"${PathToDLClient}\" && $python -m deemix -b ${dlquality} \"$albumurl\""; then
-		find "$downloaddir" -type f -exec mv "{}" "${downloaddir}"/ \;
+		find "$downloaddir" -type f -mindepth 2 -exec mv "{}" "${downloaddir}"/ \;
 		find "$downloaddir" -type d -mindepth 1 -delete
 		if find "$downloaddir" -iname "*.flac" | read; then
 			fallbackqualitytext="FLAC"
