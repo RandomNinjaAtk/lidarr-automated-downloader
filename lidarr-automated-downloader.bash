@@ -51,28 +51,14 @@ configuration () {
 	fi
 	echo "Total Number of Albums To Process: $wantittotal"	
 	if [ "$quality" != "MP3" ]; then
-		dlquality="FLAC"
+		dlquality="flac"
 	else
 		dlquality="320"
 	fi
-	if [ -z "${concurrency}" ]; then
-		concurrency="1"
-	fi
-	echo "DL Client Concurrency: $concurrency"
 	echo ""
 	echo "Begin finding downloads..."
 	echo ""
 	sleep 1.5
-}
-
-UpdateARLToken () {
-	echo "Updating ARL Token"
-	if [ ! -z "${ARLToken}" ]; then
-		chmod 0777 "${PathToDLClient}/d-fi"
-		bash -c "cd \"${PathToDLClient}\" && ./d-fi -a \"${ARLToken}\""
-	else
-		echo "WARNING: Update DL CLient ARL Token as soon as possible"
-	fi
 }
 
 paths () {
@@ -813,8 +799,8 @@ GetDeezerArtistAlbumList () {
 AlbumDL () {
 	CleanDLPath
 	echo "Downloading $tracktotal Tracks..."
-	chmod 0777 "${PathToDLClient}/d-fi"
-	if bash -c "cd \"${PathToDLClient}\" && ./d-fi -q ${dlquality} -p \"$downloaddir\" -u \"$albumurl\" -c ${concurrency} -n"; then
+	chmod 0777 -R "${PathToDLClient}"
+	if bash -c "cd \"${PathToDLClient}\" && $python -m deemix -b ${dlquality} \"$albumurl\""; then
 		find "$downloaddir" -type f -exec mv "{}" "${downloaddir}"/ \;
 		find "$downloaddir" -type d -mindepth 1 -delete
 		if find "$downloaddir" -iname "*.flac" | read; then
@@ -1031,8 +1017,6 @@ TrackCountDownloadVerification () {
 		fi
 	fi
 }
-
-UpdateARLToken
 
 paths
 
