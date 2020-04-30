@@ -1,4 +1,7 @@
 #!/bin/bash
+# export1
+# export2
+# export3
 #####################################################################################################
 #                                     Lidarr Automated Downloader                                   #
 #                                       Credit: RandomNinjaAtk                                      #
