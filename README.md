@@ -43,6 +43,7 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `BeetLibrary` | Location of beets library file, this file is self-cleaned after every download |
 | `LidarrUrl` | Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s. |
 | `LidarrApiKey` | Lidarr API key |
+| `python` | command to execute python 3 applications/scripts (for ubuntu, use: python3) |
 | `VerifyTrackCount` | true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import... |
 | `amount` | Maximum: 1000000000 :: Number of missing/cutoff albums to look for... |
 | `quality` | SET TO: FLAC or MP3 or OPUS or AAC or FDK-AAC or ALAC |
