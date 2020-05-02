@@ -96,6 +96,21 @@ CleanImportPath () {
 	rm "cleanup-imports"
 }
 
+CleanCacheCheck () {
+	if [ -d "cache" ]; then
+		if [ -f "cleanup-cache-check" ]; then
+			rm "cleanup-cache-check"
+		fi
+		touch -d "168 hours ago" "cleanup-cache-check"
+		if find "cache" -type f -iname "*-checked" -not -newer "cleanup-cache-check" | read; then
+			echo "Remvoing Cached Checked files older than 168 Hours..."
+			find "cache" -type f -iname "*-checked" -not -newer "cleanup-cache-check" -delete
+		fi
+		rm "cleanup-cache-check"
+	fi
+}
+
+
 CleanMusicbrainzLog () {
 	if [ -f "cleanup-musicbrainzerrorlog" ]; then
 		rm "cleanup-musicbrainzerrorlog"
@@ -107,15 +122,6 @@ CleanMusicbrainzLog () {
 			find find -type f -iname "musicbrainzerror.log" -not -newer "cleanup-musicbrainzerrorlog" -delete
 		fi
 		rm "cleanup-musicbrainzerrorlog"
-	fi
-}
-
-CleanCacheCheck () {
-	if [ -d "cache" ]; then
-		if find "cache" -type f -iname "*-checked" | read; then
-			echo "Clearing cache checked verification files"
-			find "cache" -type f -iname "*-checked" -delete
-		fi
 	fi
 }
 
