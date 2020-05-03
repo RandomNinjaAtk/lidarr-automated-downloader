@@ -957,11 +957,18 @@ replaygain () {
 }
 
 DLAlbumArtwork () {
-	if curl -sL --fail "${albumartworkurl}" -o "$downloaddir/folder.jpg"; then
-		sleep 0.1
-	else
-		echo "Failed downloading album cover picture..."
+	SAVEIFS=$IFS
+	IFS=$(echo -en "\n\b")
+	file=$(find "${$downloaddir}" -iregex ".*/.*\.\(flac\|mp3\|opus\|m4a\)" | head -n 1)
+	if [ ! -z "$file" ]; then
+		artwork="$(dirname "$file")/folder.jpg"
+		if ffmpeg -i "$file" -c:v copy "$downloaddir/folder.jpg" 2>/dev/null; then
+			echo "SUCCESS: Artwork Extracted for Downlaod"
+		else
+			echo "ERROR: No artwork failed extraction"
+		fi
 	fi
+	IFS=$SAVEIFS
 }
 
 DLArtistArtwork () {
