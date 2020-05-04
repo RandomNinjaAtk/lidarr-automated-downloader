@@ -1,4 +1,4 @@
-plugins: lastgenre chroma
+plugins: embedart lastgenre fetchart chroma
 art_filename: folder
 threaded: no
 per_disc_numbering: yes
@@ -38,7 +38,7 @@ match:
         track_id: 5.0 # 5.0
     preferred:
         countries: [] # []
-        media: ['CD|Digital Media'] # []
+        media: [] # []
         original_year: yes # no
     ignored: ['missing_tracks', 'track_length', 'unmatched_tracks', 'mediums', 'year'] # []
     required: ['year', 'album', 'artist'] # []
@@ -68,7 +68,16 @@ import:
 
 chroma:
     auto: yes
+
+embedart:
+    auto: yes
     
+fetchart:
+    auto: yes
+    cautious: true
+    enforce_ratio: yes
+    sources: filesystem
+
 lastgenre:
     auto: yes
     force: yes
