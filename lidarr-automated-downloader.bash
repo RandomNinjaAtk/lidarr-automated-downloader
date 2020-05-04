@@ -573,7 +573,7 @@ DeezerMatching () {
 						echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 					else
 						echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
-						echo "${wantitalbumartistname} :: $wantitalbumtitle (ID: ${wantitalbummbid}) :: Could not find a match using Release or Record Name, Track Count and Release Year" >> "notfound.log"
+						echo "${wantitalbumartistname} :: $wantitalbumtitle (ID: ${wantitalbummbid}) :: Could not find a match on \"https://www.deezer.com/artist/${DeezerArtistID}\" using Release or Record Name, Track Count and Release Year, check artist page for album, ep or single. If exists, update musicbrainz db with matching album name, track count, year to resolve the error" >> "notfound.log"
 					fi
 				fi
 			fi
