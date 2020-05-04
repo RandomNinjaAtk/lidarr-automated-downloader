@@ -440,63 +440,21 @@ DeezerMatching () {
 			if [ "$wantitalbumartistname" = "Various Artists" ]; then
 				albumfuzzy=$(curl -s "https://api.deezer.com/search?q=album:%22$sanatizedwantitalbumtitlefuzzy%22")
 				wantitalbumdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .album.id" | sort -u))
-			else
-				albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
-				wantitalbumdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .album.id" | sort -u))
-			fi
-			echo "Attemtping fuzzy search for Album: $wantitalbumtitle by: $wantitalbumartistname"
-			for id in "${!wantitalbumdeezeridfuzzy[@]}"; do
-				currentprocess=$(( $id + 1 ))
-				fuzzyalbumid=${wantitalbumdeezeridfuzzy[$id]}
-				albuminfo="$(curl -sL --fail "https://api.deezer.com/album/${fuzzyalbumid}")"
-				fuzzyalbumname="$(echo "$albuminfo" | jq -r ".title" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
-				fuzzyaritstname="$(echo "$albuminfo" | jq ".artist.name" | sort -u | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
-				actualtracktotal=$(echo "$albuminfo" | jq -r ".tracks.data | .[] | .id" | wc -l)
-				albumdate="$(echo "${albuminfo}" | jq -r ".release_date")"
-				albumyear=$(echo ${albumdate:0:4})			
-				fuzzymatcherror="false"
-				if [ "$fuzzymatcherror" != true ]; then
-					if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
-						fuzzymatcherror="false"
-					else
-						fuzzymatcherror="true"
-					fi
-				fi
-				if [ "$fuzzymatcherror" != true ]; then
-					if [ "$sanatizedwantitalbumtitle" = "$fuzzyalbumname" ]; then
-						fuzzymatcherror="false"
-					else
-						fuzzymatcherror="true"
-					fi
-				fi
-				if [ "$fuzzymatcherror" != true ]; then
-					if [ "$wantitalbumtrackcount" = "$actualtracktotal" ]; then
-						fuzzymatcherror="false"
-					else
-						fuzzymatcherror="true"
-					fi
-				fi
-
-				if [ "$fuzzymatcherror" != true ]; then
-					# Match using Sanatized Artist Name + Sanatized Album Name + Track Count + Year
-					if [ "$wantitalbumyear" = "$albumyear" ]; then
-						DeezerArtistMatchID="$fuzzyalbumid"
-						fuzzyalbummatch="true"
-						break
-					else
-						DeezerArtistMatchID="$fuzzyalbumid"
-						fuzzyalbummatch="true"
-						break
-					fi
-				fi
-
-				for id in "${!wantitalbumrecordtitles[@]}"; do
-					recordid=${wantitalbumrecordtitles[$id]}
-					recordtitle="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .title")"
-					recordtrackcount="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
-					sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"				
+			# else
+			#	albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
+			#	wantitalbumdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .album.id" | sort -u))
+			# fi
+				echo "Attemtping fuzzy search for Album: $wantitalbumtitle by: $wantitalbumartistname"
+				for id in "${!wantitalbumdeezeridfuzzy[@]}"; do
+					currentprocess=$(( $id + 1 ))
+					fuzzyalbumid=${wantitalbumdeezeridfuzzy[$id]}
+					albuminfo="$(curl -sL --fail "https://api.deezer.com/album/${fuzzyalbumid}")"
+					fuzzyalbumname="$(echo "$albuminfo" | jq -r ".title" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
+					fuzzyaritstname="$(echo "$albuminfo" | jq ".artist.name" | sort -u | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
+					actualtracktotal=$(echo "$albuminfo" | jq -r ".tracks.data | .[] | .id" | wc -l)
+					albumdate="$(echo "${albuminfo}" | jq -r ".release_date")"
+					albumyear=$(echo ${albumdate:0:4})			
 					fuzzymatcherror="false"
-					echo "Matching against: $recordtitle ($recordtrackcount Tracks)..."
 					if [ "$fuzzymatcherror" != true ]; then
 						if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
 							fuzzymatcherror="false"
@@ -531,13 +489,56 @@ DeezerMatching () {
 							break
 						fi
 					fi
+
+					for id in "${!wantitalbumrecordtitles[@]}"; do
+						recordid=${wantitalbumrecordtitles[$id]}
+						recordtitle="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .title")"
+						recordtrackcount="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
+						sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"				
+						fuzzymatcherror="false"
+						echo "Matching against: $recordtitle ($recordtrackcount Tracks)..."
+						if [ "$fuzzymatcherror" != true ]; then
+							if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
+								fuzzymatcherror="false"
+							else
+								fuzzymatcherror="true"
+							fi
+						fi
+						if [ "$fuzzymatcherror" != true ]; then
+							if [ "$sanatizedwantitalbumtitle" = "$fuzzyalbumname" ]; then
+								fuzzymatcherror="false"
+							else
+								fuzzymatcherror="true"
+							fi
+						fi
+						if [ "$fuzzymatcherror" != true ]; then
+							if [ "$wantitalbumtrackcount" = "$actualtracktotal" ]; then
+								fuzzymatcherror="false"
+							else
+								fuzzymatcherror="true"
+							fi
+						fi
+
+						if [ "$fuzzymatcherror" != true ]; then
+							# Match using Sanatized Artist Name + Sanatized Album Name + Track Count + Year
+							if [ "$wantitalbumyear" = "$albumyear" ]; then
+								DeezerArtistMatchID="$fuzzyalbumid"
+								fuzzyalbummatch="true"
+								break
+							else
+								DeezerArtistMatchID="$fuzzyalbumid"
+								fuzzyalbummatch="true"
+								break
+							fi
+						fi
+					done
 				done
-			done
+			fi
 		fi
 
 		if [ "$wantitalbumartistname" != "Various Artists" ]; then
 			if [ -z "$DeezerArtistMatchID" ]; then
-				echo "ERROR: Not found, fallback to secondary fuzzy search..."
+				echo "ERROR: Not found, fallback to fuzzy search..."
 
 				# Fallback Match using Sanatized Album Name (Contains) + Track Count + Year
 				if [ -z "$DeezerArtistMatchID" ]; then
