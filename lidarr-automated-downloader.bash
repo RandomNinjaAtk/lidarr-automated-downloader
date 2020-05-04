@@ -575,12 +575,14 @@ DeezerMatching () {
 					else
 						echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 						echo "${wantitalbumartistname} :: $wantitalbumtitle (ID: ${wantitalbummbid}) :: Could not find a match on \"https://www.deezer.com/artist/${DeezerArtistID}\" using Release or Record Name, Track Count and Release Year, check artist page for album, ep or single. If exists, update musicbrainz db with matching album name, track count, year to resolve the error" >> "notfound.log"
+						echo " "  >> "notfound.log"
 					fi
 				fi
 			fi
 		fi
 	fi
 }
+
 DownloadList () {
 	# Check cache deezer artistid album list for matching discography album count, if different, delete
 	if [ ! -f "cache/$DeezerArtistID-checked" ]; then
@@ -645,8 +647,7 @@ DownloadList () {
 		if [ -d "temp" ]; then
 			sleep 0.1
 			rm -rf "temp"
-		fi
-		
+		fi	
 	fi
 }
 
