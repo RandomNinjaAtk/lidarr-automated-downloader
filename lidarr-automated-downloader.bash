@@ -58,6 +58,7 @@ configuration () {
 	else
 		dlquality="320"
 	fi
+	beetsmatch="false"
 	echo ""
 	echo "Begin finding downloads..."
 	echo ""
@@ -198,8 +199,10 @@ beetstagging () {
 		beet -c "${BeetConfig}" -l "${BeetLibrary}" -d "$downloaddir" import -q "$downloaddir"
 		if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" -newer "$downloaddir/beets-match" | read; then
 			echo "SUCCESS: Matched with beets!"
+			beetsmatch="true"
 		else
 			echo "ERROR: Unable to match using beets, fallback to lidarr import matching..."
+			beetsmatch="false"
 			if [ "$RequireBeetsMatch" = true ]; then
 				echo "ERROR: RequireBeetsMatch enabled, performing cleanup"
 				CleanDLPath
@@ -887,8 +890,10 @@ TagFix () {
 				filename="$(basename "$fname")"
 				metaflac "$fname" --remove-tag=ALBUMARTIST
 				metaflac "$fname" --set-tag=ALBUMARTIST="$wantitalbumartistname"
-				metaflac "$fname" --remove-tag=ALBUM
-				metaflac "$fname" --set-tag=ALBUM="$albumname"
+				if [ beetsmatch = false ]; then
+					metaflac "$fname" --remove-tag=ALBUM
+					metaflac "$fname" --set-tag=ALBUM="$albumname"
+				fi
 				echo "$filename fixed..."
 			done
 		fi
@@ -900,7 +905,9 @@ TagFix () {
 			for fname in "${downloaddir}"/*.mp3; do
 				filename="$(basename "$fname")"
 				eyeD3 "$fname" -b "$wantitalbumartistname"
-				eyeD3 "$fname" -A "$albumname"
+				if [ beetsmatch = false ]; then
+					eyeD3 "$fname" -A "$albumname"
+				fi
 				echo "$filename fixed..."
 			done
 		fi
