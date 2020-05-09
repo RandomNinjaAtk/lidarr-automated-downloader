@@ -892,6 +892,9 @@ TagFix () {
 				if [ beetsmatch = false ]; then
 					metaflac "$fname" --remove-tag=ALBUM
 					metaflac "$fname" --set-tag=ALBUM="$albumname"
+				else
+					metaflac "$fname" --remove-tag=ALBUMARTISTSORT
+					metaflac "$fname" --remove-tag=ARTISTSORT
 				fi
 				echo "$filename fixed..."
 			done
@@ -906,6 +909,8 @@ TagFix () {
 				eyeD3 "$fname" -b "$wantitalbumartistname"
 				if [ beetsmatch = false ]; then
 					eyeD3 "$fname" -A "$albumname"
+				else
+					eyeD3 "$fname" --user-text-frame='ALBUMARTISTSORT:'
 				fi
 				echo "$filename fixed..."
 			done
