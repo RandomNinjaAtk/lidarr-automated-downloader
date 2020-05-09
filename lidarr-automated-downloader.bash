@@ -893,6 +893,7 @@ TagFix () {
 					metaflac "$fname" --remove-tag=ALBUM
 					metaflac "$fname" --set-tag=ALBUM="$albumname"
 				else
+					metaflac "$fname" --remove-tag="ALBUM ARTIST"
 					metaflac "$fname" --remove-tag=ALBUMARTISTSORT
 					metaflac "$fname" --remove-tag=ARTISTSORT
 					metaflac "$fname" --remove-tag=TRACK
