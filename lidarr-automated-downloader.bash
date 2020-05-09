@@ -895,6 +895,14 @@ TagFix () {
 				else
 					metaflac "$fname" --remove-tag=ALBUMARTISTSORT
 					metaflac "$fname" --remove-tag=ARTISTSORT
+					metaflac "$fname" --remove-tag=TRACK
+					metaflac "$fname" --remove-tag=TRACKC
+					metaflac "$fname" --remove-tag=R128_TRACK_GAIN
+					metaflac "$fname" --remove-tag=R128_ALBUM_GAIN
+					metaflac "$fname" --remove-tag=DISC
+					metaflac "$fname" --remove-tag=DISCC
+					metaflac "$fname" --remove-tag=COMPOSERSORT
+					metaflac "$fname" --remove-tag=ARTIST_CREDIT
 				fi
 				echo "$filename fixed..."
 			done
