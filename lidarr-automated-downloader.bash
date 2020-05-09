@@ -906,11 +906,11 @@ TagFix () {
 		else
 			for fname in "${downloaddir}"/*.mp3; do
 				filename="$(basename "$fname")"
-				eyeD3 "$fname" -b "$wantitalbumartistname"
+				eyeD3 "$fname" -b "$wantitalbumartistname" > /dev/null
 				if [ beetsmatch = false ]; then
-					eyeD3 "$fname" -A "$albumname"
+					eyeD3 "$fname" -A "$albumname" > /dev/null
 				else
-					eyeD3 "$fname" --user-text-frame='ALBUMARTISTSORT:'
+					eyeD3 "$fname" --user-text-frame='ALBUMARTISTSORT:' > /dev/null
 				fi
 				echo "$filename fixed..."
 			done
