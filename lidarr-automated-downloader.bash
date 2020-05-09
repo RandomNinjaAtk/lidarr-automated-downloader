@@ -903,6 +903,9 @@ TagFix () {
 					metaflac "$fname" --remove-tag=DISCC
 					metaflac "$fname" --remove-tag=COMPOSERSORT
 					metaflac "$fname" --remove-tag=ARTIST_CREDIT
+					metaflac "$fname" --remove-tag=ALBUMARTIST_CREDIT
+					metaflac "$fname" --remove-tag=COMMENT
+					metaflac "$fname" --remove-tag=ENCODEDBY
 				fi
 				echo "$filename fixed..."
 			done
