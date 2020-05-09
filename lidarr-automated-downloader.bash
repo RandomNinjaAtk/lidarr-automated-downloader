@@ -200,6 +200,7 @@ beetstagging () {
 		if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" -newer "$downloaddir/beets-match" | read; then
 			echo "SUCCESS: Matched with beets!"
 			beetsmatch="true"
+			TagFix
 		else
 			echo "ERROR: Unable to match using beets, fallback to lidarr import matching..."
 			beetsmatch="false"
@@ -765,8 +766,6 @@ GetDeezerArtistAlbumList () {
 						if [ "${TagWithBeets}" = true ]; then
 							beetstagging
 						fi				
-						
-						TagFix
 
 						if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
 						
