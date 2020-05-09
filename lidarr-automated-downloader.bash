@@ -757,10 +757,14 @@ GetDeezerArtistAlbumList () {
 							QualityVerification
 						fi
 						
+						TagFix
+
 						if [ "${TagWithBeets}" = true ]; then
 							beetstagging
 						fi				
 						
+						TagFix
+
 						if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
 						
 							conversion "$downloaddir"
@@ -868,6 +872,36 @@ Verify () {
 				if mp3val -f -nb "$fname" > /dev/null; then
 					echo "Verified Track: $filename"
 				fi
+			done
+		fi
+	fi
+}
+
+TagFix () {
+	echo "Fixing tags"
+	if find "$downloaddir" -iname "*.flac" | read; then
+		if ! [ -x "$(command -v metaflac)" ]; then
+			echo "ERROR: FLAC verification utility not installed (ubuntu: apt-get install -y flac)"
+		else
+			for fname in "${downloaddir}"/*.flac; do
+				filename="$(basename "$fname")"
+				metaflac "$fname" --remove-tag=ALBUMARTIST
+				metaflac "$fname" --set-tag=ALBUMARTIST="$wantitalbumartistname"
+				metaflac "$fname" --remove-tag=ALBUM
+				metaflac "$fname" --set-tag=ALBUM="$albumname"
+				echo "$filename fixed..."
+			done
+		fi
+	fi
+	if find "$downloaddir" -iname "*.mp3" | read; then
+		if ! [ -x "$(command -v eyeD3)" ]; then
+			echo "eyed3 verification utility not installed (ubuntu: apt-get install -y eyed3)"
+		else
+			for fname in "${downloaddir}"/*.mp3; do
+				filename="$(basename "$fname")"
+				eyeD3 "$fname" -b "$wantitalbumartistname"
+				eyeD3 "$fname" -A "$albumname"
+				echo "$filename fixed..."
 			done
 		fi
 	fi
