@@ -33,14 +33,14 @@ match:
         unmatched_tracks: 9.0 # 0.6
         track_title: 3.0 # 3.0
         track_artist: 2.0 # 2.0
-        track_index: 1.0 # 1.0
+        track_index: 9.0 # 1.0
         track_length: 9.0 # 2.0
         track_id: 5.0 # 5.0
     preferred:
         countries: [] # []
         media: [] # []
         original_year: yes # no
-    ignored: ['missing_tracks', 'track_length', 'unmatched_tracks', 'mediums', 'year'] # []
+    ignored: ['missing_tracks', 'track_length', 'unmatched_tracks', 'mediums', 'year', 'index'] # []
     required: ['year', 'album', 'artist'] # []
     ignored_media: [] # []
     ignore_data_tracks: yes # yes
