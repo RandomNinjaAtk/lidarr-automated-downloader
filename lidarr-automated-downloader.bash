@@ -1210,15 +1210,17 @@ ArtistMode () {
 				albumduration=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .duration")
 				albumdurationdisplay=$(DurationCalc $albumduration)
 				libalbumfolder="$sanatizedlidarrartistname - $albumtypecaps - $albumyear - $albumid - $albumnamesanatized ($albumexplicit)"
+				echo "Archiving $albumartistname :: $albumtypecaps :: $albumname :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit"	
 				if [ -d "$LidArtistPath" ]; then
 					if echo "$albumartistname" | grep "$DeezerArtistName" | read; then
-						sleep 0.1
+						echo "Processing..."
 					else
 						echo "ERROR: $albumartistname does not contain $DeezerArtistName"
 						continue
 					fi
 					if find "$LidArtistPath" -type d -iname "*- $albumid - *" | read; then
 						if find "$LidArtistPath"/*$albumid* -type f -iname "*.$extension" | read; then
+							echo "Duplicate, already downloaded..."
 							continue
 						else
 							echo "Upgrade wanted... Attempting to aquire: $quality..."
@@ -1226,14 +1228,16 @@ ArtistMode () {
 							find "$LidArtistPath" -type d -iname "*- $albumid - *" -exec rm -rf "{}" \; &> /dev/null
 						fi
 					elif [ "$albumexplicit" = "Explicit" ]; then
-						sleep 0.1
+						echo "Processing..."
 					elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized*" | read; then
+						echo "Duplicate, already downloaded..."
 						continue
 					elif find "$LidArtistPath" -type d -iname "*- EP - $albumyear - * - $albumnamesanatized*" | read; then
+						echo "Duplicate, already downloaded..."
 						continue
 					fi
 				fi				
-				echo "Archiving $albumartistname :: $albumtypecaps :: $albumname :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit"	
+				echo "Processing..."
 				AlbumDL
 				DLAlbumArtwork
 				downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
