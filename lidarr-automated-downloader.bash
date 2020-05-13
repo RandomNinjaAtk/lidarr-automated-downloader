@@ -1210,7 +1210,7 @@ ArtistMode () {
 				albumduration=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .duration")
 				albumdurationdisplay=$(DurationCalc $albumduration)
 				libalbumfolder="$sanatizedlidarrartistname - $albumtypecaps - $albumyear - $albumid - $albumnamesanatized ($albumexplicit)"
-				echo "Archiving $albumartistname :: $albumtypecaps :: $albumname :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit"	
+				echo "Archiving $albumartistname :: $albumtypecaps :: $albumname :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit :: $albumid"	
 				if [ -d "$LidArtistPath" ]; then
 					if echo "$albumartistname" | grep "$DeezerArtistName" | read; then
 						echo "Processing..."
@@ -1220,7 +1220,7 @@ ArtistMode () {
 					fi
 					if find "$LidArtistPath" -type d -iname "*- $albumid - *" | read; then
 						if find "$LidArtistPath"/*$albumid* -type f -iname "*.$extension" | read; then
-							echo "Duplicate, already downloaded..."
+							echo "Duplicate (ID: $albumid), already downloaded..."
 							continue
 						else
 							echo "Upgrade wanted... Attempting to aquire: $quality..."
@@ -1229,11 +1229,13 @@ ArtistMode () {
 						fi
 					elif [ "$albumexplicit" = "Explicit" ]; then
 						echo "Processing..."
+					elif [ "$albumtypecaps" = "SINGLE" ]; then
+						echo "Processing..."
 					elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized*" | read; then
-						echo "Duplicate, already downloaded..."
+						echo "Duplicate (ALBUM), already downloaded..."
 						continue
 					elif find "$LidArtistPath" -type d -iname "*- EP - $albumyear - * - $albumnamesanatized*" | read; then
-						echo "Duplicate, already downloaded..."
+						echo "Duplicate (EP), already downloaded..."
 						continue
 					fi
 				fi				
@@ -1292,7 +1294,6 @@ ArtistMode () {
 		done
 	done
 }
-
 
 paths
 
