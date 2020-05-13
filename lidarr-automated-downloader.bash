@@ -1139,11 +1139,14 @@ ArtistMode () {
 		for url in ${!deezerartisturl[@]}; do
 			deezerid="${deezerartisturl[$url]}"
 			DeezerArtistID=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
-			if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "cache/${DeezerArtistID}-info.json"; then
-				echo "Caching artist info..."
-				echo "Success"
-			else
-				echo "ERROR: Cannot communicate with Deezer"
+			if ! [ -f "cache/${DeezerArtistID}-info.json" ]; then
+				if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "cache/${DeezerArtistID}-info.json"; then
+					echo "Caching artist info..."
+					echo "Success"
+				else
+					echo "ERROR: Cannot communicate with Deezer"
+					continue
+				fi
 			fi
 			DeezerArtistName="$(cat "cache/${DeezerArtistID}-info.json" | jq ".name" | sed -e 's/^"//' -e 's/"$//')"
 			artistdir="$(basename "$LidArtistPath")"
@@ -1228,7 +1231,6 @@ ArtistMode () {
 					fi
 				fi				
 				echo "Archiving $albumartistname :: $albumtypecaps :: $albumname :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit"	
-				sleep 0.5
 				AlbumDL
 				DLAlbumArtwork
 				downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
@@ -1276,7 +1278,6 @@ ArtistMode () {
 				if [ "${DownLoadArtistArtwork}" = true ] && [ -d "$LidArtistPath" ]; then
 					DLArtistArtwork
 				fi
-				sleep 0.5
 			done
 		done
 	done
