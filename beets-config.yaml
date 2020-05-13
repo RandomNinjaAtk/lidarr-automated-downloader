@@ -16,6 +16,7 @@ match:
         mediums: medium
         year: medium
         media: medium
+        track_index: medium
     distance_weights:
         source: 2.0 # 2.0
         artist: 3.0 # 3.0
