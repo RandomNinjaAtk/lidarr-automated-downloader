@@ -40,7 +40,7 @@ match:
         countries: [] # []
         media: [] # []
         original_year: yes # no
-    ignored: ['missing_tracks', 'track_length', 'unmatched_tracks', 'mediums', 'year', 'index'] # []
+    ignored: ['missing_tracks', 'track_length', 'unmatched_tracks', 'mediums', 'year', 'track_index'] # []
     required: ['year', 'album', 'artist'] # []
     ignored_media: [] # []
     ignore_data_tracks: yes # yes
