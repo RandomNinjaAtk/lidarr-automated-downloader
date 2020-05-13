@@ -1209,18 +1209,42 @@ ArtistMode () {
 				sanatizedfuncalbumname="${albumnamesanatized,,}"
 				albumduration=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .duration")
 				albumdurationdisplay=$(DurationCalc $albumduration)
+				sanatizedalbumartistname="$(echo "$albumartistname" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 				libalbumfolder="$sanatizedlidarrartistname - $albumtypecaps - $albumyear - $albumid - $albumnamesanatized ($albumexplicit)"
 				echo "Archiving $albumartistname :: $albumtypecaps :: $albumname :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit :: $albumid"	
 				if [ -d "$LidArtistPath" ]; then
+					error=0
 					if echo "$albumartistname" | grep "$DeezerArtistName" | read; then
 						echo "Processing..."
 					else
-						echo "ERROR: $albumartistname does not contain $DeezerArtistName"
-						continue
+						lidarrrootfolders=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/rootfolder")
+						rootfolder=($(echo "$lidarrrootfolders" | jq -r ".[] | .path"))
+						for rfolder in ${!rootfolder[@]}; do
+							folder="${rootfolder[$rfolder]}"
+							if find "$folder" -type d -iname "*$albumartistname*" | read; then
+								OldLidArtistPath="$LidArtistPath"
+								LidArtistPath="$(find "$folder" -type d -iname "*$albumartistname*" | head -n 1)"
+								echo "Album Does not match main artist, downloading and importing to existing main artist folder... ($LidArtistPath)"
+								libalbumfolder="$sanatizedalbumartistname - $albumtypecaps - $albumyear - $albumid - $albumnamesanatized ($albumexplicit)"
+								error=0
+								break
+							else
+								error=1
+								continue
+							fi
+						done
+						if [ $error = 1 ]; then
+							echo "ERROR: $albumartistname does not contain $DeezerArtistName"
+							continue
+						fi
 					fi
 					if find "$LidArtistPath" -type d -iname "*- $albumid - *" | read; then
 						if find "$LidArtistPath"/*$albumid* -type f -iname "*.$extension" | read; then
 							echo "Duplicate (ID: $albumid), already downloaded..."
+							if [ ! -z "$OldLidArtistPath" ]; then
+								LidArtistPath="$OldLidArtistPath"
+								OldLidArtistPath=""
+							fi
 							continue
 						else
 							echo "Upgrade wanted... Attempting to aquire: $quality..."
@@ -1233,9 +1257,17 @@ ArtistMode () {
 						echo "Processing..."
 					elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized*" | read; then
 						echo "Duplicate (ALBUM), already downloaded..."
+						if [ ! -z "$OldLidArtistPath" ]; then
+							LidArtistPath="$OldLidArtistPath"
+							OldLidArtistPath=""
+						fi
 						continue
 					elif find "$LidArtistPath" -type d -iname "*- EP - $albumyear - * - $albumnamesanatized*" | read; then
 						echo "Duplicate (EP), already downloaded..."
+						if [ ! -z "$OldLidArtistPath" ]; then
+							LidArtistPath="$OldLidArtistPath"
+							OldLidArtistPath=""
+						fi
 						continue
 					fi
 				fi				
@@ -1280,8 +1312,14 @@ ArtistMode () {
 				for file in "$downloaddir"/*; do
 					mv "$file" "$LidArtistPath/$libalbumfolder"/
 				done
+				FolderAccessPermissions "$LidArtistPath/$libalbumfolder"
+				FileAccessPermissions "$LidArtistPath/$libalbumfolder"
 				LidarrProcessIt=$(curl -s $LidarrUrl/api/v1/command -X POST -d "{\"name\": \"RescanFolders\", \"folders\": [\"$LidArtistPath/$libalbumfolder\"]}" --header "X-Api-Key:${LidarrApiKey}" );
-				echo "Notified Lidarr to scan ${LidArtistNameCap} :: $libalbumfolder"
+				echo "Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
+				if [ ! -z "$OldLidArtistPath" ]; then
+					LidArtistPath="$OldLidArtistPath"
+					OldLidArtistPath=""
+				fi
 				echo ""
 				echo ""
 				if [ "${DownLoadArtistArtwork}" = true ] && [ -d "$LidArtistPath" ]; then
