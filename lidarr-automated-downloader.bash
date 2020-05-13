@@ -57,7 +57,6 @@ configuration () {
 	else
 		echo "Beets Tagging: Disabled"
 	fi
-	echo "Total Number of Albums To Process: $wantittotal"	
 	if [ "$quality" != "MP3" ]; then
 		dlquality="flac"
 	else
@@ -1126,7 +1125,7 @@ ArtistMode () {
 				touch "musicbrainzerror.log"
 			fi		
 			if [ -f "musicbrainzerror.log" ]; then
-				echo "${artistnumber}/${TotalLidArtistNames}: ERROR: \"$LidArtistNameCap\"... musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+				echo "${artistnumber}/${wantedtotal}: ERROR: \"$LidArtistNameCap\"... musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 				if cat "musicbrainzerror.log" | grep "$mbid" | read; then
 					sleep 0.1
 				else
@@ -1134,6 +1133,10 @@ ArtistMode () {
 				fi
 			fi
 			continue
+		fi
+
+		if ! [ -d "cache" ]; then
+			mkdir -p "cache"
 		fi
 
 		for url in ${!deezerartisturl[@]}; do
@@ -1279,9 +1282,13 @@ ArtistMode () {
 					DLArtistArtwork
 				fi
 			done
+			if [ "${DownLoadArtistArtwork}" = true ] && [ -d "$LidArtistPath" ]; then
+				DLArtistArtwork
+			fi
 		done
 	done
 }
+
 
 paths
 
