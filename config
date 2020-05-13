@@ -25,7 +25,7 @@ BeetLibrary="beets-library.blb"
 
 ############ Download Client Settings
 python="python" # command to execute python 3 applications/scripts (for ubuntu, use: python3)
-DownloadMode="wanted" # wanted or archive :: wanted mode processes Lidarr Wanted and Cutoff Album lists :: archive mode downloads all albums for an aritst, no lidarr matching is used for importing
+DownloadMode="wanted" # wanted or archive :: wanted mode processes Lidarr Wanted and Cutoff Album lists :: archive mode downloads all albums for an aritst, no lidarr matching is used for importing, keeps everything... WARNING: When using archive mode, do not rename album folders or you will continuely re-download available albums...
 VerifyTrackCount="true" # true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import...
 DownLoadArtistArtwork="false" # true = enabled :: Uses Lidarr Artist artwork first and fallsback to Deezer
 
