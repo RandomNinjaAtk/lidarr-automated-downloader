@@ -1279,21 +1279,19 @@ ArtistMode () {
 				sanatizedalbumartistname="$(echo "$lidarralbumartistname" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 				lidarralbumartistfolder="$(cat "cache/$albumartistid-info.json" | jq -r ".lidarr_artist_path")"
 				libalbumfolder="$sanatizedalbumartistname - $albumtypecaps - $albumyear - $albumid - $albumnamesanatized ($albumexplicit)"
-				echo "${artistnumber} of ${wantedtotal}) :: $lidarralbumartistname :: $albumnumber of $totalnumberalbumlist :: $albumname :: $albumtypecaps ::  $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit :: $albumid"
+				echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: $lidarralbumartistname :: $albumname :: $albumtypecaps :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit :: $albumid"
 				LidArtistPath="$lidarralbumartistfolder"
 				if [ -d "$LidArtistPath" ]; then
 					if find "$LidArtistPath" -type d -iname "*- $albumid - *" | read; then
 						if find "$LidArtistPath"/*$albumid* -type f -iname "*.$extension" | read; then
-							echo "Duplicate (ID: $albumid), already downloaded..."
-							echo ""
+							echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate (ID: $albumid), already downloaded..."
 							continue
 						else
 							if [ "$TrackUpgrade" = true ]; then
-								echo "Upgrade wanted... Attempting to aquire: $quality..."
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Upgrade wanted... Attempting to aquire: $quality..."
 							else
-								echo "Album Upgrade not wanted..."
-								echo "Duplicate (ID: $albumid), already downloaded..."
-								echo ""
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Album Upgrade not wanted..."
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate (ID: $albumid), already downloaded..."
 								continue
 							fi
 						fi
@@ -1303,59 +1301,58 @@ ArtistMode () {
 								dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Explicit)")"
 								dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
 								if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
-									echo "Duplicate Explicit Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
-									echo "Processing..."
+									echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate Explicit Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
+									echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Processing..."
 									rm -rf "$dupecheck"
 								else
-									echo "Duplicate (ALBUM), already downloaded..."
-									echo ""
+									echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
 									continue
 								fi
 							else
-								echo "Processing..."
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Processing..."
 							fi
-						elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Explicit)" | read; then
-							dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Explicit)")"
+						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Explicit)" | read; then
+							dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Explicit)")"
 							dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
 							if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
-								echo "Duplicate Explicit Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
-								echo "Checking for Duplicate Clean Album..."
-								if find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Clean)" | read; then
-									dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Clean)")"
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate Explicit Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Checking for Duplicate Clean Album..."
+								if find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" | read; then
+									dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)")"
 									dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
 									if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
-										echo "Duplicate Clean Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
-										echo "Processing..."
+										echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate Clean Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
+										echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Processing..."
 										rm -rf "$dupecheck"
 									else
-										echo "Duplicate (ALBUM), already downloaded..."
-										echo ""
+										echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
 										continue
 									fi
-								fi	
-							elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Clean)" | read; then
-								dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Clean)")"
-								dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
-								if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
-									echo "Duplicate Clean Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
-									echo "Processing..."
-									rm -rf "$dupecheck"
-								else
-									echo "Duplicate (ALBUM), already downloaded..."
-									echo ""
-									continue
 								fi
+							else
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
+								continue
+							fi
+						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" | read; then
+							dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)")"
+							dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
+							if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate Clean Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Processing..."
+								rm -rf "$dupecheck"
+							else
+								echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
+								continue
 							fi
 						fi						
 					elif [ "$albumtypecaps" = "EP" ]; then\
 						if find "$LidArtistPath" -type d -iname "*- EP - $albumyear - * - $albumnamesanatized*" | read; then
-							echo "Duplicate (EP), already downloaded..."
-							echo ""
+							echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Duplicate (EP), already downloaded..."
 							continue
 						fi
-						echo "Processing..."
+						echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Processing..."
 					elif [ "$albumtypecaps" = "SINGLE" ]; then
-						echo "Processing..."
+						echo "${artistnumber} of ${wantedtotal} : $albumnumber of $totalnumberalbumlist :: Processing..."
 					fi
 				fi			
 				AlbumDL
