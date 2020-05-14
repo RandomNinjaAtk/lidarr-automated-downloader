@@ -241,15 +241,17 @@ LidarrAlbums () {
 	echo "Getting Lidarr missing and cutoff albums list for processing..."
 
 	curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/missing/?page=1&pagesize=${amount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-missing.json
-	curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/cutoff/?page=1&pagesize=${amount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-cutoff.json
 	missingtotal=$(cat "temp-lidarr-missing.json"| jq -r '.records | .[] | .id' | wc -l)
-	cuttofftotal=$(cat "temp-lidarr-cutoff.json"| jq -r '.records | .[] | .id' | wc -l)
+	echo "${missingtotal} Missing Albums Found"
+	if [ "$TrackUpgrade" = true ]; then
+		curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/cutoff/?page=1&pagesize=${amount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-cutoff.json
+		cuttofftotal=$(cat "temp-lidarr-cutoff.json"| jq -r '.records | .[] | .id' | wc -l)
+		echo "${cuttofftotal} Cutoff Albums Found"
+	fi
 	jq -s '.[]' temp-lidarr-*.json > "lidarr-monitored-list.json"
 	wantit=$(cat "lidarr-monitored-list.json")
 	wantitid=($(echo "${wantit}"| jq -r '.records | .[] | .id'))
 	wantittotal=$(echo "${wantit}"| jq -r '.records | .[] | .id' | wc -l)
-	echo "${missingtotal} Missing Albums Found"
-	echo "${cuttofftotal} Cutoff Albums Found"
 
 	if [ -f "temp-lidarr-missing.json" ]; then
 		rm "temp-lidarr-missing.json"
@@ -1289,7 +1291,13 @@ ArtistMode () {
 							echo "Duplicate (ID: $albumid), already downloaded..."
 							continue
 						else
-							echo "Upgrade wanted... Attempting to aquire: $quality..."
+							if [ "$TrackUpgrade" = true ]; then
+								echo "Upgrade wanted... Attempting to aquire: $quality..."
+							else
+								echo "Album Upgrade not wanted..."
+								echo "Duplicate (ID: $albumid), already downloaded..."
+								continue
+							fi
 						fi
 					elif [ "$albumtypecaps" = "ALBUM" ]; then
 						if [ "$albumexplicit" = "Explicit" ]; then
