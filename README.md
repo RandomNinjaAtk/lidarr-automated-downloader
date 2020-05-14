@@ -43,7 +43,8 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `BeetLibrary` | Location of beets library file, this file is self-cleaned after every download |
 | `LidarrUrl` | Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s. |
 | `LidarrApiKey` | Lidarr API key |
-| `DownloadMode` | wanted or archive :: wanted mode processes Lidarr Wanted and Cutoff Album lists :: archive mode downloads all albums for an aritst, no lidarr matching is used for importing, keeps everything... <strong>WARNING:</strong> When using <strong>archive mode</strong>, do not rename album folders or you will continuely re-download available albums... |
+| `DownloadMode` | wanted or archive :: wanted mode processes Lidarr Wanted/Cutoff Album lists (TrackUpgrade must be enabled for Cutoff) :: archive mode downloads all albums for an aritst, no lidarr matching is used for importing, keeps everything... <strong>WARNING:</strong> When using <strong>archive mode</strong>, do not rename album folders or you will continuely re-download available albums... |
+| `TrackUpgrade` | true = Enabled :: Upgrades existing tracks to requested format. "wanted" mode is controlled by cutoff album list and "archive" mode is detected automatically. Recommend disabling for archive mode, unless your changing your format. |
 | `python` | command to execute python 3 applications/scripts (for ubuntu, use: python3) |
 | `VerifyTrackCount` | true = enabled :: This will verify album track count vs dl track count, if tracks are found missing, it will skip import... |
 | `amount` | Maximum: 1000000000 :: Number of missing/cutoff albums to look for... |
