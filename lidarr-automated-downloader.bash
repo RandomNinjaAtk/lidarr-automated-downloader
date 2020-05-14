@@ -1288,8 +1288,6 @@ ArtistMode () {
 							continue
 						else
 							echo "Upgrade wanted... Attempting to aquire: $quality..."
-							echo "Removing existing..."
-							find "$LidArtistPath" -type d -iname "*- $albumid - *" -exec rm -rf "{}" \; &> /dev/null
 						fi
 					elif [ "$albumtypecaps" = "ALBUM" ]; then
 						if [ "$albumexplicit" = "Explicit" ]; then
@@ -1364,7 +1362,9 @@ ArtistMode () {
 				else
 					echo "REPLAYGAIN TAGGING DISABLED"
 				fi
-
+				if [ -d "$LidArtistPath/$libalbumfolder" ]; then
+					rm -rf "$LidArtistPath/$libalbumfolder"
+				fi
 				mkdir -p "$LidArtistPath/$libalbumfolder"
 				for file in "$downloaddir"/*; do
 					mv "$file" "$LidArtistPath/$libalbumfolder"/
