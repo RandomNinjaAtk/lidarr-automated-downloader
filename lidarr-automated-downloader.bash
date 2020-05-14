@@ -1291,19 +1291,30 @@ ArtistMode () {
 							echo "Removing existing..."
 							find "$LidArtistPath" -type d -iname "*- $albumid - *" -exec rm -rf "{}" \; &> /dev/null
 						fi
-					elif [ "$albumexplicit" = "Explicit" ]; then
+					elif [ "$albumtypecaps" = "ALBUM" ]; then
+						if [ "$albumexplicit" = "Explicit" ]; then
+							if find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Explicit)" | read; then
+								echo "Duplicate (ALBUM), already downloaded..."
+								continue
+							else
+								echo "Processing..."
+							fi
+						elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized*" | read; then
+							echo "Duplicate (ALBUM), already downloaded..."
+							continue
+						else
+							echo "Processing..."
+						fi
+					elif [ "$albumtypecaps" = "EP" ]; then\
+						if find "$LidArtistPath" -type d -iname "*- EP - $albumyear - * - $albumnamesanatized*" | read; then
+							echo "Duplicate (EP), already downloaded..."
+							continue
+						fi
 						echo "Processing..."
 					elif [ "$albumtypecaps" = "SINGLE" ]; then
 						echo "Processing..."
-					elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized*" | read; then
-						echo "Duplicate (ALBUM), already downloaded..."
-						continue
-					elif find "$LidArtistPath" -type d -iname "*- EP - $albumyear - * - $albumnamesanatized*" | read; then
-						echo "Duplicate (EP), already downloaded..."
-						continue
 					fi
-				fi				
-				echo "Processing..."
+				fi			
 				AlbumDL
 				DLAlbumArtwork
 				downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
