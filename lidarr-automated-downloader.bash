@@ -1149,27 +1149,23 @@ ArtistMode () {
 		for url in ${!deezerartisturl[@]}; do
 			deezerid="${deezerartisturl[$url]}"
 			DeezerArtistID=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
-			if ! [ -f "cache/${DeezerArtistID}-info.json" ]; then
-				lidarralbumartistname="$(cat "cache/$albumartistid-info.json" | jq -r ".lidarr_artist_name")"
+			if  [ -f "cache/${DeezerArtistID}-info.json" ]; then
+				lidarralbumartistname="$(cat "cache/${DeezerArtistID}-info.json" | jq -r ".lidarr_artist_name")"
 				if [ ! -z "$lidarralbumartistname" ]; then
-					echo "Cache $LidArtistNameCap Artist Info verified..."
+					echo "${artistnumber} of ${wantedtotal}: Cache $LidArtistNameCap Artist Info verified..."
 				else
 					rm "cache/${DeezerArtistID}-info.json"
-					echo "Cache $LidArtistNameCap Arist Info invalid, cleaning up before caching..."
+					echo "${artistnumber} of ${wantedtotal}: Cache $LidArtistNameCap Arist Info invalid, cleaning up before caching..."
 				fi
-			fi
-			if ! [ -f "cache/${DeezerArtistID}-info.json" ]; then
+			elif ! [ -f "cache/${DeezerArtistID}-info.json" ]; then
 				if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "temp/${DeezerArtistID}-temp-info.json"; then
 					jq ". + {\"lidarr_artist_path\": \"$LidArtistPath\"} + {\"lidarr_artist_name\": \"$LidArtistNameCap\"}" "temp/${DeezerArtistID}-temp-info.json" > "cache/${DeezerArtistID}-info.json"
-					echo "Caching $LidArtistNameCap Artist Info..."
-					echo "Success"
+					echo "${artistnumber} of ${wantedtotal}: Caching $LidArtistNameCap Artist Info..."
 					rm "temp/${DeezerArtistID}-temp-info.json"
 				else
 					echo "ERROR: Cannot communicate with Deezer"
 					continue
 				fi
-			else
-				echo "Cache $LidArtistNameCap verified..."
 			fi
 		done
 		if [ -d "temp" ]; then
@@ -1283,12 +1279,13 @@ ArtistMode () {
 				sanatizedalbumartistname="$(echo "$lidarralbumartistname" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 				lidarralbumartistfolder="$(cat "cache/$albumartistid-info.json" | jq -r ".lidarr_artist_path")"
 				libalbumfolder="$sanatizedalbumartistname - $albumtypecaps - $albumyear - $albumid - $albumnamesanatized ($albumexplicit)"
-				echo "Archiving $lidarralbumartistname (${artistnumber} of ${wantedtotal}) :: $albumtypecaps :: $albumname ($albumnumber of $totalnumberalbumlist):: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit :: $albumid"
+				echo "${artistnumber} of ${wantedtotal}) :: $lidarralbumartistname :: $albumnumber of $totalnumberalbumlist :: $albumname :: $albumtypecaps ::  $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit :: $albumid"
 				LidArtistPath="$lidarralbumartistfolder"
 				if [ -d "$LidArtistPath" ]; then
 					if find "$LidArtistPath" -type d -iname "*- $albumid - *" | read; then
 						if find "$LidArtistPath"/*$albumid* -type f -iname "*.$extension" | read; then
 							echo "Duplicate (ID: $albumid), already downloaded..."
+							echo ""
 							continue
 						else
 							if [ "$TrackUpgrade" = true ]; then
@@ -1296,6 +1293,7 @@ ArtistMode () {
 							else
 								echo "Album Upgrade not wanted..."
 								echo "Duplicate (ID: $albumid), already downloaded..."
+								echo ""
 								continue
 							fi
 						fi
@@ -1310,6 +1308,7 @@ ArtistMode () {
 									rm -rf "$dupecheck"
 								else
 									echo "Duplicate (ALBUM), already downloaded..."
+									echo ""
 									continue
 								fi
 							else
@@ -1330,6 +1329,7 @@ ArtistMode () {
 										rm -rf "$dupecheck"
 									else
 										echo "Duplicate (ALBUM), already downloaded..."
+										echo ""
 										continue
 									fi
 								fi	
@@ -1342,6 +1342,7 @@ ArtistMode () {
 									rm -rf "$dupecheck"
 								else
 									echo "Duplicate (ALBUM), already downloaded..."
+									echo ""
 									continue
 								fi
 							fi
@@ -1349,6 +1350,7 @@ ArtistMode () {
 					elif [ "$albumtypecaps" = "EP" ]; then\
 						if find "$LidArtistPath" -type d -iname "*- EP - $albumyear - * - $albumnamesanatized*" | read; then
 							echo "Duplicate (EP), already downloaded..."
+							echo ""
 							continue
 						fi
 						echo "Processing..."
