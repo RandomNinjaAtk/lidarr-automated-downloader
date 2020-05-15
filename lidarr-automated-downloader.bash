@@ -1095,13 +1095,13 @@ TrackCountDownloadVerification () {
 		fi
 	fi
 }
-
 ArtistMode () {
 
 	wantit=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/Artist/")
 	wantedtotal=$(echo "${wantit}"|jq -r '.[].sortName' | wc -l)
 
 	echo "Total Number of artists to process: $wantedtotal"
+	echo ""
 
 	MBArtistID=($(echo "${wantit}" | jq -r ".[$i].foreignArtistId"))
 
@@ -1122,7 +1122,7 @@ ArtistMode () {
 		deezerartisturl=($(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url"))
 
 		if [ -z "${deezerartisturl}" ]; then	
-			echo "ERROR: Fallback to musicbrainz for url..."
+			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
 			mbjson=$(curl -s "http://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
 			deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 		fi	
@@ -1132,7 +1132,7 @@ ArtistMode () {
 				touch "musicbrainzerror.log"
 			fi		
 			if [ -f "musicbrainzerror.log" ]; then
-				echo "${artistnumber}/${wantedtotal}: ERROR: \"$LidArtistNameCap\"... musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+				echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 				if cat "musicbrainzerror.log" | grep "$mbid" | read; then
 					sleep 0.1
 				else
@@ -1156,18 +1156,18 @@ ArtistMode () {
 			if  [ -f "cache/${DeezerArtistID}-info.json" ]; then
 				lidarralbumartistname="$(cat "cache/${DeezerArtistID}-info.json" | jq -r ".lidarr_artist_name")"
 				if [ ! -z "$lidarralbumartistname" ]; then
-					echo "${artistnumber} of ${wantedtotal}: Cache $LidArtistNameCap Artist Info verified..."
+					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Cached Artist Info verified..."
 				else
 					rm "cache/${DeezerArtistID}-info.json"
-					echo "${artistnumber} of ${wantedtotal}: Cache $LidArtistNameCap Arist Info invalid, cleaning up before caching..."
+					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Cached Arist Info invalid, cleaning up before caching..."
 				fi
 			elif ! [ -f "cache/${DeezerArtistID}-info.json" ]; then
 				if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "temp/${DeezerArtistID}-temp-info.json"; then
 					jq ". + {\"lidarr_artist_path\": \"$LidArtistPath\"} + {\"lidarr_artist_name\": \"$LidArtistNameCap\"}" "temp/${DeezerArtistID}-temp-info.json" > "cache/${DeezerArtistID}-info.json"
-					echo "${artistnumber} of ${wantedtotal}: Caching $LidArtistNameCap Artist Info..."
+					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Caching Artist Info..."
 					rm "temp/${DeezerArtistID}-temp-info.json"
 				else
-					echo "ERROR: Cannot communicate with Deezer"
+					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Cannot communicate with Deezer"
 					continue
 				fi
 			fi
@@ -1194,7 +1194,7 @@ ArtistMode () {
 		deezerartisturl=($(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url"))
 		
 		if [ -z "${deezerartisturl}" ]; then	
-			echo "ERROR: Fallback to musicbrainz for url..."
+			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
 			mbjson=$(curl -s "http://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
 			deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 		fi	
@@ -1204,7 +1204,7 @@ ArtistMode () {
 				touch "musicbrainzerror.log"
 			fi		
 			if [ -f "musicbrainzerror.log" ]; then
-				echo "${artistnumber}/${wantedtotal}: ERROR: \"$LidArtistNameCap\"... musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+				echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 				if cat "musicbrainzerror.log" | grep "$mbid" | read; then
 					sleep 0.1
 				else
@@ -1218,7 +1218,7 @@ ArtistMode () {
 			deezerid="${deezerartisturl[$url]}"
 			DeezerArtistID=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
 			if ! [ -f "cache/${DeezerArtistID}-info.json" ]; then
-				echo "ERROR: Cannot communicate with Deezer"
+				echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Cannot communicate with Deezer"
 				continue
 			else
 				ladarchive="$(cat "cache/${DeezerArtistID}-info.json" | jq -r ".lad_archived")"
@@ -1232,19 +1232,18 @@ ArtistMode () {
 			DeezerArtistName="$(cat "cache/${DeezerArtistID}-info.json" | jq ".name" | sed -e 's/^"//' -e 's/"$//')"
 			artistdir="$(basename "$LidArtistPath")"
 			sanatizedlidarrartistname="$(echo "$LidArtistNameCap" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-			echo "Lidarr Artist Name: $LidArtistNameCap"
-			echo "Lidarr Artist ID: $LidArtistID"
-			echo "Artist Path: $LidArtistPath"
-			echo "Deezer Artist Name: $DeezerArtistName"
-			echo "Deezer Artist ID: $DeezerArtistID"
-			echo "Deezer Artist URL: $deezerid"
+			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Lidarr Artist ID: $LidArtistID"
+			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Lidarr Artist Path: $LidArtistPath"
+			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Deezer Artist Name: $DeezerArtistName"
+			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Deezer Artist ID: $DeezerArtistID"
+			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Deezer Artist URL: $deezerid"
 
 			if [ "$LidArtistNameCap" != "Various Artists" ]; then				
 				if [ ! -f "cache/$DeezerArtistID-checked" ]; then
 					if [ ! -f "cache/$DeezerArtistID-album.json" ]; then
 						DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 						if [ -z "$DeezerArtistAlbumList" ]; then
-							echo "ERROR: Unable to retrieve albums from Deezer"
+							echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Unable to retrieve albums from Deezer"
 						else
 							DownloadList										
 						fi
@@ -1253,7 +1252,7 @@ ArtistMode () {
 					DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 					newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
 					if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
-						echo "ERROR: Unable to retrieve albums from Deezer"
+						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Unable to retrieve albums from Deezer"
 					else
 						DownloadList										
 					fi
@@ -1387,9 +1386,9 @@ ArtistMode () {
 				fi
 						
 				if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
-					echo "Downloaded: $downloadedtrackcount Tracks"
-					echo "Downloaded: $downloadedlyriccount Synced Lyrics"
-					echo "Downloaded: $downloadedalbumartcount Album Cover"	
+					echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Downloaded: $downloadedtrackcount Tracks"
+					echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Downloaded: $downloadedlyriccount Synced Lyrics"
+					echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Downloaded: $downloadedalbumartcount Album Cover"	
 				else
 					echo "Error..."
 					continue
@@ -1406,7 +1405,7 @@ ArtistMode () {
 				if [ "${ReplaygainTagging}" = TRUE ]; then
 					replaygain "$downloaddir"
 				else
-					echo "REPLAYGAIN TAGGING DISABLED"
+					echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: REPLAYGAIN TAGGING DISABLED"
 				fi
 				if [ -d "$LidArtistPath/$libalbumfolder" ]; then
 					rm -rf "$LidArtistPath/$libalbumfolder"
@@ -1418,15 +1417,12 @@ ArtistMode () {
 				FolderAccessPermissions "$LidArtistPath/$libalbumfolder"
 				FileAccessPermissions "$LidArtistPath/$libalbumfolder"
 				LidarrProcessIt=$(curl -s $LidarrUrl/api/v1/command -X POST -d "{\"name\": \"RescanFolders\", \"folders\": [\"$LidArtistPath/$libalbumfolder\"]}" --header "X-Api-Key:${LidarrApiKey}" );
-				echo "Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
+				echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
 				echo ""
 				echo ""
-				if [ "${DownLoadArtistArtwork}" = true ] && [ -d "$LidArtistPath" ]; then
-					DLArtistArtwork
-				fi
 			done
 			if [ -f "cache/${DeezerArtistID}-info.json" ]; then
-				echo "Updating Cached Artist Info with successful archive information..."
+				echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Updating Cached Artist Info with successful archive information..."
 				mv "cache/${DeezerArtistID}-info.json" "cache/${DeezerArtistID}-temp-info.json"
 				jq ". + {\"lad_archived\": \"true\"}" "cache/${DeezerArtistID}-temp-info.json" > "cache/${DeezerArtistID}-info.json"
 				rm "cache/${DeezerArtistID}-temp-info.json"
