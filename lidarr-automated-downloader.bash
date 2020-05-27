@@ -1373,6 +1373,7 @@ ArtistMode () {
 							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
 						elif find "$LidArtistPath" -type d -iname "*- SINGLE - * - * - $albumnamesanatized (Explicit)" | read; then
 							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Explicit Album found, skipping..."
+							continue
 						else
 							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
 						fi
