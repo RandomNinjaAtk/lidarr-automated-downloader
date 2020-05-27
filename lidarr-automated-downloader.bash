@@ -1318,8 +1318,8 @@ ArtistMode () {
 						# Check if incoming album is explicit
 						if [ "$albumexplicit" = "Explicit" ]; then
 							# Check for duplicate by exact sanatized album name and year
-							if find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Explicit)" | read; then
-								dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Explicit)")"
+							if find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Explicit)" | read; then
+								dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Explicit)")"
 								dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
 								# Check for different track counts incoming vs found duplicate
 								if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
@@ -1331,13 +1331,13 @@ ArtistMode () {
 									continue
 								fi
 							# Check for duplicate deluxe album
-							elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized *Deluxe*(Explicit)" | read; then
+							elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized*Deluxe*(Explicit)" | read; then
 								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
 								continue
 							# Check for duplicate clean album
-							elif find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Clean)" | read; then
+							elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" | read; then
 								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Clean ALBUM found, removing to import Explicit version..."
-								find "$LidArtistPath" -type d -iname "*- ALBUM - $albumyear - * - $albumnamesanatized (Clean)" -exec rm -rf "{}" \;
+								find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" -exec rm -rf "{}" \;
 								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
 							fi
 						# Clean album processing, check for duplicate Explicit album
@@ -1364,11 +1364,11 @@ ArtistMode () {
 								continue
 							fi
 						# Clean album processing, check for duplicate Deluxe Explicit ALBUM
-						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized *Deluxe*(Explicit)" | read; then
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
-								continue
+						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized*Deluxe*(Explicit)" | read; then
+							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
+							continue
 						# Clean album processing, check for duplicate Deluxe Clean ALBUM
-						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized *Deluxe*(Clean)" | read; then
+						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized*Deluxe*(Clean)" | read; then
 								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
 								continue
 						# Clean album processing, check for duplicate clean album (same name)
@@ -1383,7 +1383,9 @@ ArtistMode () {
 								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
 								continue
 							fi
-						fi						
+						else
+							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
+						fi
 					elif [ "$albumtypecaps" = "EP" ]; then
 						if [ "$albumexplicit" = "Explicit" ]; then
 							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
