@@ -1369,7 +1369,13 @@ ArtistMode () {
 						fi
 						echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
 					elif [ "$albumtypecaps" = "SINGLE" ]; then
-						echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
+						if [ "$albumexplicit" = "Explicit" ]; then
+							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
+						elif find "$LidArtistPath" -type d -iname "*- SINGLE - * - * - $albumnamesanatized (Explicit)" | read; then
+							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Explicit Album found, skipping..."
+						else
+							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
+						fi
 					fi
 				fi			
 				AlbumDL
