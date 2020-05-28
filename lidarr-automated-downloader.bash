@@ -902,7 +902,7 @@ TagFix () {
 				eyeD3 "$fname" -b "$wantitalbumartistname" &> /dev/null
 				if [ "$beetsmatch" = false ]; then
 					eyeD3 "$fname" -A "$albumname" &> /dev/null
-					eyeD3 "$fname" --user-text-frame="MusicBrainz Release Group Id:$lidarralbumartistmbrainzid" &> /dev/null
+					eyeD3 "$fname" --user-text-frame="MusicBrainz Album Artist Id:$lidarralbumartistmbrainzid" &> /dev/null
 					if [ $DownloadMode = "wanted" ]; then
 						eyeD3 "$fname" --user-text-frame="MusicBrainz Release Group Id:$wantitalbummbid" &> /dev/null
 						eyeD3 "$fname" --user-text-frame="MusicBrainz Album Id:$recordmbrainzid" &> /dev/null
