@@ -900,12 +900,18 @@ TagFix () {
 			for fname in "${downloaddir}"/*.mp3; do
 				filename="$(basename "$fname")"
 				eyeD3 "$fname" -b "$wantitalbumartistname" &> /dev/null
-				if [ beetsmatch = false ]; then
+				if [ "$beetsmatch" = false ]; then
 					eyeD3 "$fname" -A "$albumname" &> /dev/null
+					eyeD3 "$fname" --user-text-frame="MusicBrainz Release Group Id:$lidarralbumartistmbrainzid" &> /dev/null
+					if [ $DownloadMode = "wanted" ]; then
+						eyeD3 "$fname" --user-text-frame="MusicBrainz Release Group Id:$wantitalbummbid" &> /dev/null
+						eyeD3 "$fname" --user-text-frame="MusicBrainz Album Id:$recordmbrainzid" &> /dev/null
+					fi
+					echo "$filename fixed..."
 				else
 					eyeD3 "$fname" --user-text-frame='ALBUMARTISTSORT:' &> /dev/null
+					echo "$filename fixed..."
 				fi
-				echo "$filename fixed..."
 			done
 		fi
 	fi
