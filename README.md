@@ -8,7 +8,8 @@ Linux Packages: <br/>
 * beets
 * flac
 * mp3val
-* curl<br/>
+* curl
+* eyed3<br/>
 
 Baseline OS used for testing is Ubuntu 18.04, so use equivalent package versions
 
