@@ -339,7 +339,7 @@ ProcessLidarrAlbums () {
 			# Get Deezer ArtistID from Musicbrainz if not found in Lidarr
 			if [ -z "${wantitalbumartistdeezerid}" ]; then	
 				echo "ERROR: Fallback to musicbrainz for url..."
-				mbjson=$(curl -s "http://musicbrainz.org/ws/2/artist/${wantitalbumartistmbid}?inc=url-rels&fmt=json")
+				mbjson=$(curl -s "${musicbrainzurl}/ws/2/artist/${wantitalbumartistmbid}?inc=url-rels&fmt=json")
 				wantitalbumartistdeezerid=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 			fi	
 			
@@ -1098,7 +1098,7 @@ ArtistMode () {
 
 		if [ -z "${deezerartisturl}" ]; then	
 			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
-			mbjson=$(curl -s "http://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
+			mbjson=$(curl -s "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
 			deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 		fi	
 		
@@ -1183,7 +1183,7 @@ ArtistMode () {
 		
 		if [ -z "${deezerartisturl}" ]; then	
 			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
-			mbjson=$(curl -s "http://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
+			mbjson=$(curl -s "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
 			deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 		fi	
 		
