@@ -869,7 +869,6 @@ TagFix () {
 					metaflac "$fname" --set-tag=MUSICBRAINZ_ALBUMARTISTID=$lidarralbumartistmbrainzid
 					if [ $DownloadMode = "wanted" ]; then
 						metaflac "$fname" --set-tag=MUSICBRAINZ_RELEASEGROUPID=$wantitalbummbid
-						metaflac "$fname" --set-tag=MUSICBRAINZ_ALBUMID=$recordmbrainzid
 					fi
 					echo "$filename fixed..."
 				else
@@ -906,7 +905,6 @@ TagFix () {
 					eyeD3 "$fname" --user-text-frame="MusicBrainz Album Artist Id:$lidarralbumartistmbrainzid" &> /dev/null
 					if [ $DownloadMode = "wanted" ]; then
 						eyeD3 "$fname" --user-text-frame="MusicBrainz Release Group Id:$wantitalbummbid" &> /dev/null
-						eyeD3 "$fname" --user-text-frame="MusicBrainz Album Id:$recordmbrainzid" &> /dev/null
 					fi
 					echo "$filename fixed..."
 				else
