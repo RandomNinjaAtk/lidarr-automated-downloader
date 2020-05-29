@@ -734,6 +734,7 @@ GetDeezerArtistAlbumList () {
 							QualityVerification
 						fi
 						
+						beetsmatch="false"
 						TagFix
 
 						if [ "${TagWithBeets}" = true ]; then
@@ -1420,7 +1421,8 @@ ArtistMode () {
 					echo "Error..."
 					continue
 				fi
-
+				
+				beetsmatch="false"
 				TagFix
 
 				if [ "${TagWithBeets}" = true ]; then
