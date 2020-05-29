@@ -19,6 +19,9 @@ LidarrImportLocation="/downloads/lidarr-import" # Temporary location that comple
 LidarrUrl="http://127.0.0.1:8686" # Set domain or IP to your Lidarr instance including port. If using reverse proxy, do not use a trailing slash. Ensure you specify http/s.
 LidarrApiKey="08d108d108d108d108d108d108d108d1" # Lidarr API key.
 
+############ Musicbrainz
+musicbrainzurl="http://musicbrainz.org" # Change to use different musicbrainz mirror...
+
 ############ Beets File locaitons
 BeetConfig="beets-config.yaml"
 BeetLibrary="beets-library.blb"
