@@ -67,6 +67,11 @@ import:
     languages: ['en']
     group_albums: no
 
+musicbrainz:
+    host: musicbrainz.org
+    ratelimit: 1
+    searchlimit: 20
+    
 chroma:
     auto: yes
 
