@@ -783,6 +783,7 @@ AlbumDL () {
 	chmod 0777 -R "${PathToDLClient}"
 	currentpwd="$(pwd)"
 	if cd "${PathToDLClient}" && $python -m deemix -b ${dlquality} "$albumurl" && cd "${currentpwd}"; then
+		chmod 0777 -R "${downloaddir}"
 		find "$downloaddir" -mindepth 2 -type f -exec mv "{}" "${downloaddir}"/ \;
 		find "$downloaddir" -mindepth 1 -type d -delete
 		if find "$downloaddir" -iname "*.flac" | read; then
