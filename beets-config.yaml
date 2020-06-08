@@ -1,4 +1,4 @@
-plugins: embedart lastgenre fetchart chroma
+plugins: embedart lastgenre fetchart chroma scrub
 art_filename: folder
 threaded: no
 per_disc_numbering: yes
@@ -90,3 +90,6 @@ lastgenre:
     count: 5
     separator: '; '
     prefer_specific: no
+
+scrub:
+    auto: yes
