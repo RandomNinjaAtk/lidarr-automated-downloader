@@ -35,7 +35,7 @@ DownLoadArtistArtwork="false" # true = enabled :: Uses Lidarr Artist artwork fir
 
 ############ File Options
 quality="FLAC" # SET TO: OPUS or AAC or FDK-AAC or MP3 or ALAC or FLAC :: Set desired library format (Flac is converted for opus, aac, and alac types)
-ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC/MP3 format types
+ConversionBitrate="320" # Set to desired bitrate when converting to OPUS/AAC format types
 ReplaygainTagging="TRUE" # TRUE = ENABLED, adds replaygain tags for compatible players (FLAC ONLY)
 FilePermissions="666" # Based on chmod linux permissions
 FolderPermissions="777" # Based on chmod linux permissions
