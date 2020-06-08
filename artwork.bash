@@ -8,7 +8,7 @@ do
 	file=$(find "${folder}" -iregex ".*/.*\.\(flac\|mp3\|opus\|m4a\)" | head -n 1)
 	if [ ! -z "$file" ]; then
 		artwork="$(dirname "$file")/folder.jpg"
-		if ffmpeg -i "$file" -c:v copy "$artwork" 2>/dev/null; then
+		if ffmpeg -y -i "$file" -c:v copy "$artwork" 2>/dev/null; then
 			echo "SUCCESS: Artwork Extracted for: $foldername"
 		else
 			echo "ERROR: No artwork found for: $foldername"
