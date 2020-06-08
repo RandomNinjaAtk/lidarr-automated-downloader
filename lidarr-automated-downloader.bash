@@ -42,7 +42,7 @@ configuration () {
 		echo "Download Bitrate: ${ConversionBitrate}k"
 		extension="m4a"
 	elif [ "$quality" = "MP3" ]; then
-		echo "Download Bitrate: ${ConversionBitrate}k"
+		echo "Download Bitrate: 320k"
 		extension="mp3"
 	else
 		echo "Download Bitrate: lossless"
