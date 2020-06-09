@@ -922,7 +922,7 @@ conversion () {
 	targetformat="$quality"
 	bitrate="$ConversionBitrate"
 	if [ "${quality}" = "OPUS" ]; then	
-		options="-acodec libopus -ab ${bitrate}k -application audio"
+		options="-acodec libopus -ab ${bitrate}k -application audio -vbr off"
 		extension="opus"
 		targetbitrate="${bitrate}k"
 	fi
