@@ -61,6 +61,9 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `RequireQuality` | true = enabled :: skips importing files that do not match quality settings |
 | `DLVideos` | true = enabled :: downloads music videos from youtube (requires videos to be added with URL's on Musicbrianz DB |
 | `VideoPath` |  Location of music videos |
+| `YoutubeDL` |  Path to youtube-dl application, executed using python |
+| `musicbrainzurl` |  Change to use different musicbrainz mirror... |
+| `ratelimit` |  musicbrainz rate limit, musicbrainz allows only 1 connection per second, do not change unless you know what your doing |
 
 # Lidarr Configuration Recommendations
 
