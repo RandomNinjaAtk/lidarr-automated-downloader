@@ -1514,7 +1514,7 @@ DownloadVideos () {
 		videorecordings=($(cat video-cache/$mbid-recordings.json | jq -r '.[] | .recordings | .[] | select(.video==true) | .id'))
 		videocount=$(cat video-cache/$mbid-recordings.json| jq -r '.[] | .recordings | .[] | select(.video==true) | .id' | wc -l)
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $recordingcount recordings for videos..."
-		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $videocount videos found..."
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $videocount video recordings found..."
 
 		if [ ! -f "video-cache/$mbid-video-recordings.json" ]; then
 			for id in ${!videorecordings[@]}; do
@@ -1535,29 +1535,30 @@ DownloadVideos () {
 			fi
 		fi
 		
-		youtubevideocount=$(cat video-cache/$mbid-video-recordings.json | jq -r '.[] | .relations | .[] | .url | select(.resource | contains("youtube")) | .resource' | sort -u | wc -l)
-		youtubeurl=($(cat video-cache/$mbid-video-recordings.json | jq -r '.[] | .relations | .[] | .url | select(.resource | contains("youtube")) | .resource' | sort -u))
-		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $videocount for youtube links..."
-		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $youtubevideocount youtube links found!"
-
+		urlvideocount=$(cat video-cache/$mbid-video-recordings.json | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u | wc -l)
+		youtubeurl=($(cat video-cache/$mbid-video-recordings.json | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u))
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $videocount video recordings for links..."
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $urlvideocount links found!"
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing $urlvideocount links..."
 		for url in ${!youtubeurl[@]}; do
 			currentprocess=$(( $url + 1 ))
 			dlurl="${youtubeurl[$url]}"
 			videotitle="$(cat video-cache/$mbid-video-recordings.json | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .title")"
 			sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: Downloading $videotitle..."
 			if [ ! -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
-				$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - $sanatizedvideotitle" -f bestvideo+bestaudio --merge-output-format mkv "$dlurl"  > /dev/null
+				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Downloading $videotitle ($dlurl)..."
+				$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - $sanatizedvideotitle" -f bestvideo+bestaudio --merge-output-format mkv "$dlurl"  &> /dev/null
 				if [ -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
 					FileAccessPermissions "$LidArtistPath"
-					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: Downloaded!"
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Download Complete!"
+				else
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Downloaded Failed!"
 				fi
 			else
-				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: $videotitle already downloaded!"
+				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: $videotitle already downloaded!"
 			fi
 		done
-
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: All Vidoes Downloaded!"
 	done
 }
