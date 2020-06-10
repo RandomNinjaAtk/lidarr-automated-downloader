@@ -1518,6 +1518,7 @@ DownloadVideos () {
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $videocount video recordings found..."
 
 		if [ $videocount = 0 ]; then
+			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Skipping..."
 			continue
 		fi
 
@@ -1544,6 +1545,10 @@ DownloadVideos () {
 		youtubeurl=($(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u))
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $videocount video recordings for links..."
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $urlvideocount links found!"
+		if [ $urlvideocount = 0 ]; then
+			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Skipping..."
+			continue
+		fi
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing $urlvideocount links..."
 		for url in ${!youtubeurl[@]}; do
 			currentprocess=$(( $url + 1 ))
