@@ -42,5 +42,11 @@ FolderPermissions="777" # Based on chmod linux permissions
 TagWithBeets="false" # true = enabled :: enable beet tagging to improve matching accuracy, requires beets installation and beets file path configuration
 RequireBeetsMatch="false" # true = enabled :: skips importing files that could not be matched using beets
 RequireQuality="false" # true = enabled :: skips importing files that do not match quality settings
+
 ############ Script Options
 amount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for....
+
+############ Music Video Options
+VideoPath="/path/to/vides" # Location of music videos
+YoutubeDL="/usr/local/bin/youtube-dl" # Path to youtube-dl application, executed using python
+DLVideos="false" # true = enabled :: downloads music videos from youtube (requires videos to be added with URL's on Musicbrianz DB
