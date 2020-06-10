@@ -1450,6 +1450,111 @@ ArtistMode () {
 	done
 }
 
+DownloadVideos () {
+
+	wantit=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/Artist/")
+	wantedtotal=$(echo "${wantit}"|jq -r '.[].sortName' | wc -l)
+
+	echo "Total Number of artists to process: $wantedtotal"
+	echo ""
+
+	MBArtistID=($(echo "${wantit}" | jq -r ".[$i].foreignArtistId"))
+
+	for id in ${!MBArtistID[@]}; do
+		artistnumber=$(( $id + 1 ))
+		mbid="${MBArtistID[$id]}"
+
+		LidArtistPath="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .path")"
+		LidArtistNameCap="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
+
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing"
+
+		if [ ! -d "video-cache" ]; then
+			mkdir "video-cache"
+			FolderAccessPermissions "video-cache"
+		fi
+
+		if [ ! -f "video-cache/$artistid-recording-count.json" ]; then
+			curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "video-cache/$artistid-recording-count.json"
+		fi
+
+		recordingcount=$(cat "$mbid-recording-count.json" | jq -r '."recording-count"')
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $recordingcount recordings found..."
+
+		if [ ! -f "video-cache/$artistid-recordings.json" ]; then
+
+			offsetcount=$(( $recordingcount / 100 ))
+			echo $offsetcount
+			for ((i=0;i<=$offsetcount;i++)); 
+			do
+				if [ ! -f "recording-page-$i.json" ]; then
+					if [ $i != 0 ]; then
+						offset=$(( $i * 100 ))
+						dlnumber=$(( $offset + 100))
+					else
+						offset=0
+						dlnumber=$(( $offset + 100))
+					fi
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Downloading page $i... ($offset - $dlnumber Results)"
+					curl -s "${musicbrainzurl}/ws/2/recording?artist=$artistid&limit=100&offset=$offset&fmt=json" -o "video-cache/$artistid-recording-page-$i.json"
+					sleep 1
+				fi
+			done
+
+			if [ ! -f "video-cache/$artistid-recordings.json" ]; then
+				jq -s '.' video-cache/$artistid-recording-page-*.json > "video-cache/$artistid-recordings.json"
+			fi
+
+			if [ -f "video-cache/$artistid-recordings.json" ]; then
+				rm video-cache/$artistid-recording-page-*.json
+				sleep .01
+			fi
+		fi
+
+		videorecordings=($(cat video-cache/$artistid-recordings.json | jq -r '.[] | .recordings | .[] | select(.video==true) | .id'))
+		videocount=$(cat video-cache/$artistid-recordings.json| jq -r '.[] | .recordings | .[] | select(.video==true) | .id' | wc -l)
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $recordingcount recordings for videos..."
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $videocount videos found..."
+
+		if [ ! -f "$artistid-video-recordings.json" ]; then
+			for id in ${!videorecordings[@]}; do
+				currentprocess=$(( $id + 1 ))
+				mbrainzrecordingid="${videorecordings[$id]}"
+				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videocount :: Gathering info..."
+				if [ ! -f "video-cache/$mbrainzrecordingid-recording-info.json" ]; then
+					curl -s "${musicbrainzurl}/ws/2/recording/$mbrainzrecordingid?inc=url-rels&fmt=json" -o "video-cache/$mbrainzrecordingid-recording-info.json"
+					sleep 1
+				fi
+			done
+			if [ ! -f "video-cache/$artistid-video-recordings.json" ]; then
+					jq -s '.' video-cache/*-recording-info.json > "video-cache/$artistid-video-recordings.json"
+			fi
+
+			if [ -f "video-cache/$artistid-video-recordings.json" ]; then
+				rm video-cache/*-recording-info.json
+			fi
+		fi
+		
+		youtubevideocount=$(cat $artistid-video-recordings.json | jq -r '.[] | .relations | .[] | .url | select(.resource | contains("youtube")) | .resource' | sort -u | wc -l)
+		youtubeurl=($(cat $artistid-video-recordings.json | jq -r '.[] | .relations | .[] | .url | select(.resource | contains("youtube")) | .resource' | sort -u))
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $videocount for youtube links..."
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $youtubevideocount  youtube links found!"
+
+		for url in ${!youtubeurl[@]}; do
+			currentprocess=$(( $url + 1 ))
+			dlurl="${youtubeurl[$url]}"
+			videotitle="$(cat video-cache/$artistid-video-recordings.json | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .title")"
+			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: Downloading $videotitle"
+			if [ ! -f "$LidArtistPath/$LidArtistNameCap - $videotitle.mkv" ]; then 
+				$python /usr/local/bin/youtube-dl -o "$LidArtistPath/$LidArtistNameCap - $videotitle" "$dlurl"
+				FileAccessPermissions "$LidArtistPath/$LidArtistNameCap - $videotitle"
+			else
+				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: $videotitle already downloaded!"
+			fi
+		done
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: All Vidoes Downloaded!"
+}
+
 paths
 
 configuration
