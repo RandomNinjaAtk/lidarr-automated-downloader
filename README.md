@@ -9,7 +9,8 @@ Linux Packages: <br/>
 * flac
 * mp3val
 * curl
-* eyed3<br/>
+* eyed3
+* youtube-dl<br/>
 
 Baseline OS used for testing is Ubuntu 18.04, so use equivalent package versions
 
@@ -58,6 +59,8 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `TagWithBeets` | true = enabled :: enable beet tagging to improve matching accuracy, requires beets installation and beets file path configuration |
 | `RequireBeetsMatch` | true = enabled :: skips importing files that could not be matched using beets |
 | `RequireQuality` | true = enabled :: skips importing files that do not match quality settings |
+| `DLVideos` | true = enabled :: downloads music videos from youtube (requires videos to be added with URL's on Musicbrianz DB |
+| `VideoPath` |  Location of music videos |
 
 # Lidarr Configuration Recommendations
 
