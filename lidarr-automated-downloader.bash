@@ -1476,6 +1476,7 @@ DownloadVideos () {
 
 		if [ ! -f "video-cache/$artistid-recording-count.json" ]; then
 			curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "video-cache/$mbid-recording-count.json"
+			sleep $ratelimit
 		fi
 
 		recordingcount=$(cat "video-cache/$mbid-recording-count.json" | jq -r '."recording-count"')
@@ -1496,7 +1497,7 @@ DownloadVideos () {
 					fi
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Downloading page $i... ($offset - $dlnumber Results)"
 					curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=100&offset=$offset&fmt=json" -o "video-cache/$mbid-recording-page-$i.json"
-					sleep .1
+					sleep $ratelimit
 				fi
 			done
 
@@ -1522,7 +1523,7 @@ DownloadVideos () {
 				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videocount :: Gathering info..."
 				if [ ! -f "video-cache/$mbrainzrecordingid-recording-info.json" ]; then
 					curl -s "${musicbrainzurl}/ws/2/recording/$mbrainzrecordingid?inc=url-rels&fmt=json" -o "video-cache/$mbrainzrecordingid-recording-info.json"
-					sleep .1
+					sleep $ratelimit
 				fi
 			done
 			if [ ! -f "video-cache/$mbid-video-recordings.json" ]; then
@@ -1547,8 +1548,8 @@ DownloadVideos () {
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: Downloading $videotitle..."
 			if [ ! -f "$LidArtistPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
-				$python /usr/local/bin/youtube-dl -o "$LidArtistPath/$sanatizedartistname - $sanatizedvideotitle" --merge-output-format mkv "$dlurl"  > /dev/null
-				if [ -f "$LidArtistPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
+				$python $YoutubeDL -o "$LidArtistPath/$sanatizedartistname - $sanatizedvideotitle" --merge-output-format mkv "$dlurl"  > /dev/null
+				if [ -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
 					FileAccessPermissions "$LidArtistPath"
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: Downloaded!"
 				fi
@@ -1582,6 +1583,12 @@ elif [ $DownloadMode = "archive" ]; then
 	ArtistMode
 else
 	echo "ERROR: Invalid mode selected"
+fi
+
+if [ $DLVideos = "true" ]; then
+	DownloadVideos
+else
+	echo "Video Downlods disabled"
 fi
 
 CleanDLPath
