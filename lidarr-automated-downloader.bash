@@ -1547,8 +1547,8 @@ DownloadVideos () {
 			sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: Downloading $videotitle..."
-			if [ ! -f "$LidArtistPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
-				$python $YoutubeDL -o "$LidArtistPath/$sanatizedartistname - $sanatizedvideotitle" --merge-output-format mkv "$dlurl"  > /dev/null
+			if [ ! -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
+				$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - $sanatizedvideotitle" --merge-output-format mkv "$dlurl"  > /dev/null
 				if [ -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
 					FileAccessPermissions "$LidArtistPath"
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $youtubevideocount :: Downloaded!"
