@@ -1466,6 +1466,7 @@ DownloadVideos () {
 
 		LidArtistPath="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .path")"
 		LidArtistNameCap="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
+		sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing"
 
@@ -1474,15 +1475,15 @@ DownloadVideos () {
 			FolderAccessPermissions "video-cache"
 		fi
 
-		if [ ! -f "video-cache/$artistid-recording-count.json" ]; then
-			curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "video-cache/$mbid-recording-count.json"
+		if [ ! -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+			curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "video-cache/$sanatizedartistname-$mbid-recording-count.json"
 			sleep $ratelimit
 		fi
 
-		recordingcount=$(cat "video-cache/$mbid-recording-count.json" | jq -r '."recording-count"')
+		recordingcount=$(cat "video-cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $recordingcount recordings found..."
 
-		if [ ! -f "video-cache/$mbid-recordings.json" ]; then
+		if [ ! -f "video-cache/$sanatizedartistname-$mbid-recordings.json" ]; then
 
 			offsetcount=$(( $recordingcount / 100 ))
 			for ((i=0;i<=$offsetcount;i++)); 
@@ -1501,22 +1502,26 @@ DownloadVideos () {
 				fi
 			done
 
-			if [ ! -f "video-cache/$mbid-recordings.json" ]; then
-				jq -s '.' video-cache/$mbid-recording-page-*.json > "video-cache/$mbid-recordings.json"
+			if [ ! -f "video-cache/$sanatizedartistname-recordings.json" ]; then
+				jq -s '.' video-cache/$mbid-recording-page-*.json > "video-cache/$sanatizedartistname-$mbid-recordings.json"
 			fi
 
-			if [ -f "video-cache/$mbid-recordings.json" ]; then
+			if [ -f "video-cache/$sanatizedartistname-$mbid-recordings.json" ]; then
 				rm video-cache/$mbid-recording-page-*.json
 				sleep .01
 			fi
 		fi
 
-		videorecordings=($(cat video-cache/$mbid-recordings.json | jq -r '.[] | .recordings | .[] | select(.video==true) | .id'))
-		videocount=$(cat video-cache/$mbid-recordings.json| jq -r '.[] | .recordings | .[] | select(.video==true) | .id' | wc -l)
+		videorecordings=($(cat "video-cache/$sanatizedartistname-$mbid-recordings.json" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id'))
+		videocount=$(cat "video-cache/$sanatizedartistname-$mbid-recordings.json" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id' | wc -l)
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $recordingcount recordings for videos..."
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $videocount video recordings found..."
 
-		if [ ! -f "video-cache/$mbid-video-recordings.json" ]; then
+		if [ $videocount = 0 ]; then
+			continue
+		fi
+
+		if [ ! -f "video-cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
 			for id in ${!videorecordings[@]}; do
 				currentprocess=$(( $id + 1 ))
 				mbrainzrecordingid="${videorecordings[$id]}"
@@ -1526,25 +1531,24 @@ DownloadVideos () {
 					sleep $ratelimit
 				fi
 			done
-			if [ ! -f "video-cache/$mbid-video-recordings.json" ]; then
-					jq -s '.' video-cache/*-recording-info.json > "video-cache/$mbid-video-recordings.json"
+			if [ ! -f "video-cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
+					jq -s '.' video-cache/*-recording-info.json > "video-cache/$sanatizedartistname-$mbid-video-recordings.json"
 			fi
 
-			if [ -f "video-cache/$mbid-video-recordings.json" ]; then
+			if [ -f "video-cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
 				rm video-cache/*-recording-info.json
 			fi
 		fi
 		
-		urlvideocount=$(cat video-cache/$mbid-video-recordings.json | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u | wc -l)
-		youtubeurl=($(cat video-cache/$mbid-video-recordings.json | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u))
+		urlvideocount=$(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u | wc -l)
+		youtubeurl=($(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u))
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $videocount video recordings for links..."
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $urlvideocount links found!"
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing $urlvideocount links..."
 		for url in ${!youtubeurl[@]}; do
 			currentprocess=$(( $url + 1 ))
 			dlurl="${youtubeurl[$url]}"
-			videotitle="$(cat video-cache/$mbid-video-recordings.json | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .title")"
-			sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
+			videotitle="$(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .title")"
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			if [ ! -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
 				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Downloading $videotitle ($dlurl)..."
@@ -1559,7 +1563,8 @@ DownloadVideos () {
 				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: $videotitle already downloaded!"
 			fi
 		done
-		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: All Vidoes Downloaded!"
+		downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *" | wc -l)
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $downloadcount Vidoes Downloaded!"
 	done
 }
 
