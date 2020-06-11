@@ -1,5 +1,14 @@
 
 # lidarr-automated-downloader (LAD)
+
+## Features
+* Downloading Music using online sources and importing them into Lidarr Automatically
+* Downloading Music Videos using online sources for use in popular applications: 
+  * More Info: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki/Music-Videos
+
+## Additional Information
+Visit the wiki: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki (more info coming soon)
+
 ## Requirements
 Linux Packages: <br/>
 * jq
