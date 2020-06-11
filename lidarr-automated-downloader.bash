@@ -1475,12 +1475,38 @@ DownloadVideos () {
 			FolderAccessPermissions "video-cache"
 		fi
 
+		records=$(curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json")
+		sleep $ratelimit
+		newrecordingcount=$(echo "${records}"| jq -r '."recording-count"')
+			
 		if [ ! -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
 			curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "video-cache/$sanatizedartistname-$mbid-recording-count.json"
 			sleep $ratelimit
 		fi
 
 		recordingcount=$(cat "video-cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
+		
+		if [ $newrecordingcount != $recordingcount ]; then
+			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking Cache"
+			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Cache needs update, cleaning..."
+			if [ -f "video-cache/$sanatizedartistname-recordings.json" ]; then
+				rm "video-cache/$sanatizedartistname-$mbid-recordings.json"
+			fi
+			if [ -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+				rm "video-cache/$sanatizedartistname-$mbid-recording-count.json"
+			fi
+			if [ -f "video-cache/$sanatizedartistname-recordings.json" ]; then
+				rm "video-cache/$sanatizedartistname-$mbid-video-recordings.json"
+			fi
+			if [ ! -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+				curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "video-cache/$sanatizedartistname-$mbid-recording-count.json"
+				sleep $ratelimit
+			fi
+		else
+			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking Cache"
+			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Cache Valid"
+		fi
+		
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $recordingcount recordings found..."
 
 		if [ ! -f "video-cache/$sanatizedartistname-$mbid-recordings.json" ]; then
