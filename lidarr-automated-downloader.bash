@@ -1554,12 +1554,19 @@ DownloadVideos () {
 			currentprocess=$(( $url + 1 ))
 			dlurl="${youtubeurl[$url]}"
 			videotitle="$(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .title")"
+			videodisambiguation="$(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .disambiguation")"
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
+			sanatizedvideodisambiguation="$(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
+			if [ ! -z "$videodisambiguation" ]; then
+				sanatizedvideodisambiguation=" ($(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/'))"
+			else
+				sanatizedvideodisambiguation=""
+			fi			
 			if [ ! -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
 				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Downloading $videotitle ($dlurl)..."
-				$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - $sanatizedvideotitle" -f bestvideo+bestaudio --merge-output-format mkv "$dlurl"  &> /dev/null
-				if [ -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
-					FileAccessPermissions "$LidArtistPath"
+				$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}" -f bestvideo+bestaudio --merge-output-format mkv "$dlurl"  &> /dev/null
+				if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
+					FileAccessPermissions "$LidArtistPath" &> /dev/null
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Download Complete!"
 				else
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Downloaded Failed!"
