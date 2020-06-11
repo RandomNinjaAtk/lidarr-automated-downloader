@@ -1489,13 +1489,13 @@ DownloadVideos () {
 		if [ $newrecordingcount != $recordingcount ]; then
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking Cache"
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Cache needs update, cleaning..."
-			if [ -f "video-cache/$sanatizedartistname-recordings.json" ]; then
+			if [ -f "video-cache/$sanatizedartistname-$mbid-recordings.json" ]; then
 				rm "video-cache/$sanatizedartistname-$mbid-recordings.json"
 			fi
 			if [ -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
 				rm "video-cache/$sanatizedartistname-$mbid-recording-count.json"
 			fi
-			if [ -f "video-cache/$sanatizedartistname-recordings.json" ]; then
+			if [ -f "video-cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
 				rm "video-cache/$sanatizedartistname-$mbid-video-recordings.json"
 			fi
 			if [ ! -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
