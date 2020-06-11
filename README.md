@@ -2,8 +2,8 @@
 # lidarr-automated-downloader (LAD)
 
 ## Features
-* Downloading Music using online sources and importing them into Lidarr Automatically
-* Downloading Music Videos using online sources for use in popular applications (Plex/Kodi/Emby/Jellyfin): 
+* Downloading **Music** using online sources and importing them into Lidarr Automatically
+* Downloading **Music Videos** using online sources for use in popular applications (Plex/Kodi/Emby/Jellyfin): 
   * More Info: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki/Music-Videos
 
 ## Additional Information
