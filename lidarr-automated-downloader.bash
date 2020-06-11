@@ -1588,7 +1588,7 @@ DownloadVideos () {
 			else
 				sanatizedvideodisambiguation=""
 			fi			
-			if [ ! -f "$VideoPath/$sanatizedartistname - $sanatizedvideotitle.mkv" ]; then 
+			if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
 				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Downloading $videotitle ($dlurl)..."
 				$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}" -f bestvideo+bestaudio --merge-output-format mkv "$dlurl"  &> /dev/null
 				if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
