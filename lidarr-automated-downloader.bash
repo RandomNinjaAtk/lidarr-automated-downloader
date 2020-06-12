@@ -1042,7 +1042,7 @@ conversion () {
 							echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: $filename processed!"
 						fi
 						if [ $AudioMode = wanted ]; then
-							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: :: CONVERSION :: $filename processed!"
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: CONVERSION :: $filename processed!"
 						fi
 						if [ -f "${fname%.flac}.temp.$extension" ]; then
 							rm "$fname"
