@@ -1389,7 +1389,6 @@ ArtistMode () {
 				if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
 					sleep 0.1
 				else
-					echo "Error..."
 					continue
 				fi
 				conversion "$downloaddir"
