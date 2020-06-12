@@ -1433,24 +1433,16 @@ DownloadVideos () {
 		LidArtistPath="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .path")"
 		LidArtistNameCap="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
 		sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-
+		recordingsfile="$(cat "cache/$sanatizedartistname-$mbid-recordings.json")"
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing"
 
-		if [ ! -d "video-cache" ]; then
-			mkdir "video-cache"
-			FolderAccessPermissions "video-cache"
-		fi
-
-		records=$(curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json")
-		sleep $ratelimit
-		newrecordingcount=$(echo "${records}"| jq -r '."recording-count"')
-
+		
 		recordingcount=$(cat "cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
 		
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $recordingcount recordings found..."
 
-		videorecordings=($(cat "cache/$sanatizedartistname-$mbid-recordings.json" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id'))
-		videocount=$(cat "cache/$sanatizedartistname-$mbid-recordings.json" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id' | wc -l)
+		videorecordings=($(echo "$recordingsfile" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id'))
+		videocount=$(echo "$recordingsfile" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id' | wc -l)
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $recordingcount recordings for videos..."
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $videocount video recordings found..."
 
