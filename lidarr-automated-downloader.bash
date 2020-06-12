@@ -1030,10 +1030,10 @@ conversion () {
 		if [ -x "$(command -v ffmpeg)" ]; then
 			if find "$1"/ -name "*.flac" | read; then
 				if [ $AudioMode = archive ]; then
-					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))""
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))"
 				fi
 				if [ $AudioMode = wanted ]; then
-					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))""
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))"
 				fi
 				for fname in "$1"/*.flac; do
 					filename="$(basename "${fname%.flac}")"
