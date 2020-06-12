@@ -13,60 +13,165 @@
 source ./config
 
 configuration () {
+	echo "######################################### CONFIGURATION VERIFICATION #########################################"
+	error=0
 	
-	if [ "$VerifyTrackCount" = "true" ]; then
-		vtc="Enabled"
+	if [ $DownloadMode = Both ] || [ $DownloadMode = Audio ] || [ $DownloadMode = Video ]; then
+		echo "Download Audio/Video: $DownloadMode"
 	else
-		vtc="Disabled"
-	fi
-	
-	if [ "$ReplaygainTagging" = "TRUE" ]; then
-		gain="Enabled"
-	else
-		gain="Disabled"
+		echo "ERROR: DownloadMode setting invalid, currently set to: $DownloadMode"
+		echo "ERROR: DownloadMode Expected Valid Setting: Both or Audio or Video"
+		error=1
 	fi
 	
-	echo ""
-	echo "Global Settings"
-	echo "Download Directory: $downloaddir"
-	echo "Download Mode: $DownloadMode"
-	echo "Lidarr Temp Import Location: $LidarrImportLocation"
-	echo "Download Quality: $quality"
-	if [ "$quality" = "OPUS" ]; then
-		echo "Download Bitrate: ${ConversionBitrate}k"
-		extension="opus"
-	elif [ "$quality" = "AAC" ]; then
-		echo "Download Bitrate: ${ConversionBitrate}k"
-		extension="m4a"
-	elif [ "$quality" = "FDK-AAC" ]; then
-		echo "Download Bitrate: ${ConversionBitrate}k"
-		extension="m4a"
-	elif [ "$quality" = "MP3" ]; then
-		echo "Download Bitrate: 320k"
-		extension="mp3"
-	else
-		echo "Download Bitrate: lossless"
-		extension="flac"
+	if [ $DownloadMode = Both ] || [ $DownloadMode = Audio ]; then
+		
+		if [ "$VerifyTrackCount" = "true" ]; then
+			vtc="Enabled"
+		else
+			vtc="Disabled"
+		fi
+		
+		if [ "$ReplaygainTagging" = "TRUE" ]; then
+			gain="Enabled"
+		else
+			gain="Disabled"
+		fi
+
+		if [ $ImportMode = match ] || [ $ImportMode = forced ] || [ $ImportMode = manual ]; then
+			echo "Import Mode: $ImportMode"
+		else
+			echo "ERROR: ImportMode setting invalid, currently set to: $ImportMode"
+			echo "ERROR: ImportMode Expected Valid Setting: match or forced or manual"
+			error=1
+		fi
+
+		if [ $AudioMode = wanted ] || [ $AudioMode = archive ]; then
+			echo "Audio Mode: $AudioMode"
+		else
+			echo "ERROR: AudioMode setting invalid, currently set to: $AudioMode"
+			echo "ERROR: AudioMode Expected Valid Setting: wanted or archive"
+			error=1
+		fi
+		
+		if [ ! -z "$downloaddir" ]; then
+			echo "Audio Download Path: $downloaddir"
+		else
+			echo "ERROR: downloaddir setting invalid, currently set to: $downloaddir"
+			echo "ERROR: downloaddir Expected Valid Setting: /your/path/to/dlclient/downloads/folder"
+			error=1
+		fi
+		
+		if [ ! -z "$LidarrImportLocation" ]; then
+			echo "Lidarr Temp Import Path: $LidarrImportLocation"
+		else
+			echo "ERROR: LidarrImportLocation setting invalid, currently set to: $LidarrImportLocation"
+			echo "ERROR: LidarrImportLocation Expected Valid Setting: /your/path/to/temp/lidarr/import/folder"
+			error=1
+		fi
+		
+		if [ "$quality" = "OPUS" ]; then
+			echo "Download Quality: $quality"
+			echo "Download Bitrate: ${ConversionBitrate}k"
+			extension="opus"
+		elif [ "$quality" = "AAC" ]; then
+			echo "Download Quality: $quality"
+			echo "Download Bitrate: ${ConversionBitrate}k"
+			extension="m4a"
+		elif [ "$quality" = "FDK-AAC" ]; then
+			echo "Download Quality: $quality"
+			echo "Download Bitrate: ${ConversionBitrate}k"
+			extension="m4a"
+		elif [ "$quality" = "MP3" ]; then
+			echo "Download Quality: $quality"
+			echo "Download Bitrate: 320k"
+			extension="mp3"
+		elif [ "$quality" = "FLAC" ]; then
+			echo "Download Quality: $quality"
+			echo "Download Bitrate: lossless"
+			extension="flac"
+		else
+			echo "ERROR: quality setting invalid, currently set to: $quality"
+			echo "ERROR: quality Expected Valid Setting: OPUS or AAC or FDK-AAC or MP3 or FLAC"
+			error=1
+		fi
+		echo "Download Track Count Verification: $vtc"
+		if [ "$quality" = "FLAC" ]; then
+			echo "Replaygain Tagging: $gain"
+		fi
+		if [ "$TagWithBeets" = "true" ]; then
+			echo "Beets Tagging: Enabled"
+		else
+			echo "Beets Tagging: Disabled"
+		fi
+		if [ "$quality" != "MP3" ]; then
+			dlquality="flac"
+		else
+			dlquality="128"
+		fi
+		beetsmatch="false"
 	fi
-	echo "Download Track Count Verification: $vtc"
-	if [ "$quality" = "FLAC" ]; then
-		echo "Replaygain Tagging: $gain"
+	
+	if [ $DownloadMode = Both ] || [ $DownloadMode = Video ]; then
+		if [ ! -z "$VideoPath" ]; then
+			echo "Video Download Path: $VideoPath"
+		else
+			echo "ERROR: VideoPath setting invalid, currently set to: $VideoPath"
+			echo "ERROR: VideoPath Expected Valid Setting: /your/path/to/music/video/folder"
+			error=1
+		fi
 	fi
-	if [ "$TagWithBeets" = "true" ]; then
-		echo "Beets Tagging: Enabled"
-	else
-		echo "Beets Tagging: Disabled"
+
+	if [ $error = 1 ]; then
+		echo "Please correct errors before attempting to run script again..."
+		echo "Exiting..."
+		exit 1
 	fi
-	if [ "$quality" != "MP3" ]; then
-		dlquality="flac"
-	else
-		dlquality="320"
+}
+
+ImportFunction () {
+
+	if [ ! -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
+		mkdir -p "${LidarrImportLocation}/${importalbumfolder}"
+		for file in "$downloaddir"/*; do
+			mv "$file" "${LidarrImportLocation}/${importalbumfolder}"/
+		done
+		FolderAccessPermissions "${LidarrImportLocation}/${importalbumfolder}"
+		FileAccessPermissions "${LidarrImportLocation}/${importalbumfolder}"
 	fi
-	beetsmatch="false"
-	echo ""
-	echo "Begin finding downloads..."
-	echo ""
-	sleep 1.5
+	
+	if [ "$ImportMode" = "match" ]; then
+		if [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
+			LidarrProcessIt=$(curl -s "$LidarrUrl/api/v1/command" --header "X-Api-Key:"${LidarrApiKey} --data "{\"name\":\"DownloadedAlbumsScan\", \"path\":\"${LidarrImportLocation}/${importalbumfolder}\"}" );
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: IMPORT :: Notified Lidarr to scan \"${LidarrImportLocation}/${importalbumfolder}\" for import"
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: IMPORT :: Notified Lidarr to scan \"${LidarrImportLocation}/${importalbumfolder}\" for import"
+			fi
+		fi
+	elif [ "$ImportMode" = "forced" ]; then
+		if [ ! -d "${LidArtistPath}" ]; then
+			mkdir -p "${LidArtistPath}"
+		fi
+		mv "${LidarrImportLocation}/${importalbumfolder}" "$LidArtistPath/$libalbumfolder"
+		FolderAccessPermissions "$LidArtistPath/$libalbumfolder"
+		FileAccessPermissions "$LidArtistPath/$libalbumfolder"
+		LidarrProcessIt=$(curl -s $LidarrUrl/api/v1/command -X POST -d "{\"name\": \"RescanFolders\", \"folders\": [\"$LidArtistPath/$libalbumfolder\"]}" --header "X-Api-Key:${LidarrApiKey}" );
+		if [ $AudioMode = archive ]; then
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: IMPORT :: Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
+		fi
+		if [ $AudioMode = wanted ]; then
+			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: IMPORT :: Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
+		fi
+	elif [ "$ImportMode" = "manual" ]; then
+		if [ $AudioMode = archive ]; then
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: IMPORT :: Album Saved for manual import: \"${LidarrImportLocation}/${importalbumfolder}\""
+		fi
+		if [ $AudioMode = wanted ]; then
+			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: IMPORT :: Album Saved for manual import: \"${LidarrImportLocation}/${importalbumfolder}\""
+		fi
+	fi
 }
 
 paths () {
@@ -151,25 +256,46 @@ CleanNotfoundLog () {
 QualityVerification () {
 	if [ "$quality" = "MP3" ]; then
 		if find "$downloaddir" -iname "*.flac" | read; then
-			echo "ERROR: All tracks did not meet target quality..."
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: QUALITY VERIFICATION :: ERROR :: All tracks did not meet target quality.."
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: QUALITY VERIFICATION :: ERROR :: All tracks did not meet target quality.."
+			fi
 			CleanDLPath
 		fi
 	else
 		if find "$downloaddir" -iname "*.mp3" | read; then
-			echo "ERROR: All tracks did not meet target quality..."
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: QUALITY VERIFICATION :: ERROR :: All tracks did not meet target quality.."
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: QUALITY VERIFICATION :: ERROR :: All tracks did not meet target quality.."
+			fi
 			CleanDLPath
 		fi
 	fi
 }
 
 FileAccessPermissions () {
-	echo "Setting file permissions (${FilePermissions})"
+	if [ $AudioMode = archive ]; then
+		echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: PERMISSIONS :: Modifying Files in: $1 (${FilePermissions})..."
+	fi
+	if [ $AudioMode = wanted ]; then
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: PERMISSIONS :: Modifying Files in: $1 (${FilePermissions})..."
+	fi
 	chmod ${FilePermissions} "$1"/*
 	# docker-chown-01
 }
 
+
 FolderAccessPermissions () {
-	echo "Setting folder permissions (${FolderPermissions})"
+	if [ $AudioMode = archive ]; then
+		echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: PERMISSIONS :: Modifying Folder $1(${FolderPermissions})..."
+	fi
+	if [ $AudioMode = wanted ]; then
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: PERMISSIONS :: Modifying Folders $1 (${FolderPermissions})..."
+	fi
 	chmod ${FolderPermissions} "$1"
 	# docker-chown-02
 }
@@ -188,9 +314,13 @@ DurationCalc () {
 }
 
 beetstagging () {
-	echo ""
 	trackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
-	echo "Matching $trackcount tracks with Beets"
+	if [ $AudioMode = archive ]; then
+		echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: BEETS :: Matching $trackcount tracks with Beets"
+	fi
+	if [ $AudioMode = wanted ]; then
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: BEETS :: Matching $trackcount tracks with Beets"
+	fi
 	if [ -f "${BeetLibrary}" ]; then
 		rm "${BeetLibrary}"
 		sleep 0.1
@@ -206,15 +336,29 @@ beetstagging () {
 	if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
 		beet -c "${BeetConfig}" -l "${BeetLibrary}" -d "$downloaddir" import -q "$downloaddir"
 		if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" -newer "$downloaddir/beets-match" | read; then
-			echo "SUCCESS: Matched with beets!"
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: BEETS :: Matched with beets!"
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: BEETS :: Matched with beets!"
+			fi
 			beetsmatch="true"
 			TagFix
 		else
-			echo "ERROR: Unable to match using beets, fallback to lidarr import matching..."
 			beetsmatch="false"
-			if [ "$RequireBeetsMatch" = true ]; then
-				echo "ERROR: RequireBeetsMatch enabled, performing cleanup"
-				CleanDLPath
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: BEETS :: ERROR: Unable to match using beets, fallback to lidarr import matching..."
+				if [ "$RequireBeetsMatch" = true ]; then
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: BEETS :: ERROR: RequireBeetsMatch enabled, performing cleanup"
+					CleanDLPath
+				fi
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: BEETS :: ERROR: Unable to match using beets, fallback to lidarr import matching..."
+				if [ "$RequireBeetsMatch" = true ]; then
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: BEETS :: ERROR: RequireBeetsMatch enabled, performing cleanup"
+					CleanDLPath
+				fi
 			fi
 		fi	
 	fi
@@ -226,7 +370,7 @@ beetstagging () {
 }
 
 LidarrAlbums () {
-	
+	echo "######################################### DOWNLOAD AUDIO (WANTED MODE) #########################################"
 	if [ -f "temp-lidarr-missing.json" ]; then
 		rm "temp-lidarr-missing.json"
 		sleep 0.1
@@ -242,15 +386,13 @@ LidarrAlbums () {
 		sleep 0.1
 	fi
 
-	echo "Getting Lidarr missing and cutoff albums list for processing..."
-
 	curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/missing/?page=1&pagesize=${amount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-missing.json
 	missingtotal=$(cat "temp-lidarr-missing.json"| jq -r '.records | .[] | .id' | wc -l)
-	echo "${missingtotal} Missing Albums Found"
+	echo "FINDING MISSING ALBUMS: ${missingtotal} Found"
 	if [ "$TrackUpgrade" = true ]; then
 		curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/wanted/cutoff/?page=1&pagesize=${amount}&includeArtist=true&monitored=true&sortDir=desc&sortKey=releaseDate" -o temp-lidarr-cutoff.json
 		cuttofftotal=$(cat "temp-lidarr-cutoff.json"| jq -r '.records | .[] | .id' | wc -l)
-		echo "${cuttofftotal} Cutoff Albums Found"
+		echo "FINDING CUTOFF ALBUMS: ${cuttofftotal} Found"
 	fi
 	jq -s '.[]' temp-lidarr-*.json > "lidarr-monitored-list.json"
 	wantit=$(cat "lidarr-monitored-list.json")
@@ -302,6 +444,9 @@ ProcessLidarrAlbums () {
 		wantitalbumartistname=$(echo "${wantitalbum}"| jq -r '.[] | .artist.artistName')
 		wantitalbumartisid=$(echo "${wantitalbum}"| jq -r '.[] | .artist.id')
 		wantitalbumartispath=$(echo "${wantitalbum}"| jq -r '.[] | .artist.path')
+		LidArtistPath="$wantitalbumartispath"
+		LidArtistNameCap="$wantitalbumartistname"
+		sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 		wantitalbumartistmbid=$(echo "${wantitalbum}"| jq -r '.[] | .artist.foreignArtistId')
 		lidarralbumartistmbrainzid=${wantitalbumartistmbid}
 		wantitalbumartistdeezerid=($(echo "${wantitalbum}"| jq -r '.[] | .artist.links | .[] |  select(.name=="deezer") | .url'))
@@ -312,33 +457,32 @@ ProcessLidarrAlbums () {
 		sanatizedwantitalbumtitlefuzzy="${sanatizedwantitalbumtitlefuzzy// /%20}"
 		sanatizedwantitalbumartistnamefuzzy="$(echo "${wantitalbumartistname}" | sed -e "s/’/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 		sanatizedwantitalbumartistnamefuzzy="${sanatizedwantitalbumartistnamefuzzy// /%20}"
-		echo "Lidarr Artist Name: $wantitalbumartistname (LID: $wantitalbumartisid :: MBID: ${wantitalbumartistmbid})"
-		echo "Lidarr Album Title: $wantitalbumtitle [$wantitalbummbid] ($currentprocess of $wantittotal)"
-		echo "Lidarr Album Year: $wantitalbumyear"
-		echo "Lidarr Album Type: $normalizetype" 
-		echo "Lidarr Album Track Count: $wantitalbumtrackcount"
-				if [ "$wantitalbumartistname" != "Various Artists" ]; then
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: LIDARR :: Album ID: $wantitalbummbid"
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: LIDARR :: Album Year: $wantitalbumyear"
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: LIDARR :: Album Type: $normalizetype" 
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: LIDARR :: Album Track Count: $wantitalbumtrackcount"
+		if [ "$wantitalbumartistname" != "Various Artists" ]; then
 			if [ -z "${wantitalbumartistdeezerid}" ]; then	
-				if [ -f "cache/${wantitalbumartisid}-fuzzymatch" ]; then
-					wantitalbumartistdeezerid="$(cat "cache/${wantitalbumartisid}-fuzzymatch")"
+				if [ -f "cache/$sanatizedartistname-${wantitalbumartisid}-fuzzymatch" ]; then
+					wantitalbumartistdeezerid="$(cat "cache/$sanatizedartistname-${wantitalbumartisid}-fuzzymatch")"
 					
 					if ! [ -f "musicbrainzerror.log" ]; then
 						touch "musicbrainzerror.log"
 					fi
 					if cat "musicbrainzerror.log" | grep "${wantitalbumartistmbid}" | read; then
-						echo "Using cached fuzzymatch for processing this request... update musicbrainz id: ${wantitalbumartistmbid} with missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: Using cached fuzzymatch for processing this request... update musicbrainz id: ${wantitalbumartistmbid} with missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 					else
-						echo "Using cached fuzzymatch for processing this request... update musicbrainz id: ${wantitalbumartistmbid} with missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: Using cached fuzzymatch for processing this request... update musicbrainz id: ${wantitalbumartistmbid} with missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 						echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/${wantitalbumartistmbid}/relationships for \"${wantitalbumartistname}\" with Deezer Artist Link" >> "musicbrainzerror.log"
 					fi
 				fi			
-			elif [ -f "cache/${wantitalbumartisid}-fuzzymatch" ]; then
-				rm "cache/${wantitalbumartisid}-fuzzymatch"
+			elif [ -f "cache/$sanatizedartistname-${wantitalbumartisid}-fuzzymatch" ]; then
+				rm "cache/$sanatizedartistname-${wantitalbumartisid}-fuzzymatch"
 			fi
 			
 			# Get Deezer ArtistID from Musicbrainz if not found in Lidarr
 			if [ -z "${wantitalbumartistdeezerid}" ]; then	
-				echo "ERROR: Fallback to musicbrainz for url..."
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ERROR: Fallback to musicbrainz for url..."
 				mbjson=$(curl -s "${musicbrainzurl}/ws/2/artist/${wantitalbumartistmbid}?inc=url-rels&fmt=json")
 				wantitalbumartistdeezerid=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 			fi	
@@ -350,48 +494,45 @@ ProcessLidarrAlbums () {
 					touch "musicbrainzerror.log"
 				fi
 				if cat "musicbrainzerror.log" | grep "${wantitalbumartistmbid}" | read; then
-					echo "ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 					albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
 					wantitalbumartistdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .artist.id" | sort -u))
-					echo "Attemtping fuzzy search for Artist: $wantitalbumartistname :: Album: $wantitalbumtitle"
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: Attemtping fuzzy search for Artist: $wantitalbumartistname :: Album: $wantitalbumtitle"
 					for id in "${!wantitalbumartistdeezeridfuzzy[@]}"; do
 						currentprocess=$(( $id + 1 ))
 						fuzzyaritstid=${wantitalbumartistdeezeridfuzzy[$id]}
 						fuzzyaritstname="$(echo "$albumfuzzy" | jq ".data | .[] | .artist | select(.id==$fuzzyaritstid) | .name" | sort -u | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 						if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
-							echo "Match found!"
-							touch "cache/${wantitalbumartisid}-fuzzymatch"
-							echo "$fuzzyaritstid" >> "cache/${wantitalbumartisid}-fuzzymatch"
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: Match found!"
+							touch "cache/$sanatizedartistname-${wantitalbumartisid}-fuzzymatch"
+							echo "$fuzzyaritstid" >> "cache/$sanatizedartistname-${wantitalbumartisid}-fuzzymatch"
 							wantitalbumartistdeezerid="$fuzzyaritstid"
 							break
 						fi					
 					done
 					if [ -z "$wantitalbumartistdeezerid" ]; then
-						echo "ERROR: No fuzzy match found..."
-						echo ""
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ERROR: No fuzzy match found..."
 					fi
 				else
-					echo "ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ERROR: \"${wantitalbumartistname}\"... musicbrainz id: ${wantitalbumartistmbid} is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 					echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/${wantitalbumartistmbid}/relationships for \"${wantitalbumartistname}\" with Deezer Artist Link" >> "musicbrainzerror.log"
 					albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
 					wantitalbumartistdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .artist.id" | sort -u))
-					echo "Attemtping fuzzy search for Artist: $wantitalbumartistname :: Album: $wantitalbumtitle"
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: Attemtping fuzzy search for Artist: $wantitalbumartistname :: Album: $wantitalbumtitle"
 					for id in "${!wantitalbumartistdeezeridfuzzy[@]}"; do
 						currentprocess=$(( $id + 1 ))
 						fuzzyaritstid=${wantitalbumartistdeezeridfuzzy[$id]}
 						fuzzyaritstname="$(echo "$albumfuzzy" | jq ".data | .[] | .artist | select(.id==$fuzzyaritstid) | .name" | sort -u | sed -e "s/’/ /g" -e "s/'/ /g" -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/ /g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 						if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
-							echo "Match found!"
-							touch "cache/${wantitalbumartisid}-fuzzymatch"
-							echo "$fuzzyaritstid" >> "cache/${wantitalbumartisid}-fuzzymatch"
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: Match found!"
+							touch "cache/$sanatizedartistname-${wantitalbumartisid}-fuzzymatch"
+							echo "$fuzzyaritstid" >> "cache/$sanatizedartistname-${wantitalbumartisid}-fuzzymatch"
 							wantitalbumartistdeezerid="$fuzzyaritstid"
 							break
 						fi					
 					done
 					if [ -z "$wantitalbumartistdeezerid" ]; then
-						echo "ERROR: No fuzzy match found..."
-						echo ""
-						
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ERROR: No fuzzy match found..."			
 					fi
 				fi
 			fi
@@ -413,8 +554,8 @@ DeezerMatching () {
 	fuzzyalbummatch="false"
 	DeezerArtistMatchID=""
 	if [ "$wantitalbumartistname" != "Various Artists" ]; then
-		DeezerArtistAlbumListSortTotal=$(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l)
-		echo "Checking.... $DeezerArtistAlbumListSortTotal Albums for match"		
+		DeezerArtistAlbumListSortTotal=$(cat "cache/$sanatizedartistname-${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l)
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Checking.... $DeezerArtistAlbumListSortTotal Albums for match"		
 		if [ -z "$DeezerArtistMatchID" ]; then
 			# Check Album release records for match as backup because primary album title did not match
 			for id in "${!wantitalbumrecordtitles[@]}"; do
@@ -423,20 +564,20 @@ DeezerMatching () {
 				recordmbrainzid=$(echo "${wantitalbum}" | jq -r ".[] | .releases | .[] | select(.id==$recordid) | .foreignReleaseId")
 				recordtrackcount="$(echo "${wantitalbum}" | jq ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
 				sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
-				echo "Matching against: $recordtitle ($recordtrackcount Tracks)..."
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Matching against: $recordtitle ($recordtrackcount Tracks)..."
 				# Match using Sanatized Release Record Album Name + Track Count + Year
 				if [ -z "$DeezerArtistMatchID" ]; then
-					DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
+					DeezerArtistMatchID=($(cat "cache/$sanatizedartistname-${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) | select(.release_date | contains(\"$wantitalbumyear\")) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
 				fi
 				
 				# Match using Sanatized Album Name + Track Count
 				if [ -z "$DeezerArtistMatchID" ]; then
-					DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
+					DeezerArtistMatchID=($(cat "cache/$sanatizedartistname-${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) | select(.sanatized_album_name==\"${sanatizedrecordtitle}\") | .id" | head -n1))
 				fi
 				
 				if [ ! -z "$DeezerArtistMatchID" ]; then
-					echo "Lidarr Matched Album Release Title: $recordtitle ($recordmbrainzid)"
-					echo "Lidarr Matched Album Track Count: $recordtrackcount"
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Lidarr Matched Album Release Title: $recordtitle ($recordmbrainzid)"
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Lidarr Matched Album Track Count: $recordtrackcount"
 					break
 				fi
 			done
@@ -451,7 +592,7 @@ DeezerMatching () {
 		#	albumfuzzy=$(curl -s "https://api.deezer.com/search?q=artist:%22$sanatizedwantitalbumartistnamefuzzy%22%20album:%22$sanatizedwantitalbumtitlefuzzy%22")
 		#	wantitalbumdeezeridfuzzy=($(echo "$albumfuzzy" | jq ".data | .[] | .album.id" | sort -u))
 		# fi
-			echo "Attemtping fuzzy search for Album: $wantitalbumtitle by: $wantitalbumartistname"
+			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Attemtping fuzzy search for Album: $wantitalbumtitle by: $wantitalbumartistname"
 			for id in "${!wantitalbumdeezeridfuzzy[@]}"; do
 				currentprocess=$(( $id + 1 ))
 				fuzzyalbumid=${wantitalbumdeezeridfuzzy[$id]}
@@ -469,7 +610,7 @@ DeezerMatching () {
 					recordtrackcount="$(echo "${wantitalbum}" | jq -r ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
 					sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"				
 					fuzzymatcherror="false"
-					echo "Matching against: $recordtitle ($recordtrackcount Tracks)..."
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Matching against: $recordtitle ($recordtrackcount Tracks)..."
 					if [ "$fuzzymatcherror" != true ]; then
 						if [ "$sanatizedwantitartistname" = "$fuzzyaritstname" ]; then
 							fuzzymatcherror="false"
@@ -496,14 +637,14 @@ DeezerMatching () {
 						if [ "$wantitalbumyear" = "$albumyear" ]; then
 							DeezerArtistMatchID="$fuzzyalbumid"
 							fuzzyalbummatch="true"
-							echo "Lidarr Matched Album Release Title: $recordtitle ($recordmbrainzid)"
-							echo "Lidarr Matched Album Track Count: $recordtrackcount"
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Lidarr Matched Album Release Title: $recordtitle ($recordmbrainzid)"
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Lidarr Matched Album Track Count: $recordtrackcount"
 							break
 						else
 							DeezerArtistMatchID="$fuzzyalbumid"
 							fuzzyalbummatch="true"
-							echo "Lidarr Matched Album Release Title: $recordtitle ($recordmbrainzid)"
-							echo "Lidarr Matched Album Track Count: $recordtrackcount"
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Lidarr Matched Album Release Title: $recordtitle ($recordmbrainzid)"
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Lidarr Matched Album Track Count: $recordtrackcount"
 							break
 						fi
 					fi
@@ -514,7 +655,7 @@ DeezerMatching () {
 
 	if [ "$wantitalbumartistname" != "Various Artists" ]; then
 		if [ -z "$DeezerArtistMatchID" ]; then
-			echo "ERROR: Not found, fallback to fuzzy search..."
+			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: ERROR: Not found, fallback to fuzzy search..."
 			if [ -z "$DeezerArtistMatchID" ]; then
 				# Check Album release records for match as backup because primary album title did not match
 				for id in "${!wantitalbumrecordtitles[@]}"; do
@@ -524,14 +665,14 @@ DeezerMatching () {
 					recordtrackcount="$(echo "${wantitalbum}" | jq -r ".[] | .releases | .[] | select(.id==$recordid) | .trackCount")"
 					sanatizedrecordtitle="$(echo "$recordtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
 					# Match using Sanatized Release Record Album Name + Track Count
-					echo "Matching against: $recordtitle ($recordtrackcount Tracks)..."
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Matching against: $recordtitle ($recordtrackcount Tracks)..."
 					if [ -z "$DeezerArtistMatchID" ]; then
-						DeezerArtistMatchID=($(cat "cache/${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) |  select(.sanatized_album_name | contains(\"${sanatizedrecordtitle}\")) | .id" | head -n1))
+						DeezerArtistMatchID=($(cat "cache/$sanatizedartistname-${DeezerArtistID}-albumlist.json" | jq "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | select(.actualtracktotal==$recordtrackcount) |  select(.sanatized_album_name | contains(\"${sanatizedrecordtitle}\")) | .id" | head -n1))
 					fi
 
 					if [ ! -z "$DeezerArtistMatchID" ]; then
-						echo "Lidarr Matched Album Release Title: $recordtitle ($recordmbrainzid)"
-						echo "Lidarr Matched Album Track Count: $recordtrackcount"
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Lidarr Matched Album Release Title: $recordtitle ($recordmbrainzid)"
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Lidarr Matched Album Track Count: $recordtrackcount"
 						break
 					fi
 				done
@@ -542,9 +683,9 @@ DeezerMatching () {
 					touch "notfound.log"
 				fi
 				if cat "notfound.log" | grep "${wantitalbummbid}" | read; then
-					echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 				else
-					echo "ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: ERROR: Not found, skipping... see: \"$(pwd)/notfound.log\" for more detail..."
 					echo "${wantitalbumartistname} :: $wantitalbumtitle (ID: ${wantitalbummbid}) :: Could not find a match on \"https://www.deezer.com/artist/${DeezerArtistID}\" using Release or Record Name, Track Count and Release Year, check artist page for album, ep or single. If exists, update musicbrainz db with matching album name, track count, year to resolve the error" >> "notfound.log"
 					echo " "  >> "notfound.log"
 				fi
@@ -553,96 +694,13 @@ DeezerMatching () {
 	fi
 }
 
-DownloadList () {
-	# Check cache deezer artistid album list for matching discography album count, if different, delete
-	if [ ! -f "cache/$DeezerArtistID-checked" ]; then
-		if [ -f "cache/$DeezerArtistID-albumlist.json" ]; then
-			cachealbumlist="$(cat "cache/$DeezerArtistID-albumlist.json" | jq '.[].id' | wc -l)"
-			if [ "${newalbumlist}" -ne "${cachealbumlist}" ]; then
-				echo "Existing Cached Deezer Artist Album list is out of date, updating..."
-				rm "cache/$DeezerArtistID-albumlist.json"
-				sleep 0.1
-			else
-				echo "Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
-				touch "cache/$DeezerArtistID-checked"
-			fi
-		fi
-	else
-		echo "Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
-	fi
-	
-	# Cahche deezer artistid album list and save to file for re-use...
-	if [ ! -f "cache/$DeezerArtistID-albumlist.json" ]; then
-		
-		echo "Caching Deezer Artist (ID: ${DeezerArtistID}) Album List for matching..."
-		
-		if [ -d "temp" ]; then
-			sleep 0.1
-			rm -rf "temp"
-		fi
-		
-		DeezerArtistAlbumListID=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id"))
-		DeezerArtistName=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id"))
-		for id in ${!DeezerArtistAlbumListID[@]}; do
-			albumid="${DeezerArtistAlbumListID[$id]}"
-			if [ ! -d "temp" ]; then
-				mkdir -p "temp" 
-			fi
-			if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "temp/${albumid}-temp-album.json"; then
-				sleep 0.5
-				albumtitle="$(cat "temp/${albumid}-temp-album.json" | jq ".title")"
-				actualtracktotal=$(cat "temp/${albumid}-temp-album.json" | jq -r ".tracks.data | .[] | .id" | wc -l)
-				sanatizedalbumtitle="$(echo "$albumtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
-				jq ". + {\"sanatized_album_name\": \"$sanatizedalbumtitle\"} + {\"actualtracktotal\": $actualtracktotal}" "temp/${albumid}-temp-album.json" > "temp/${albumid}-album.json"
-				rm "temp/${albumid}-temp-album.json"
-				sleep 0.1
-			else
-				echo "Error getting album information"
-			fi				
-		done
-		
-		# Cleanup temp files...
-		if [ -f "downloadlist.json" ]; then
-			rm "downloadlist.json"
-			sleep 0.1
-		fi
-						
-		if [ ! -d "cache" ]; then
-			sleep 0.1
-			mkdir -p "cache"
-		fi
-		
-		jq -s '.' temp/*-album.json > "cache/$DeezerArtistID-albumlist.json"
-		touch "cache/$DeezerArtistID-checked"
-		
-		if [ -d "temp" ]; then
-			sleep 0.1
-			rm -rf "temp"
-		fi	
-	fi
-}
 
 GetDeezerArtistAlbumList () {
 	if [ "$wantitalbumartistname" != "Various Artists" ]; then
 		DeezerArtistID=$(echo "${deezeraritstid}" | grep -o '[[:digit:]]*')
-		echo "Deezer Artist ID: $DeezerArtistID"
+		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Artist ID: $DeezerArtistID"
 		DLArtistArtwork
-		if [ ! -f "cache/$DeezerArtistID-checked" ]; then
-			DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
-			newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
-			if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
-				echo "ERROR: Unable to retrieve albums from Deezer"
-			else
-				DownloadList
-								
-				DeezerMatching
-			fi
-		
-		else
-			DownloadList
-				
-			DeezerMatching
-		fi
+		DeezerMatching
 	else
 		DeezerMatching
 	fi	
@@ -655,12 +713,12 @@ GetDeezerArtistAlbumList () {
 			albuminfo="$(curl -sL --fail "https://api.deezer.com/album/${albumid}")"
 			actualtracktotal=$(echo "$albuminfo" | jq -r ".tracks.data | .[] | .id" | wc -l)
 		else
-			albuminfo="$(cat "cache/$DeezerArtistID-albumlist.json" | jq ".[] | select(.id==${albumid})")"
+			albuminfo="$(cat "cache/$sanatizedartistname-${DeezerArtistID}-albumlist.json" | jq ".[] | select(.id==${albumid})")"
 			actualtracktotal=$(echo "$albuminfo" | jq -r ".actualtracktotal")
 		fi
 		
 		if [ -z "$albuminfo" ]; then
-			echo "ERROR: Cannot communicate with Deezer"
+			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ERROR: Cannot communicate with Deezer"
 		else
 					
 			albumname=$(echo "${albuminfo}" | jq -r ".title")
@@ -678,6 +736,12 @@ GetDeezerArtistAlbumList () {
 			albumduration=$(echo "${albuminfo}" | jq -r ".duration")
 			albumdurationdisplay=$(DurationCalc $albumduration)
 			importalbumfolder="${sanatizedartistname} - ${sanatizedalbumname} (${albumyear}) (${albumtypecap}) (WEB)-DLCLIENT"
+			if [ "$albumlyrictype" = true ]; then
+				albumlyrictype="Explicit"
+			elif [ "$albumlyrictype" = false ]; then
+				albumlyrictype="Clean"
+			fi
+			libalbumfolder="$sanatizedartistname - $albumtypecap - $albumyear - $albumid - $sanatizedalbumname ($albumlyrictype)"
 
 			if ! [ -f "download.log" ]; then
 				touch "download.log"
@@ -693,19 +757,14 @@ GetDeezerArtistAlbumList () {
 
 			if [ "${downloaded}" = false ] && [ $error = 0 ]; then		
 
-				if [ "$albumlyrictype" = true ]; then
-					albumlyrictype="Explicit"
-				elif [ "$albumlyrictype" = false ]; then
-					albumlyrictype="Clean"
-				fi
 
-				echo "Deezer Matched Album Title: $albumname (ID: $albumid)"
-				echo "Album Link: $albumurl"
-				echo "Album Release Year: $albumyear"
-				echo "Album Release Type: $albumtype"
-				echo "Album Lyric Type: $albumlyrictype"
-				echo "Album Duration: $albumdurationdisplay"
-				echo "Album Track Count: $tracktotal"
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Matched Album Title: $albumname (ID: $albumid)"
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Album Link: $albumurl"
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Album Release Year: $albumyear"
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Album Release Type: $albumtype"
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Album Lyric Type: $albumlyrictype"
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Album Duration: $albumdurationdisplay"
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: Album Track Count: $tracktotal"
 
 				CleanDLPath
 
@@ -713,7 +772,7 @@ GetDeezerArtistAlbumList () {
 
 				if [ $error = 1 ]; then
 					CleanDLPath
-					echo "ERROR: Download failed, skipping..."
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: ERROR: Download failed, skipping..."
 				else
 
 					DLAlbumArtwork
@@ -723,9 +782,9 @@ GetDeezerArtistAlbumList () {
 					downloadedalbumartcount=$(find "$downloaddir" -type f -iname "folder.*" | wc -l)
 					replaygaintrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
 					converttrackcount=$(find "$downloaddir" -type f -iname "*.flac" | wc -l)
-					echo "Downloaded: $downloadedtrackcount Tracks"
-					echo "Downloaded: $downloadedlyriccount Synced Lyrics"
-					echo "Downloaded: $downloadedalbumartcount Album Cover"	
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: $downloadedtrackcount Tracks"
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: $downloadedlyriccount Synced Lyrics"
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: $downloadedalbumartcount Album Cover"	
 
 					TrackCountDownloadVerification
 
@@ -748,77 +807,64 @@ GetDeezerArtistAlbumList () {
 							if [ "${ReplaygainTagging}" = TRUE ]; then
 								replaygain "$downloaddir"
 							else
-								echo "REPLAYGAIN TAGGING DISABLED"
+								echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: REPLAYGAIN TAGGING DISABLED"
 							fi
 							
-							ImportProcess
-
-							NotifyLidarr
+							ImportFunction
 
 							if [ "${DownLoadArtistArtwork}" = true ]; then
 								DLArtistArtwork
 							fi
 						fi
 						
-						if cat "download.log" | grep "${albumid}" | read; then
-							downloaded="true"
-						else
-							echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname}" >> "download.log"
-						fi
-
 					fi
 				fi
 			else
-				echo "ERROR: Already downloaded, skipping..."
-				NotifyLidarr
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DLCLIENT MATCH :: ERROR: Already downloaded, skipping... (see: download.log)" 
 			fi
 		fi
 	fi
-	echo ""
 }
 
 AlbumDL () {
-	CleanDLPath
-	echo "Downloading $tracktotal Tracks..."
-	chmod 0777 -R "${PathToDLClient}"
-	currentpwd="$(pwd)"
-	if cd "${PathToDLClient}" && $python -m deemix -b ${dlquality} "$albumurl" && cd "${currentpwd}"; then
-		chmod 0777 -R "${downloaddir}"
-		find "$downloaddir" -mindepth 2 -type f -exec mv "{}" "${downloaddir}"/ \;
-		find "$downloaddir" -mindepth 1 -type d -delete
-		if find "$downloaddir" -iname "*.flac" | read; then
-			fallbackqualitytext="FLAC"
-		elif find "$downloaddir" -iname "*.mp3" | read; then
-			fallbackqualitytext="MP3"
+	if cat "download.log" | grep "${albumid}" | read; then
+		if [ $AudioMode = archive ]; then
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: Already Downloaded..."
 		fi
-		echo "Downloaded Album: $albumname (Format: $fallbackqualitytext; Length: $albumdurationdisplay)"
-		Verify
+		if [ $AudioMode = wanted ]; then
+			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: Already Downloaded..."
+		fi
 	else
-		cd "${currentpwd}"
-		error=1
-	fi
-}
-
-ImportProcess () {
-	if [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
-		rm -rf "${LidarrImportLocation}/${importalbumfolder}"
-		sleep 0.1
-	fi
-	if [ ! -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
-		mkdir -p "${LidarrImportLocation}/${importalbumfolder}"
-		for file in "$downloaddir"/*; do
-			mv "$file" "${LidarrImportLocation}/${importalbumfolder}"/
-		done
-
-		FolderAccessPermissions "${LidarrImportLocation}/${importalbumfolder}"
-		FileAccessPermissions "${LidarrImportLocation}/${importalbumfolder}"
-	fi
-}
-
-NotifyLidarr () {
-	if [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
-		echo "Notified Lidarr to scan \"${LidarrImportLocation}/${importalbumfolder}\" for import"
-		LidarrProcessIt=$(curl -s "$LidarrUrl/api/v1/command" --header "X-Api-Key:"${LidarrApiKey} --data "{\"name\":\"DownloadedAlbumsScan\", \"path\":\"${LidarrImportLocation}/${importalbumfolder}\"}" );
+		CleanDLPath
+		if [ $AudioMode = archive ]; then
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: Sent to DL Client..."
+		fi
+		if [ $AudioMode = wanted ]; then
+			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: Sent to DL Client..."
+		fi
+		chmod 0777 -R "${PathToDLClient}"
+		currentpwd="$(pwd)"
+		if cd "${PathToDLClient}" && $python -m deemix -b ${dlquality} "$albumurl" &> /dev/null && cd "${currentpwd}"; then
+			chmod 0777 -R "${downloaddir}"
+			find "$downloaddir" -mindepth 2 -type f -exec mv "{}" "${downloaddir}"/ \;
+			find "$downloaddir" -mindepth 1 -type d -delete
+			if find "$downloaddir" -iname "*.flac" | read; then
+				fallbackqualitytext="FLAC"
+			elif find "$downloaddir" -iname "*.mp3" | read; then
+				fallbackqualitytext="MP3"
+			fi
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: Complete (Format: $fallbackqualitytext; Length: $albumdurationdisplay)"
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: $albumname (Format: $fallbackqualitytext; Length: $albumdurationdisplay)"
+			fi
+			echo "Downloaded :: ${albumid} :: ${wantitalbumartistname} :: ${albumname} :: ${libalbumfolder}" >> "download.log"
+			Verify
+		else
+			cd "${currentpwd}"
+			error=1
+		fi
 	fi
 }
 
@@ -830,9 +876,19 @@ Verify () {
 			for fname in "${downloaddir}"/*.flac; do
 				filename="$(basename "$fname")"
 				if flac -t --totally-silent "$fname"; then
-					echo "Verified Track: $filename"
+					if [ $AudioMode = archive ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: VERIFYING :: Track: $filename Verified"
+					fi
+					if [ $AudioMode = wanted ]; then
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: VERIFYING :: Track: $filename Verified"
+					fi
 				else
-					echo "ERROR: Track Verification failed, skipping album"
+					if [ $AudioMode = archive ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: VERIFYING :: ERROR: Track $filename Verification failed, skipping album"
+					fi
+					if [ $AudioMode = wanted ]; then
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: VERIFYING :: ERROR: Track $filename Verification failed, skipping album"
+					fi
 					rm -rf "$downloaddir"/*
 					sleep 0.1
 					error=1
@@ -847,7 +903,12 @@ Verify () {
 			for fname in "${downloaddir}"/*.mp3; do
 				filename="$(basename "$fname")"
 				if mp3val -f -nb "$fname" > /dev/null; then
-					echo "Verified Track: $filename"
+					if [ $AudioMode = archive ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: VERIFYING :: Track: $filename Verified"
+					fi
+					if [ $AudioMode = wanted ]; then
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: VERIFYING :: Track: $filename Verified"
+					fi
 				fi
 			done
 		fi
@@ -855,7 +916,6 @@ Verify () {
 }
 
 TagFix () {
-	echo "Fixing tags"
 	if find "$downloaddir" -iname "*.flac" | read; then
 		if ! [ -x "$(command -v metaflac)" ]; then
 			echo "ERROR: FLAC verification utility not installed (ubuntu: apt-get install -y flac)"
@@ -871,7 +931,12 @@ TagFix () {
 					if [ $DownloadMode = "wanted" ]; then
 						metaflac "$fname" --set-tag=MUSICBRAINZ_RELEASEGROUPID=$wantitalbummbid
 					fi
-					echo "$filename fixed..."
+					if [ $AudioMode = archive ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: FIXING TAGS :: $filename fixed..."
+					fi
+					if [ $AudioMode = wanted ]; then
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: FIXING TAGS :: $filename fixed..."
+					fi
 				else
 					metaflac "$fname" --remove-tag=ALBUMARTIST
 					metaflac "$fname" --set-tag=ALBUMARTIST="$wantitalbumartistname"
@@ -889,7 +954,12 @@ TagFix () {
 					metaflac "$fname" --remove-tag=ALBUMARTIST_CREDIT
 					metaflac "$fname" --remove-tag=COMMENT
 					metaflac "$fname" --remove-tag=ENCODEDBY
-					echo "$filename fixed..."
+					if [ $AudioMode = archive ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: FIXING TAGS :: $filename fixed..."
+					fi
+					if [ $AudioMode = wanted ]; then
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: FIXING TAGS :: $filename fixed..."
+					fi
 				fi
 			done
 		fi
@@ -907,10 +977,20 @@ TagFix () {
 					if [ $DownloadMode = "wanted" ]; then
 						eyeD3 "$fname" --user-text-frame="MusicBrainz Release Group Id:$wantitalbummbid" &> /dev/null
 					fi
-					echo "$filename fixed..."
+					if [ $AudioMode = archive ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: FIXING TAGS :: $filename fixed..."
+					fi
+					if [ $AudioMode = wanted ]; then
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: FIXING TAGS :: $filename fixed..."
+					fi
 				else
 					eyeD3 "$fname" --user-text-frame='ALBUMARTISTSORT:' &> /dev/null
-					echo "$filename fixed..."
+					if [ $AudioMode = archive ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: FIXING TAGS :: $filename fixed..."
+					fi
+					if [ $AudioMode = wanted ]; then
+						echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: FIXING TAGS :: $filename fixed..."
+					fi
 				fi
 			done
 		fi
@@ -953,14 +1033,24 @@ conversion () {
 				for fname in "$1"/*.flac; do
 					filename="$(basename "${fname%.flac}")"
 					if ffmpeg -loglevel warning -hide_banner -nostats -i "$fname" -n -vn $options "${fname%.flac}.temp.$extension"; then
-						echo "Converted: $filename"
+						if [ $AudioMode = archive ]; then
+							echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: $filename processed!"
+						fi
+						if [ $AudioMode = wanted ]; then
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: :: CONVERSION :: $filename processed!"
+						fi
 						if [ -f "${fname%.flac}.temp.$extension" ]; then
 							rm "$fname"
 							sleep 0.1
 							mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
 						fi
 					else
-						echo "Conversion failed: $filename, performing cleanup..."
+						if [ $AudioMode = archive ]; then
+							echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: ERROR :: Coversion Failed: $filename, performing cleanup..."
+						fi
+						if [ $AudioMode = wanted ]; then
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: CONVERSION :: ERROR :: Coversion Failed: $filename, performing cleanup..."
+						fi
 						rm -rf "$1"/*
 						sleep 0.1
 					fi
@@ -978,7 +1068,14 @@ replaygain () {
 		echo "ERROR: METAFLAC replaygain utility not installed (ubuntu: apt-get install -y flac)"
 	elif find "$1" -iname "*.flac" | read; then
 		replaygaintrackcount=$(find  "$1"/ -iname "*.flac" | wc -l)
-		find "$1" -iname "*.flac" -exec metaflac --add-replay-gain "{}" + && echo "Replaygain: $replaygaintrackcount Tracks Tagged"
+		if find "$1" -iname "*.flac" -exec metaflac --add-replay-gain "{}" +; then
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: REPLAYGAIN TAGGING :: $replaygaintrackcount tracks tagged!"
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: REPLAYGAIN TAGGING :: $replaygaintrackcount tracks tagged!"
+			fi
+		fi
 	fi
 }
 
@@ -990,9 +1087,19 @@ DLAlbumArtwork () {
 		if [ ! -z "$file" ]; then
 			artwork="$(dirname "$file")/folder.jpg"
 			if ffmpeg -y -i "$file" -c:v copy "$downloaddir/folder.jpg" 2>/dev/null; then
-				echo "SUCCESS: Artwork Extracted for Downlaod"
+				if [ $AudioMode = archive ]; then
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: Album Artwork..."
+				fi
+				if [ $AudioMode = wanted ]; then
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: Album Artwork..."
+				fi
 			else
-				echo "ERROR: No artwork failed extraction"
+				if [ $AudioMode = archive ]; then
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: ERROR: Album Artwork Download Failed..."
+				fi
+				if [ $AudioMode = wanted ]; then
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: ERROR: Album Artwork Download Failed..."
+				fi
 			fi
 		fi
 		IFS=$SAVEIFS
@@ -1002,23 +1109,18 @@ DLAlbumArtwork () {
 DLArtistArtwork () {
 	if [ -d "$wantitalbumartispath" ]; then
 		if [ ! -f "$wantitalbumartispath/folder.jpg"  ]; then
-			echo "Archiving Artist Profile Picture"
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: ARTIST ARTWORK :: Downloading..."
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ARTIST ARTWORK :: Downloading..."
+			fi
 			if curl -sL --fail "${LidarrUrl}/api/v1/MediaCover/Artist/${wantitalbumartisid}/poster.jpg?apikey=${LidarrApiKey}" -o "$wantitalbumartispath/folder.jpg"; then
 				if [ -f "$wantitalbumartispath/folder.jpg"  ]; then	
 					if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
-						echo "ERROR: Artist artwork is smaller than \"16k\""
-						echo "Fallback to deezer..."
 						rm "$wantitalbumartispath/folder.jpg"
-						echo ""
-					else
-						echo "Downloaded 1 profile picture"
-						echo ""
 					fi
-				else
-					echo "ERROR: Lidarr artist artwork failure, fallback to deezer"
 				fi
-			else
-				echo "ERROR: Lidarr artist artwork failure, fallback to deezer"
 			fi
 		fi
 		if [ "$wantitalbumartistname" != "Various Artists" ]; then
@@ -1028,22 +1130,26 @@ DLArtistArtwork () {
 					if curl -sL --fail "${artistartwork}" -o "$wantitalbumartispath/folder.jpg"; then
 						if [ -f "$wantitalbumartispath/folder.jpg"  ]; then	
 							if find "$wantitalbumartispath/folder.jpg" -type f -size -16k | read; then
-								echo "ERROR: Artist artwork is smaller than \"16k\""
 								rm "$wantitalbumartispath/folder.jpg"
-								echo ""
-							else
-								echo "Downloaded 1 profile picture"
-								echo ""
 							fi
-						else
-							echo "Error downloading artist artwork"
-							echo ""
 						fi
-					else
-						echo "Error downloading artist artwork"
-						echo ""
 					fi
 				fi
+			fi
+		fi
+		if [ -f "$wantitalbumartispath/folder.jpg"  ]; then
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: ARTIST ARTWORK :: Downloaded 1 profile picture"
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ARTIST ARTWORK :: Downloaded 1 profile picture"
+			fi
+		else
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: ARTIST ARTWORK :: Error downloading artist artwork"
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ARTIST ARTWORK :: Error downloading artist artwork"
 			fi
 		fi
 	fi
@@ -1053,19 +1159,22 @@ DLArtistArtwork () {
 TrackCountDownloadVerification () {
 	if [ "$VerifyTrackCount" = true ]; then
 		if [ "$tracktotal" -ne "$downloadedtrackcount" ]; then
-			echo "ERROR: Downloaded Track Count ($downloadedtrackcount) and Album Track Count ($tracktotal) do not match, skipping and performing cleanup..."
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: TRACK COUNT DOWNLOAD VERIFCATION :: ERROR :: Downloaded Track Count ($downloadedtrackcount) and Album Track Count ($tracktotal) do not match, skipping and performing cleanup..."
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: TRACK COUNT DOWNLOAD VERIFCATION :: ERROR :: Downloaded Track Count ($downloadedtrackcount) and Album Track Count ($tracktotal) do not match, skipping and performing cleanup..."
+			fi
 			CleanDLPath
 			error=1
 		fi
 	fi
 }
-ArtistMode () {
 
+ArtistMode () {
+	echo "######################################### DOWNLOAD AUDIO (ARCHIVE MODE) #########################################"
 	wantit=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/Artist/")
 	wantedtotal=$(echo "${wantit}"|jq -r '.[].sortName' | wc -l)
-
-	echo "Total Number of artists to process: $wantedtotal"
-	echo ""
 
 	MBArtistID=($(echo "${wantit}" | jq -r ".[$i].foreignArtistId"))
 
@@ -1079,91 +1188,7 @@ ArtistMode () {
 		LidArtistID="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .id")"
 		wantitalbumartisid="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .id")"
 		LidArtistNameCap="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
-		wantitalbumartistname="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
-		lidarrartistposterurl="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .images | .[] | select(.coverType==\"poster\") | .url")"
-		lidarrartistposterextension="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .images | .[] | select(.coverType==\"poster\") | .extension")"
-		lidarrartistposterlink="${LidarrUrl}${lidarrartistposterurl}${lidarrartistposterextension}"
-		deezerartisturl=($(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url"))
-
-		if [ -z "${deezerartisturl}" ]; then	
-			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
-			mbjson=$(curl -s "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
-			deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
-		fi	
-		
-		if [ -z "${deezerartisturl}" ]; then
-			if ! [ -f "musicbrainzerror.log" ]; then
-				touch "musicbrainzerror.log"
-			fi		
-			if [ -f "musicbrainzerror.log" ]; then
-				echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
-				if cat "musicbrainzerror.log" | grep "$mbid" | read; then
-					sleep 0.1
-				else
-					echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/$mbid/relationships for \"${LidArtistNameCap}\" with Deezer Artist Link" >> "musicbrainzerror.log"
-				fi
-			fi
-			continue
-		fi
-
-		if ! [ -d "cache" ]; then
-			mkdir -p "cache"
-		fi
-
-		if ! [ -d "temp" ]; then
-			mkdir -p "temp"
-		fi
-
-		for url in ${!deezerartisturl[@]}; do
-			deezerid="${deezerartisturl[$url]}"
-			DeezerArtistID=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
-			if  [ -f "cache/${DeezerArtistID}-info.json" ]; then
-				check="fail"
-				lidarralbumartistname="$(cat "cache/${DeezerArtistID}-info.json" | jq -r ".lidarr_artist_name")"
-				lidarralbumartistmbrainzid="$(cat "cache/${DeezerArtistID}-info.json" | jq -r ".mbrainzid")"
-				if [ "$lidarralbumartistname" != null ]; then
-					check="success"
-				else
-					check="fail"
-					rm "cache/${DeezerArtistID}-info.json"
-					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Cached Arist Info invalid, cleaning up before caching..."
-				fi
-				if [ "$lidarralbumartistmbrainzid" != null ]; then
-					check="success"
-				else
-					check="fail"
-					rm "cache/${DeezerArtistID}-info.json"
-					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Cached Arist Info invalid, cleaning up before caching..."
-				fi
-				if [ $check = success ]; then
-					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Cached Artist Info verified..."
-				fi
-			elif ! [ -f "cache/${DeezerArtistID}-info.json" ]; then
-				if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "temp/${DeezerArtistID}-temp-info.json"; then
-					jq ". + {\"lidarr_artist_path\": \"$LidArtistPath\"} + {\"lidarr_artist_name\": \"$LidArtistNameCap\"} + {\"mbrainzid\": \"$mbid\"}" "temp/${DeezerArtistID}-temp-info.json" > "cache/${DeezerArtistID}-info.json"
-					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Caching Artist Info..."
-					rm "temp/${DeezerArtistID}-temp-info.json"
-				else
-					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Cannot communicate with Deezer"
-					continue
-				fi
-			fi
-		done
-		if [ -d "temp" ]; then
-			rm -rf "temp"
-		fi
-	done
-
-	for id in ${!MBArtistID[@]}; do
-		artistnumber=$(( $id + 1 ))
-		mbid="${MBArtistID[$id]}"
-		deezerartisturl=""
-
-		LidArtistPath="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .path")"
-		wantitalbumartispath="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .path")"
-		LidArtistID="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .id")"
-		wantitalbumartisid="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .id")"
-		LidArtistNameCap="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
+		sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 		wantitalbumartistname="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
 		lidarrartistposterurl="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .images | .[] | select(.coverType==\"poster\") | .url")"
 		lidarrartistposterextension="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .images | .[] | select(.coverType==\"poster\") | .extension")"
@@ -1194,199 +1219,139 @@ ArtistMode () {
 		for url in ${!deezerartisturl[@]}; do
 			deezerid="${deezerartisturl[$url]}"
 			DeezerArtistID=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
-			if ! [ -f "cache/${DeezerArtistID}-info.json" ]; then
-				echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Cannot communicate with Deezer"
+			echo "#################### ARCHIVING ARTIST: $LidArtistNameCap ####################"
+			if ! [ -f "cache/$sanatizedartistname-${DeezerArtistID}-info.json" ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: ERROR: Cannot communicate with Deezer"
 				continue
 			else
-				ladarchive="$(cat "cache/${DeezerArtistID}-info.json" | jq -r ".lad_archived")"
+				ladarchive="$(cat "cache/$sanatizedartistname-${DeezerArtistID}-info.json" | jq -r ".lad_archived")"
 				if [ "$ladarchive" = "true" ]; then
-					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Already archived..."
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: Already archived..."
 					continue
-				else
-					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Archiving..."
 				fi
 			fi
-			DeezerArtistName="$(cat "cache/${DeezerArtistID}-info.json" | jq ".name" | sed -e 's/^"//' -e 's/"$//')"
+			artistinfofile="$(cat "cache/$sanatizedartistname-${DeezerArtistID}-info.json")"
+			DeezerArtistName="$(cat "cache/$sanatizedartistname-${DeezerArtistID}-info.json" | jq ".name" | sed -e 's/^"//' -e 's/"$//')"
 			artistdir="$(basename "$LidArtistPath")"
 			sanatizedlidarrartistname="$(echo "$LidArtistNameCap" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Lidarr Artist ID: $LidArtistID"
-			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Lidarr Artist Path: $LidArtistPath"
-			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Deezer Artist Name: $DeezerArtistName"
-			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Deezer Artist ID: $DeezerArtistID"
-			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Deezer Artist URL: $deezerid"
-
-			if [ "$LidArtistNameCap" != "Various Artists" ]; then				
-				if [ ! -f "cache/$DeezerArtistID-checked" ]; then
-					if [ ! -f "cache/$DeezerArtistID-album.json" ]; then
-						DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
-						if [ -z "$DeezerArtistAlbumList" ]; then
-							echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Unable to retrieve albums from Deezer"
-						else
-							DownloadList										
-						fi
-					fi				
-				else
-					DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
-					newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
-					if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
-						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Unable to retrieve albums from Deezer"
-					else
-						DownloadList										
-					fi
-				fi
-			else
-				continue
-			fi			
-			
-			albumlist=($(cat "cache/$DeezerArtistID-albumlist.json" | jq -r "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id"))
-			totalnumberalbumlist=($(cat "cache/$DeezerArtistID-albumlist.json"  | jq -r "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l))
-			echo "Total albums: $totalnumberalbumlist"
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: Lidarr Artist ID: $LidArtistID"
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: Lidarr Artist Path: $LidArtistPath"
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: Deezer Artist Name: $DeezerArtistName"
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: Deezer Artist ID: $DeezerArtistID"
+			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: Deezer Artist URL: $deezerid"
+					
+			albumlistfile=$(cat "cache/$sanatizedartistname-$DeezerArtistID-albumlist.json")
+			albumlist=($(echo "$albumlistfile" | jq -r "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id"))
+			totalnumberalbumlist=($(echo "$albumlistfile"  | jq -r "sort_by(.explicit_lyrics, .nb_tracks) | reverse | .[] | .id" | wc -l))
 			for album in ${!albumlist[@]}; do
 				albumnumber=$(( $album + 1 ))
 				albumid="${albumlist[$album]}"
-				albumartistid=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .artist.id")
-				if [ ! -f "cache/$albumartistid-info.json" ]; then
+
+				albumartistid=$(echo "$albumlistfile" | jq -r ".[]| select(.id=="$albumid") | .artist.id")
+				if [ ! -f "cache/$sanatizedartistname-$albumartistid-info.json" ]; then
 					continue
 				fi
 				albumurl="https://www.deezer.com/album/$albumid"
-				albumname=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .title")
-				albumartistname=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .artist.name")
-				albumtrackcount=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .nb_tracks")
-				tracktotal=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .nb_tracks")
-				albumactualtrackcount=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .actualtracktotal")
-				albumexplicit=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .explicit_lyrics")
+				albumname=$(echo "$albumlistfile" | jq -r ".[]| select(.id=="$albumid") | .title")
+				albumartistname=$(echo "$albumlistfile"  | jq -r ".[]| select(.id=="$albumid") | .artist.name")
+				albumtrackcount=$(echo "$albumlistfile" | jq -r ".[]| select(.id=="$albumid") | .nb_tracks")
+				tracktotal=$(echo "$albumlistfile"  | jq -r ".[]| select(.id=="$albumid") | .nb_tracks")
+				albumactualtrackcount=$(echo "$albumlistfile"  | jq -r ".[]| select(.id=="$albumid") | .actualtracktotal")
+				albumexplicit=$(echo "$albumlistfile"  | jq -r ".[]| select(.id=="$albumid") | .explicit_lyrics")
 				if [ $albumexplicit = true ]; then
 					albumexplicit="Explicit"
 				else
 					albumexplicit="Clean"
 				fi
-				albumdate=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .release_date")
+				albumdate=$(echo "$albumlistfile" | jq -r ".[]| select(.id=="$albumid") | .release_date")
 				albumyear=$(echo ${albumdate::4})
-				albumtype=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .record_type")
+				albumtype=$(echo "$albumlistfile" | jq -r ".[]| select(.id=="$albumid") | .record_type")
 				albumtypecaps="$(echo ${albumtype^^})"
 				albumnamesanatized="$(echo "$albumname" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 				sanatizedfuncalbumname="${albumnamesanatized,,}"
-				albumduration=$(cat "cache/$DeezerArtistID-albumlist.json" | jq -r ".[]| select(.id=="$albumid") | .duration")
+				albumduration=$(echo "$albumlistfile" | jq -r ".[]| select(.id=="$albumid") | .duration")
 				albumdurationdisplay=$(DurationCalc $albumduration)
-				lidarralbumartistname="$(cat "cache/$albumartistid-info.json" | jq -r ".lidarr_artist_name")"
-				wantitalbumartistname="$(cat "cache/$albumartistid-info.json" | jq -r ".lidarr_artist_name")"
+				lidarralbumartistname="$(echo "$artistinfofile" | jq -r ".lidarr_artist_name")"
+				wantitalbumartistname="$(echo "$artistinfofile" | jq -r ".lidarr_artist_name")"
 				sanatizedalbumartistname="$(echo "$lidarralbumartistname" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-				lidarralbumartistfolder="$(cat "cache/$albumartistid-info.json" | jq -r ".lidarr_artist_path")"
-				lidarralbumartistmbrainzid="$(cat "cache/$albumartistid-info.json" | jq -r ".mbrainzid")"
+				lidarralbumartistfolder="$(echo "$artistinfofile" | jq -r ".lidarr_artist_path")"
+				lidarralbumartistmbrainzid="$(echo "$artistinfofile" | jq -r ".mbrainzid")"
 				libalbumfolder="$sanatizedalbumartistname - $albumtypecaps - $albumyear - $albumid - $albumnamesanatized ($albumexplicit)"
-				echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: $lidarralbumartistname :: $albumname :: $albumtypecaps :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit :: $albumid"
+				importalbumfolder="${sanatizedalbumartistname} - ${albumnamesanatized} (${albumyear}) (${albumtypecaps}) (WEB)-DLCLIENT"
+				echo "########## ARCHIVING TITLE: $albumname ##########"
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: $albumname :: $albumtypecaps :: $albumactualtrackcount Tracks :: $albumyear :: $albumexplicit :: $albumid"
 				LidArtistPath="$lidarralbumartistfolder"
-				if [ -d "$LidArtistPath" ]; then
-					if find "$LidArtistPath" -type d -iname "*- $albumid - *" | read; then
-						# Check for duplicate by AlbumID and wanted extension
-						if find "$LidArtistPath"/*$albumid* -type f -iname "*.$extension" | read; then
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ID: $albumid), already downloaded..."
+
+				if ! [ -f "download.log" ]; then
+					touch "download.log"
+				fi
+
+				if cat "download.log" | grep -i ".* :: ${albumid} :: .*" | read; then
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate ($albumtypecaps), already downloaded... (see: download.log)"
+					continue
+				elif [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate ($albumtypecaps), already downloaded but waiting for import..."
+					ImportFunction
+					continue
+				elif [ "$albumtypecaps" = "ALBUM" ]; then
+					if [ "$albumexplicit" = "Explicit" ]; then
+						if cat "download.log" | grep -i ".* - ALBUM - .* - $albumnamesanatized (Explicit)" | read; then
+							echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
 							continue
-						else
-							# Upgrade if wanted extension is different then already downloaded extension
-							if [ "$TrackUpgrade" = true ]; then
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Upgrade wanted... Attempting to aquire: $quality..."
-							else
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Album Upgrade not wanted..."
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ID: $albumid), already downloaded..."
-								continue
-							fi
-						fi
-					elif [ "$albumtypecaps" = "ALBUM" ]; then
-						# Check if incoming album is explicit
-						if [ "$albumexplicit" = "Explicit" ]; then
-							# Check for duplicate by exact sanatized album name and year
-							if find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Explicit)" | read; then
-								dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Explicit)")"
-								dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
-								# Check for different track counts incoming vs found duplicate
-								if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
-									echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Explicit ALBUM found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
-									echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-									rm -rf "$dupecheck"
-								else
-									echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
-									continue
-								fi
-							# Check for duplicate deluxe album
-							elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized*Deluxe*(Explicit)" | read; then
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
-								continue
-							# Check for duplicate clean album
-							elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" | read; then
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Clean ALBUM found, removing to import Explicit version..."
-								find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" -exec rm -rf "{}" \;
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-							fi
-						# Clean album processing, check for duplicate Explicit album
-						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Explicit)" | read; then
-							dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Explicit)")"
-							dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
-							if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Explicit ALBUM found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Checking for Duplicate Clean Album..."
-								if find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" | read; then
-									dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)")"
-									dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
-									if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
-										echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Clean ALBUM found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
-										echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-										rm -rf "$dupecheck"
-									else
-										echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
-										continue
-									fi
-								fi
-							else
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
-								continue
-							fi
-						# Clean album processing, check for duplicate Deluxe Explicit ALBUM
-						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized*Deluxe*(Explicit)" | read; then
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
+						elif cat "download.log" | grep -i ".* - ALBUM - .* - $albumnamesanatized.*Deluxe.*(Explicit)" | read; then
+							echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
 							continue
-						# Clean album processing, check for duplicate Deluxe Clean ALBUM
-						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized*Deluxe*(Clean)" | read; then
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
-								continue
-						# Clean album processing, check for duplicate clean album (same name)
-						elif find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" | read; then
-							dupecheck="$(find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)")"
-							dupetrackcountcheck=$(find "$dupecheck" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
-							if [ "$albumactualtrackcount" -gt "$dupetrackcountcheck" ]; then
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Clean Album found, but new album more tracks (New: $albumactualtrackcount vs Dupe: $dupetrackcountcheck)"
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-								rm -rf "$dupecheck"
-							else
-								echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
-								continue
-							fi
-						else
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
+						elif cat "download.log" | grep -i ".* - ALBUM - .* - $albumnamesanatized (Clean)" | read; then
+							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Clean ALBUM found, removing to import Explicit version..."
+							find "$LidArtistPath" -type d -iname "*- ALBUM - * - * - $albumnamesanatized (Clean)" -exec rm -rf "{}" \;
+							echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Processing..."
 						fi
-					elif [ "$albumtypecaps" = "EP" ]; then
-						if [ "$albumexplicit" = "Explicit" ]; then
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-						# Check for duplicate explicit EP
-						elif find "$LidArtistPath" -type d -iname "*- EP - * - * - $albumnamesanatized (Explicit)" | read; then
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Explicit EP found, skipping..."
-							continue
-						else
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-						fi
-						echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-					elif [ "$albumtypecaps" = "SINGLE" ]; then
-						if [ "$albumexplicit" = "Explicit" ]; then
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-						# Check for duplicate explicit SINGLE
-						elif find "$LidArtistPath" -type d -iname "*- SINGLE - * - * - $albumnamesanatized (Explicit)" | read; then
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Duplicate Explicit SINGLE found, skipping..."
-							continue
-						else
-							echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Processing..."
-						fi
+					# Clean album processing, check for duplicate Explicit album
+					elif cat "download.log" | grep -i ".* - ALBUM - .* - $albumnamesanatized (Explicit)" | read; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
+						continue
+					# Clean album processing, check for duplicate Deluxe Explicit ALBUM
+					elif cat "download.log" | grep -i ".* - ALBUM - .* - $albumnamesanatized.*Deluxe.*(Explicit)" | read; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
+						continue
+					# Clean album processing, check for duplicate Deluxe Clean ALBUM
+					elif cat "download.log" | grep -i ".* - ALBUM - .* - $albumnamesanatized.*Deluxe.*(Clean)" | read; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
+						continue
+					# Clean album processing, check for duplicate clean album (same name)
+					elif cat "download.log" | grep -i ".* - ALBUM - .* - $albumnamesanatized (Clean)" | read; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate (ALBUM), already downloaded..."
+						continue
+					else
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Processing..."
 					fi
-				fi			
+				elif [ "$albumtypecaps" = "EP" ]; then
+
+					if [ "$albumexplicit" = "Explicit" ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Processing..."
+					# Check for duplicate explicit EP
+					elif cat "download.log" | grep -i ".* - EP - .* - $albumnamesanatized (Explicit)" | read; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate Explicit EP found, skipping..."
+						continue
+					# Check for duplicate clean EP
+					elif cat "download.log" | grep -i ".* - EP - .* - $albumnamesanatized (Clean)" | read; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate Clean EP found, skipping..."
+						continue
+					else
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Processing..."
+					fi
+				elif [ "$albumtypecaps" = "SINGLE" ]; then
+					if [ "$albumexplicit" = "Explicit" ]; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Processing..."
+					# Check for duplicate explicit SINGLE
+					elif cat "download.log" | grep -i ".* - SINGLE - .* - $albumnamesanatized (Explicit)" | read; then
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate Explicit SINGLE found, skipping..."
+						continue
+					else
+						echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Processing..."
+					fi
+				fi
+
 				AlbumDL
 				DLAlbumArtwork
 				downloadedtrackcount=$(find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | wc -l)
@@ -1398,12 +1363,14 @@ ArtistMode () {
 				
 				if [ "${RequireQuality}" = true ]; then
 					QualityVerification
+				else
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: QUALITY VERIFICATION DISABLED"
 				fi
 						
 				if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
-					echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Downloaded: $downloadedtrackcount Tracks"
-					echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Downloaded: $downloadedlyriccount Synced Lyrics"
-					echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Downloaded: $downloadedalbumartcount Album Cover"	
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: $downloadedtrackcount Tracks"
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: $downloadedlyriccount Synced Lyrics"
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: $downloadedalbumartcount Album Cover"	
 				else
 					echo "Error..."
 					continue
@@ -1414,33 +1381,31 @@ ArtistMode () {
 
 				if [ "${TagWithBeets}" = true ]; then
 					beetstagging
+				else
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: BEETS TAGGING DISABLED"
 				fi
 				
+				if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
+					sleep 0.1
+				else
+					echo "Error..."
+					continue
+				fi
 				conversion "$downloaddir"
 
 				if [ "${ReplaygainTagging}" = TRUE ]; then
 					replaygain "$downloaddir"
 				else
-					echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: REPLAYGAIN TAGGING DISABLED"
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: REPLAYGAIN TAGGING DISABLED"
 				fi
-				if [ -d "$LidArtistPath/$libalbumfolder" ]; then
-					rm -rf "$LidArtistPath/$libalbumfolder"
-				fi
-				mkdir -p "$LidArtistPath/$libalbumfolder"
-				for file in "$downloaddir"/*; do
-					mv "$file" "$LidArtistPath/$libalbumfolder"/
-				done
-				FolderAccessPermissions "$LidArtistPath/$libalbumfolder"
-				FileAccessPermissions "$LidArtistPath/$libalbumfolder"
-				LidarrProcessIt=$(curl -s $LidarrUrl/api/v1/command -X POST -d "{\"name\": \"RescanFolders\", \"folders\": [\"$LidArtistPath/$libalbumfolder\"]}" --header "X-Api-Key:${LidarrApiKey}" );
-				echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
-				echo ""
-				echo ""
+				
+				ImportFunction
 			done
-			if [ -f "cache/${DeezerArtistID}-info.json" ]; then
-				echo "${artistnumber} of ${wantedtotal} :: $albumnumber of $totalnumberalbumlist :: Updating Cached Artist Info with successful archive information..."
-				mv "cache/${DeezerArtistID}-info.json" "cache/${DeezerArtistID}-temp-info.json"
-				jq ". + {\"lad_archived\": \"true\"}" "cache/${DeezerArtistID}-temp-info.json" > "cache/${DeezerArtistID}-info.json"
+			echo "#################### ARCHIVING ARTIST: $LidArtistNameCap COMPLETE ####################"
+			if [ -f "cache/$sanatizedartistname-${DeezerArtistID}-info.json" ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: ARTIST CACHE :: Updating with successful archive information..."
+				mv "cache/$sanatizedartistname-${DeezerArtistID}-info.json" "cache/${DeezerArtistID}-temp-info.json"
+				jq ". + {\"lad_archived\": \"true\"}" "cache/${DeezerArtistID}-temp-info.json" > "cache/$sanatizedartistname-${DeezerArtistID}-info.json"
 				rm "cache/${DeezerArtistID}-temp-info.json"
 			fi
 			if [ "${DownLoadArtistArtwork}" = true ] && [ -d "$LidArtistPath" ]; then
@@ -1451,13 +1416,9 @@ ArtistMode () {
 }
 
 DownloadVideos () {
-
+	echo "######################################### DOWNLOADING VIDEOS #########################################"
 	wantit=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/Artist/")
 	wantedtotal=$(echo "${wantit}"|jq -r '.[].sortName' | wc -l)
-
-	echo "Total Number of artists to process: $wantedtotal"
-	echo ""
-
 	MBArtistID=($(echo "${wantit}" | jq -r ".[$i].foreignArtistId"))
 
 	for id in ${!MBArtistID[@]}; do
@@ -1478,68 +1439,13 @@ DownloadVideos () {
 		records=$(curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json")
 		sleep $ratelimit
 		newrecordingcount=$(echo "${records}"| jq -r '."recording-count"')
-			
-		if [ ! -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
-			curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "video-cache/$sanatizedartistname-$mbid-recording-count.json"
-			sleep $ratelimit
-		fi
 
-		recordingcount=$(cat "video-cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
-		
-		if [ $newrecordingcount != $recordingcount ]; then
-			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking Cache"
-			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Cache needs update, cleaning..."
-			if [ -f "video-cache/$sanatizedartistname-$mbid-recordings.json" ]; then
-				rm "video-cache/$sanatizedartistname-$mbid-recordings.json"
-			fi
-			if [ -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
-				rm "video-cache/$sanatizedartistname-$mbid-recording-count.json"
-			fi
-			if [ -f "video-cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
-				rm "video-cache/$sanatizedartistname-$mbid-video-recordings.json"
-			fi
-			if [ ! -f "video-cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
-				curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "video-cache/$sanatizedartistname-$mbid-recording-count.json"
-				sleep $ratelimit
-			fi
-		else
-			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking Cache"
-			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Cache Valid"
-		fi
+		recordingcount=$(cat "cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
 		
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $recordingcount recordings found..."
 
-		if [ ! -f "video-cache/$sanatizedartistname-$mbid-recordings.json" ]; then
-
-			offsetcount=$(( $recordingcount / 100 ))
-			for ((i=0;i<=$offsetcount;i++)); 
-			do
-				if [ ! -f "recording-page-$i.json" ]; then
-					if [ $i != 0 ]; then
-						offset=$(( $i * 100 ))
-						dlnumber=$(( $offset + 100))
-					else
-						offset=0
-						dlnumber=$(( $offset + 100))
-					fi
-					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Downloading page $i... ($offset - $dlnumber Results)"
-					curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=100&offset=$offset&fmt=json" -o "video-cache/$mbid-recording-page-$i.json"
-					sleep $ratelimit
-				fi
-			done
-
-			if [ ! -f "video-cache/$sanatizedartistname-recordings.json" ]; then
-				jq -s '.' video-cache/$mbid-recording-page-*.json > "video-cache/$sanatizedartistname-$mbid-recordings.json"
-			fi
-
-			if [ -f "video-cache/$sanatizedartistname-$mbid-recordings.json" ]; then
-				rm video-cache/$mbid-recording-page-*.json
-				sleep .01
-			fi
-		fi
-
-		videorecordings=($(cat "video-cache/$sanatizedartistname-$mbid-recordings.json" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id'))
-		videocount=$(cat "video-cache/$sanatizedartistname-$mbid-recordings.json" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id' | wc -l)
+		videorecordings=($(cat "cache/$sanatizedartistname-$mbid-recordings.json" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id'))
+		videocount=$(cat "cache/$sanatizedartistname-$mbid-recordings.json" | jq -r '.[] | .recordings | .[] | select(.video==true) | .id' | wc -l)
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $recordingcount recordings for videos..."
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $videocount video recordings found..."
 
@@ -1548,27 +1454,35 @@ DownloadVideos () {
 			continue
 		fi
 
-		if [ ! -f "video-cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
+		if [ ! -f "cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
 			for id in ${!videorecordings[@]}; do
 				currentprocess=$(( $id + 1 ))
 				mbrainzrecordingid="${videorecordings[$id]}"
 				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videocount :: Gathering info..."
-				if [ ! -f "video-cache/$mbrainzrecordingid-recording-info.json" ]; then
-					curl -s "${musicbrainzurl}/ws/2/recording/$mbrainzrecordingid?inc=url-rels&fmt=json" -o "video-cache/$mbrainzrecordingid-recording-info.json"
+				if ! [ -d "temp" ]; then
+					mkdir -p "temp"
+				fi
+				if [ ! -f "temp/$mbrainzrecordingid-recording-info.json" ]; then
+					curl -s "${musicbrainzurl}/ws/2/recording/$mbrainzrecordingid?inc=url-rels&fmt=json" -o "temp/$mbrainzrecordingid-recording-info.json"
 					sleep $ratelimit
 				fi
 			done
-			if [ ! -f "video-cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
-					jq -s '.' video-cache/*-recording-info.json > "video-cache/$sanatizedartistname-$mbid-video-recordings.json"
+
+			if [ ! -f "cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
+					jq -s '.' temp/*-recording-info.json > "cache/$sanatizedartistname-$mbid-video-recordings.json"
 			fi
 
-			if [ -f "video-cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
-				rm video-cache/*-recording-info.json
+			if [ -f "cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
+				rm temp/*-recording-info.json
+			fi
+
+			if [ -d "temp" ]; then
+				rm -rf "temp"
 			fi
 		fi
 		
-		urlvideocount=$(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u | wc -l)
-		youtubeurl=($(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u))
+		urlvideocount=$(cat "cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u | wc -l)
+		youtubeurl=($(cat "cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u))
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $videocount video recordings for links..."
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $urlvideocount links found!"
 		if [ $urlvideocount = 0 ]; then
@@ -1579,8 +1493,8 @@ DownloadVideos () {
 		for url in ${!youtubeurl[@]}; do
 			currentprocess=$(( $url + 1 ))
 			dlurl="${youtubeurl[$url]}"
-			videotitle="$(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .title")"
-			videodisambiguation="$(cat "video-cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .disambiguation")"
+			videotitle="$(cat "cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .title")"
+			videodisambiguation="$(cat "cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .disambiguation")"
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			sanatizedvideodisambiguation="$(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			if [ ! -z "$videodisambiguation" ]; then
@@ -1604,6 +1518,272 @@ DownloadVideos () {
 		downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *" | wc -l)
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $downloadcount Vidoes Downloaded!"
 	done
+	totaldownloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "*.mkv" | wc -l)
+	echo "######################################### $totaldownloadcount VIDEOS DOWNLOADED #########################################"
+}
+
+CacheEngine () {
+	echo "######################################### STARTING CACHE ENGINE #########################################"
+	if [ ! -d "cache" ]; then
+		mkdir "cache"
+		FolderAccessPermissions "cache"
+	fi
+
+	wantit=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/Artist/")
+	wantedtotal=$(echo "${wantit}"|jq -r '.[].sortName' | wc -l)
+	MBArtistID=($(echo "${wantit}" | jq -r ".[$i].foreignArtistId"))
+
+	for id in ${!MBArtistID[@]}; do
+		artistnumber=$(( $id + 1 ))
+		mbid="${MBArtistID[$id]}"
+		deezerartisturl=""
+
+		LidArtistPath="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .path")"
+		wantitalbumartispath="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .path")"
+		LidArtistID="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .id")"
+		wantitalbumartisid="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .id")"
+		LidArtistNameCap="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
+		sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
+		wantitalbumartistname="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .artistName")"
+		lidarrartistposterurl="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .images | .[] | select(.coverType==\"poster\") | .url")"
+		lidarrartistposterextension="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .images | .[] | select(.coverType==\"poster\") | .extension")"
+		lidarrartistposterlink="${LidarrUrl}${lidarrartistposterurl}${lidarrartistposterextension}"
+		deezerartisturl=($(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url"))
+
+		if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Audio" ]; then
+
+			if [ -z "${deezerartisturl}" ]; then	
+				echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: ERROR: Fallback to musicbrainz for url..."
+				mbjson=$(curl -s "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
+				deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
+			fi	
+			
+			if [ -z "${deezerartisturl}" ]; then
+				if ! [ -f "musicbrainzerror.log" ]; then
+					touch "musicbrainzerror.log"
+				fi		
+				if [ -f "musicbrainzerror.log" ]; then
+					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: ERROR: musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+					if cat "musicbrainzerror.log" | grep "$mbid" | read; then
+						sleep 0.1
+					else
+						echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/$mbid/relationships for \"${LidArtistNameCap}\" with Deezer Artist Link" >> "musicbrainzerror.log"
+					fi
+				fi
+				continue
+			fi
+
+			if ! [ -d "cache" ]; then
+				mkdir -p "cache"
+			fi
+
+			if ! [ -d "temp" ]; then
+				mkdir -p "temp"
+			fi
+
+			for url in ${!deezerartisturl[@]}; do
+				deezerid="${deezerartisturl[$url]}"
+				DeezerArtistID=$(echo "${deezerid}" | grep -o '[[:digit:]]*')
+				if  [ -f "cache/$sanatizedartistname-${DeezerArtistID}-info.json" ]; then
+					check="fail"
+					lidarralbumartistname="$(cat "cache/$sanatizedartistname-${DeezerArtistID}-info.json" | jq -r ".lidarr_artist_name")"
+					lidarralbumartistmbrainzid="$(cat "cache/$sanatizedartistname-${DeezerArtistID}-info.json" | jq -r ".mbrainzid")"
+					if [ "$lidarralbumartistname" != null ]; then
+						check="success"
+					else
+						check="fail"
+						rm "cache/$sanatizedartistname-$sanatizedartistname-${DeezerArtistID}-info.json"
+						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Cached Arist Info invalid, cleaning up before caching..."
+					fi
+					if [ "$lidarralbumartistmbrainzid" != null ]; then
+						check="success"
+					else
+						check="fail"
+						rm "cache/$sanatizedartistname-${DeezerArtistID}-info.json"
+						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Cached Arist Info invalid, cleaning up before caching..."
+					fi
+					if [ $check = success ]; then
+						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Cached Artist Info verified..."
+					fi
+				elif ! [ -f "cache/$sanatizedartistname-${DeezerArtistID}-info.json" ]; then
+					if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "temp/${DeezerArtistID}-temp-info.json"; then
+						jq ". + {\"lidarr_artist_path\": \"$LidArtistPath\"} + {\"lidarr_artist_name\": \"$LidArtistNameCap\"} + {\"mbrainzid\": \"$mbid\"}" "temp/${DeezerArtistID}-temp-info.json" > "cache/$sanatizedartistname-${DeezerArtistID}-info.json"
+						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Caching Artist Info..."
+						rm "temp/${DeezerArtistID}-temp-info.json"
+					else
+						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: ERROR: Cannot communicate with Deezer"
+						continue
+					fi
+				fi
+
+				if [ "$LidArtistNameCap" != "Various Artists" ]; then				
+					if [ ! -f "cache/$sanatizedartistname-$DeezerArtistID-checked" ]; then
+						if [ ! -f "cache/$sanatizedartistname-$DeezerArtistID-album.json" ]; then
+							DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
+							if [ -z "$DeezerArtistAlbumList" ]; then
+								echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: ERROR: Unable to retrieve albums from Deezer"										
+							fi
+						fi				
+					else
+						DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
+						newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
+						if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
+							echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: ERROR: Unable to retrieve albums from Deezer"										
+						fi
+					fi
+				else
+					continue
+				fi	
+
+				# Check cache deezer artistid album list for matching discography album count, if different, delete
+				if [ ! -f "cache/$sanatizedartistname-$DeezerArtistID-checked" ]; then
+					if [ -f "cache/$sanatizedartistname-$DeezerArtistID-albumlist.json" ]; then
+						cachealbumlist="$(cat "cache/$sanatizedartistname-$DeezerArtistID-albumlist.json" | jq '.[].id' | wc -l)"
+						if [ "${newalbumlist}" -ne "${cachealbumlist}" ]; then
+							echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Existing Cached Deezer Artist Album list is out of date, updating..."
+							rm "cache/$sanatizedartistname-${DeezerArtistID}-albumlist.json"
+							sleep 0.1
+						else
+							echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
+							touch "cache/$DeezerArtistID-checked"
+						fi
+					fi
+				else
+					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
+				fi
+				
+				# Cahche deezer artistid album list and save to file for re-use...
+				if [ ! -f "cache/$sanatizedartistname-$DeezerArtistID-albumlist.json" ]; then
+					echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Caching Deezer Artist (ID: ${DeezerArtistID}) Album List..."
+					
+					if [ -d "temp" ]; then
+						sleep 0.1
+						rm -rf "temp"
+					fi
+					
+					DeezerArtistAlbumListID=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id"))
+					DeezerArtistName=($(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id"))
+					for id in ${!DeezerArtistAlbumListID[@]}; do
+						albumid="${DeezerArtistAlbumListID[$id]}"
+						if [ ! -d "temp" ]; then
+							mkdir -p "temp" 
+						fi
+						if curl -sL --fail "https://api.deezer.com/album/${albumid}" -o "temp/${albumid}-temp-album.json"; then
+							sleep 0.5
+							albumtitle="$(cat "temp/${albumid}-temp-album.json" | jq ".title")"
+							actualtracktotal=$(cat "temp/${albumid}-temp-album.json" | jq -r ".tracks.data | .[] | .id" | wc -l)
+							sanatizedalbumtitle="$(echo "$albumtitle" | sed -e 's/[^[:alnum:]\ ]//g' -e 's/[[:space:]]\+/-/g' -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/./\L&/g')"
+							jq ". + {\"sanatized_album_name\": \"$sanatizedalbumtitle\"} + {\"actualtracktotal\": $actualtracktotal}" "temp/${albumid}-temp-album.json" > "temp/${albumid}-album.json"
+							rm "temp/${albumid}-temp-album.json"
+							sleep 0.1
+						else
+							echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Error getting album information"
+						fi				
+					done
+					
+					# Cleanup temp files...
+					if [ -f "downloadlist.json" ]; then
+						rm "downloadlist.json"
+						sleep 0.1
+					fi
+									
+					if [ ! -d "cache" ]; then
+						sleep 0.1
+						mkdir -p "cache"
+					fi
+					
+					jq -s '.' temp/*-album.json > "cache/$sanatizedartistname-$DeezerArtistID-albumlist.json"
+					touch "cache/$sanatizedartistname-$DeezerArtistID-checked"
+					
+					if [ -d "temp" ]; then
+						sleep 0.1
+						rm -rf "temp"
+					fi	
+				fi
+			done
+			if [ -d "temp" ]; then
+				rm -rf "temp"
+			fi
+		fi 
+
+		if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ]; then
+
+			records=$(curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json")
+			sleep $ratelimit
+			newrecordingcount=$(echo "${records}"| jq -r '."recording-count"')
+				
+			if [ ! -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+				curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
+				sleep $ratelimit
+			fi
+
+			recordingcount=$(cat "cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
+			
+			if [ $newrecordingcount != $recordingcount ]; then
+				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Video Cache :: Cache needs update, cleaning..."
+				if [ -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
+					rm "cache/$sanatizedartistname-$mbid-recordings.json"
+				fi
+				if [ -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+					rm "cache/$sanatizedartistname-$mbid-recording-count.json"
+				fi
+				if [ -f "cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
+					rm "cache/$sanatizedartistname-$mbid-video-recordings.json"
+				fi
+				if [ ! -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+					curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
+					sleep $ratelimit
+				fi
+			else
+				if [ ! -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Video Cache :: Caching $recordingcount Recordings..."
+				else
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Video Cache :: Video Cache Is Valid..."
+				fi
+			fi
+
+			if [ ! -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
+				if [ ! -d "temp" ]; then
+					mkdir "temp"
+					sleep 0.1
+				fi	
+				offsetcount=$(( $recordingcount / 100 ))
+				for ((i=0;i<=$offsetcount;i++)); 
+				do
+					if [ ! -f "recording-page-$i.json" ]; then
+						if [ $i != 0 ]; then
+							offset=$(( $i * 100 ))
+							dlnumber=$(( $offset + 100))
+						else
+							offset=0
+							dlnumber=$(( $offset + 100))
+						fi
+						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Video Cache :: Downloading page $i... ($offset - $dlnumber Results)"
+						curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-recording-page-$i.json"
+						sleep $ratelimit
+					fi
+				done
+
+
+				if [ ! -f "cache/$sanatizedartistname-recordings.json" ]; then
+					jq -s '.' temp/$mbid-recording-page-*.json > "cache/$sanatizedartistname-$mbid-recordings.json"
+				fi
+
+				if [ -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
+					rm temp/$mbid-recording-page-*.json
+					sleep .01
+				fi
+
+				if [ -d "temp" ]; then
+					sleep 0.1
+					rm -rf "temp"
+				fi
+			fi
+		fi
+
+	done
+	echo "######################################### $wantedtotal ARTISTS CACHED #########################################"
+
 }
 
 paths
@@ -1612,7 +1792,9 @@ configuration
 
 CleanDLPath
 
-CleanImportPath
+if ! [ $ImportMode = manual ]; then
+	CleanImportPath
+fi
 
 CleanCacheCheck
 
@@ -1620,19 +1802,19 @@ CleanNotfoundLog
 
 CleanMusicbrainzLog
 
-if [ $DownloadMode = "wanted" ]; then
-	LidarrAlbums
-	ProcessLidarrAlbums
-elif [ $DownloadMode = "archive" ]; then
-	ArtistMode
-else
-	echo "ERROR: Invalid mode selected"
+CacheEngine
+
+if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Audio" ]; then
+	if [ $AudioMode = "wanted" ]; then
+		LidarrAlbums
+		ProcessLidarrAlbums
+	elif [ $AudioMode = "archive" ]; then
+		ArtistMode
+	fi
 fi
 
-if [ $DLVideos = "true" ]; then
+if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ]; then
 	DownloadVideos
-else
-	echo "Video Downlods disabled"
 fi
 
 CleanDLPath
