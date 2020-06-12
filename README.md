@@ -19,6 +19,7 @@ Linux Packages: <br/>
 * mp3val
 * curl
 * eyed3
+* kid3-cli
 * youtube-dl<br/>
 
 Baseline OS used for testing is Ubuntu 18.04, so use equivalent package versions
