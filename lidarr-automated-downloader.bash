@@ -290,7 +290,7 @@ FileAccessPermissions () {
 
 FolderAccessPermissions () {
 	if [ $AudioMode = archive ]; then
-		echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: PERMISSIONS :: Modifying Folder $1(${FolderPermissions})..."
+		echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: PERMISSIONS :: Modifying Folder $1 (${FolderPermissions})..."
 	fi
 	if [ $AudioMode = wanted ]; then
 		echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: PERMISSIONS :: Modifying Folders $1 (${FolderPermissions})..."
