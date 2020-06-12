@@ -1037,10 +1037,15 @@ conversion () {
 				for fname in "$1"/*.flac; do
 					filename="$(basename "${fname%.flac}")"
 					if ffmpeg -loglevel warning -hide_banner -nostats -i "$fname" -n -vn $options "${fname%.flac}.temp.$extension"; then
+						if [ -f "${fname%.flac}.temp.$extension" ]; then
+							rm "$fname"
+							sleep 0.1
+							mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
+						fi
 						embedart=false
 						if [ -x "$(command -v kid3-cli)" ]; then
 							if [ -f "$1/folder.jpg" ]; then
-								kid3-cli -c "set picture:\"$1/folder.jpg\" \"\"" "101 - Here Comes the Rain Again (Radio Edit).opus"
+								kid3-cli -c "set picture:\"$1/folder.jpg\" \"\"" "${fname%.flac}.$extension"
 								emdedart=true
 							fi
 						fi
@@ -1055,11 +1060,6 @@ conversion () {
 							if [ $embedart = true ]; then
 								echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: CONVERSION :: Embed Artwork in $filename complete!"
 							fi
-						fi
-						if [ -f "${fname%.flac}.temp.$extension" ]; then
-							rm "$fname"
-							sleep 0.1
-							mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
 						fi
 					else
 						if [ $AudioMode = archive ]; then
