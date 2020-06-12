@@ -334,7 +334,7 @@ beetstagging () {
 	sleep 0.1
 	
 	if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" | read; then
-		beet -c "${BeetConfig}" -l "${BeetLibrary}" -d "$downloaddir" import -q "$downloaddir"
+		beet -c "${BeetConfig}" -l "${BeetLibrary}" -d "$downloaddir" import -q "$downloaddir" &> /dev/null
 		if find "$downloaddir" -type f -iregex ".*/.*\.\(flac\|opus\|m4a\|mp3\)" -newer "$downloaddir/beets-match" | read; then
 			if [ $AudioMode = archive ]; then
 				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: BEETS :: Matched with beets!"
@@ -1029,7 +1029,12 @@ conversion () {
 	if [ "${quality}" != "FLAC" ]; then
 		if [ -x "$(command -v ffmpeg)" ]; then
 			if find "$1"/ -name "*.flac" | read; then
-				echo "Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))"
+				if [ $AudioMode = archive ]; then
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))""
+				fi
+				if [ $AudioMode = wanted ]; then
+					echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: :: CONVERSION :: Converting: $converttrackcount Tracks (Target Format: $targetformat (${targetbitrate}))""
+				fi
 				for fname in "$1"/*.flac; do
 					filename="$(basename "${fname%.flac}")"
 					if ffmpeg -loglevel warning -hide_banner -nostats -i "$fname" -n -vn $options "${fname%.flac}.temp.$extension"; then
