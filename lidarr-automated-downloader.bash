@@ -1042,23 +1042,23 @@ conversion () {
 							sleep 0.1
 							mv "${fname%.flac}.temp.$extension" "${fname%.flac}.$extension"
 						fi
-						embedart=false
+						embedart="false"
 						if [ -x "$(command -v kid3-cli)" ]; then
 							if [ -f "$1/folder.jpg" ]; then
 								kid3-cli -c "set picture:\"$1/folder.jpg\" \"\"" "${fname%.flac}.$extension"
-								emdedart=true
+								embedart="true"
 							fi
 						fi
 						if [ $AudioMode = archive ]; then
-							echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: $filename processed!"
-							if [ $embedart = true ]; then
-								echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: Embed Artwork in $filename complete!"
+							echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: $filename :: Converted!"
+							if [ "$embedart" = "true" ]; then
+								echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: CONVERSION :: $filename :: Artwork Embedded!"
 							fi
 						fi
 						if [ $AudioMode = wanted ]; then
-							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: CONVERSION :: $filename processed!"
-							if [ $embedart = true ]; then
-								echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: CONVERSION :: Embed Artwork in $filename complete!"
+							echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: CONVERSION :: $filename :: Converted!"
+							if [ "$embedart" = true ]; then
+								echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: CONVERSION :: $filename :: Artwork Embedded!"
 							fi
 						fi
 					else
