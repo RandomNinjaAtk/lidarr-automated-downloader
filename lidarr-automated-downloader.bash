@@ -189,7 +189,6 @@ paths () {
 
 CleanDLPath () {
 	if find "${downloaddir}" -type f | read; then
-		echo "Cleaning Download directory..."
 		find "${downloaddir}" -type f -delete
 	fi
 }
@@ -1375,7 +1374,6 @@ ArtistMode () {
 					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: $downloadedlyriccount Synced Lyrics"
 					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: DOWNLOAD :: $downloadedalbumartcount Album Cover"	
 				else
-					echo "Error..."
 					continue
 				fi
 				
