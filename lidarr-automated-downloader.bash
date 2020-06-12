@@ -1422,7 +1422,7 @@ DownloadVideos () {
 	echo "######################################### DOWNLOADING VIDEOS #########################################"
 	wantit=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/Artist/")
 	wantedtotal=$(echo "${wantit}"|jq -r '.[].sortName' | wc -l)
-	MBArtistID=($(echo "${wantit}" | jq -r ".[$i].foreignArtistId"))
+	MBArtistID=($(echo "${wantit}" | jq -r ".[].foreignArtistId"))
 
 	for id in ${!MBArtistID[@]}; do
 		artistnumber=$(( $id + 1 ))
