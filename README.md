@@ -9,6 +9,8 @@
   * Beets tagging support for improved metadata
   * Replaygain tagging for lossless FLAC files
   * Download Artist Artwork
+  * Downloads Synced Lyrics for use with Plex/Kodi
+  * Support for automatic imports into Lidarr
 * Downloading **Music Videos** using online sources for use in popular applications (Plex/Kodi/Emby/Jellyfin): 
   * More Info: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki/Music-Videos
 * Cron support, create a cron job to automatically run script at desired interval
