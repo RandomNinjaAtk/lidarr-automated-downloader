@@ -2,9 +2,17 @@
 # lidarr-automated-downloader (LAD)
 
 ## Features
+* Complete automation for Music Audio & Video files
 * Downloading **Music** using online sources and importing them into Lidarr Automatically
+  * Support for Lossless downloads
+  * Support for output to a perferred format (FLAC / OPUS / MP3 / AAC / ALAC)
+  * Beets tagging support for improved metadata
+  * Replaygain tagging for lossless FLAC files
+  * Download Artist Artwork <br>
 * Downloading **Music Videos** using online sources for use in popular applications (Plex/Kodi/Emby/Jellyfin): 
   * More Info: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki/Music-Videos
+* Schedule script to run via cronjob
+* Official Docker with everything built in!
 
 ### Audio + Video (Plex Example)
 ![](https://raw.githubusercontent.com/RandomNinjaAtk/Scripts/master/images/plex-musicvideos.png)
