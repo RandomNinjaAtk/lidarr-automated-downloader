@@ -262,6 +262,8 @@ ImportFunction () {
 			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: IMPORT :: Album Saved for manual import: \"${LidarrImportLocation}/${importalbumfolder}\""
 		fi
 	fi
+	
+	echo "Audio :: Downloaded :: ${wantitalbumartistname} :: ${albumid} :: ${albumname} :: ${libalbumfolder}" >> "download.log"
 }
 
 paths () {
@@ -900,7 +902,6 @@ GetDeezerArtistAlbumList () {
 							fi
 							
 							ImportFunction
-							echo "Audio :: Downloaded :: ${wantitalbumartistname} :: ${albumid} :: ${albumname} :: ${libalbumfolder}" >> "download.log"
 
 							if [ "${DownLoadArtistArtwork}" = true ]; then
 								DLArtistArtwork
@@ -1503,7 +1504,6 @@ ArtistMode () {
 				fi
 				
 				ImportFunction
-				echo "Audio :: Downloaded :: ${wantitalbumartistname} :: ${albumid} :: ${albumname} :: ${libalbumfolder}" >> "download.log"
 			done
 			echo "#################### ARCHIVING ARTIST: $LidArtistNameCap COMPLETE ####################"
 			if [ -f "cache/$sanatizedartistname-${DeezerArtistID}-info.json" ]; then
