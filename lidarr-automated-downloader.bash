@@ -1604,6 +1604,10 @@ DownloadVideos () {
 			
 			for url in ${!dlurl[@]}; do
 				recordurl="${dlurl[$url]}"
+				if cat "download.log" | grep -i ".* :: $recordurl" | read; then
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videorecordscount :: $videotitle already downloaded... (see: download.log)"
+					break
+				fi
 				if [ ! -z "$videodisambiguation" ]; then
 					sanatizedvideodisambiguation=" ($(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/'))"
 				else
@@ -1619,7 +1623,7 @@ DownloadVideos () {
 					if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
 						FileAccessPermissions "$LidArtistPath" &> /dev/null
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videorecordscount :: Download Complete!"
-						echo "Video :: Downloaded :: ${LidArtistNameCap} :: ${mbrecordid} :: ${sanatizedvideotitle}${sanatizedvideodisambiguation}" >> "download.log"
+						echo "Video :: Downloaded :: ${LidArtistNameCap} :: ${mbrecordid} :: ${sanatizedvideotitle}${sanatizedvideodisambiguation} :: $recordurl" >> "download.log"
 						break
 					else
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videorecordscount :: Downloaded Failed!"
