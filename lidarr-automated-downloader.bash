@@ -117,6 +117,11 @@ configuration () {
 			error=1
 		fi
 		echo "Audio: Download Track Count Verification: $vtc"
+		if [ "${RequireQuality}" = true ]; then
+			echo "Audio: Require Download Quality Match: ENABLED"
+		else
+			echo "Audio: Require Download Quality Match: DISABLED"
+		fi
 		if [ "$quality" = "FLAC" ]; then
 			echo "Audio: Replaygain Tagging: $gain"
 		fi
