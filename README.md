@@ -2,7 +2,7 @@
 # lidarr-automated-downloader (LAD)
 
 ## Features
-* Complete automation for Music Audio & Video files
+* Complete automation for downloading Music Audio & Video files
 * Downloading **Music** using online sources and importing them into Lidarr Automatically
   * Support for Lossless downloads
   * Support for output to a perferred format (FLAC / OPUS / MP3 / AAC / ALAC)
