@@ -22,7 +22,7 @@
 Visit the wiki: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki (more info coming soon)
 
 ## Requirements
-Linux Packages: <br/>
+Linux Software Packages: <br/>
 * jq
 * find
 * ffmpeg
@@ -32,7 +32,8 @@ Linux Packages: <br/>
 * curl
 * eyed3
 * kid3-cli
-* youtube-dl<br/>
+* youtube-dl (Video DL Client)
+* deemix (Audio DL Client)<br/>
 
 Baseline OS used for testing is Ubuntu 18.04, so use equivalent package versions
 
