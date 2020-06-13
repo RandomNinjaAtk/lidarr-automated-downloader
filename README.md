@@ -74,7 +74,7 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `VideoPath` |  Location of music videos |
 | `YoutubeDL` |  Path to youtube-dl application, executed using python |
 | `musicbrainzurl` |  Change to use different musicbrainz mirror... |
-| `ratelimit` |  musicbrainz rate limit, musicbrainz allows only 1 connection per second, do not change unless you know what your doing |
+| `ratelimit` |  musicbrainz rate limit, musicbrainz allows only 1 connection per second, max setting is 10 |
 
 # Lidarr Configuration Recommendations
 
