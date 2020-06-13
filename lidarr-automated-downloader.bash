@@ -135,7 +135,7 @@ configuration () {
 	
 	if [ $DownloadMode = Both ] || [ $DownloadMode = Video ]; then
 		if [ ! -z "$VideoPath" ]; then
-			echo "Video Download Path: $VideoPath"
+			echo "Video: Download Path: $VideoPath"
 		else
 			echo "ERROR: VideoPath setting invalid, currently set to: $VideoPath"
 			echo "ERROR: VideoPath Expected Valid Setting: /your/path/to/music/video/folder"
