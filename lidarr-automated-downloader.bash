@@ -135,6 +135,7 @@ configuration () {
 		if [ ! -d "$VideoPath" ]; then			
 			echo "ERROR: VideoPath setting invalid, currently set to: $VideoPath"
 			echo "ERROR: The VideoPath Folder does not exist, create the folder accordingly to resolve error"
+			echo "HINT: Check the path using the container CLI to verify it exists, command: ls \"$VideoPath\""
 			error=1
 		fi
 	fi
