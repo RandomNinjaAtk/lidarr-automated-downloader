@@ -21,7 +21,7 @@ LidarrApiKey="08d108d108d108d108d108d108d108d1" # Lidarr API key.
 
 ############ Musicbrainz
 musicbrainzurl="http://musicbrainz.org" # Change to use different musicbrainz mirror...
-ratelimit=1 # musicbrainz rate limit, musicbrainz allows only 1 connection per second, do not change unless you know what your doing
+ratelimit=1 # musicbrainz rate limit, musicbrainz allows only 1 connection per second, max setting is 10
 
 ############ Beets File locaitons
 BeetConfig="beets-config.yaml"
