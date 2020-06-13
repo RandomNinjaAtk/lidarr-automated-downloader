@@ -16,6 +16,18 @@ configuration () {
 	echo "######################################### CONFIGURATION VERIFICATION #########################################"
 	error=0
 	
+	musicbrainzdbtest=$(curl -s "${musicbrainzurl}/ws/2/artist/f59c5520-5f46-4d2c-b2c4-822eabf53419?fmt=json")
+	musicbrainzdbtestname=$(echo "${musicbrainzdbtest}"| jq -r '.name')
+	if [ -z "$musicbrainzdbtestname" ]; then
+		echo "ERROR: Cannot communicate with Musicbrainz"
+		echo "ERROR: Invalid URL: $musicbrainzurl"
+		echo "ERROR: Link used for testing: ${musicbrainzurl}/ws/2/artist/f59c5520-5f46-4d2c-b2c4-822eabf53419?fmt=json"
+		echo "ERROR: Please correct error, consider using official Musicbrainz URL: https://musicbrainz.org"
+		error=1
+	else
+		echo "Musicbrainz Mirror Valid: $musicbrainzurl"
+	fi
+	
 	if [ $DownloadMode = Both ] || [ $DownloadMode = Audio ] || [ $DownloadMode = Video ]; then
 		echo "Download Audio/Video: $DownloadMode"
 	else
@@ -118,6 +130,11 @@ configuration () {
 		else
 			echo "ERROR: VideoPath setting invalid, currently set to: $VideoPath"
 			echo "ERROR: VideoPath Expected Valid Setting: /your/path/to/music/video/folder"
+			error=1
+		fi
+		if [ ! -d "$VideoPath" ]; then			
+			echo "ERROR: VideoPath setting invalid, currently set to: $VideoPath"
+			echo "ERROR: The VideoPath Folder does not exist, create the folder accordingly to resolve error"
 			error=1
 		fi
 	fi
