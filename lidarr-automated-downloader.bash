@@ -130,6 +130,11 @@ configuration () {
 		else
 			echo "Audio: Beets Tagging: Disabled"
 		fi
+		if [ "$RequireBeetsMatch" = true ]; then
+			echo "Audio: Beets Require Match: Enabled"
+		else
+			echo "Audio: Beets Require Match: Disabled"
+		fi
 		dlquality="flac"
 		beetsmatch="false"
 	fi
