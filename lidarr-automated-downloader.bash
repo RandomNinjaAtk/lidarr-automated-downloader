@@ -26,6 +26,15 @@ configuration () {
 		error=1
 	else
 		echo "Musicbrainz Mirror Valid: $musicbrainzurl"
+		if echo "$musicbrainzurl" | grep -i "musicbrainz.org" | read; then
+			if [ "$ratelimit" != 1 ]; then
+				ratelimit="1"
+				echo "Musicbrainz Rate Limit: $ratelimit"
+			fi
+		else
+			echo "Musicbrainz Rate Limit: $ratelimit (Queries Per Second)"
+			ratelimit="0$(echo $(( 100 * 1 / $ratelimit )) | sed 's/..$/.&/')"
+		fi
 	fi
 	
 	if [ $DownloadMode = Both ] || [ $DownloadMode = Audio ] || [ $DownloadMode = Video ]; then
