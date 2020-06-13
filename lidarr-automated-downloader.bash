@@ -900,6 +900,7 @@ GetDeezerArtistAlbumList () {
 							fi
 							
 							ImportFunction
+							echo "Audio :: Downloaded :: ${wantitalbumartistname} :: ${albumid} :: ${albumname} :: ${libalbumfolder}" >> "download.log"
 
 							if [ "${DownLoadArtistArtwork}" = true ]; then
 								DLArtistArtwork
@@ -948,7 +949,6 @@ AlbumDL () {
 			if [ $AudioMode = wanted ]; then
 				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: DOWNLOAD :: $albumname (Format: $fallbackqualitytext; Length: $albumdurationdisplay)"
 			fi
-			echo "Audio :: Downloaded :: ${wantitalbumartistname} :: ${albumid} :: ${albumname} :: ${libalbumfolder}" >> "download.log"
 			Verify
 		else
 			cd "${currentpwd}"
@@ -1503,6 +1503,7 @@ ArtistMode () {
 				fi
 				
 				ImportFunction
+				echo "Audio :: Downloaded :: ${wantitalbumartistname} :: ${albumid} :: ${albumname} :: ${libalbumfolder}" >> "download.log"
 			done
 			echo "#################### ARCHIVING ARTIST: $LidArtistNameCap COMPLETE ####################"
 			if [ -f "cache/$sanatizedartistname-${DeezerArtistID}-info.json" ]; then
