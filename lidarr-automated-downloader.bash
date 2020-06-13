@@ -1575,40 +1575,49 @@ DownloadVideos () {
 				rm -rf "temp"
 			fi
 		fi
-		
-		urlvideocount=$(cat "cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u | wc -l)
-		youtubeurl=($(cat "cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r '.[] | .relations | .[] | .url | .resource' | sort -u))
+		videorecordsfile="$(cat "cache/$sanatizedartistname-$mbid-video-recordings.json")"
+		videorecordscount="$(echo "$videorecordsfile" | jq -r '.[] | select(.relations | .[] | .url | .resource) | .id' | sort -u | wc -l)"
+		videorecordsid=($(echo "$videorecordsfile" | jq -r '.[] | select(.relations | .[] | .url | .resource) | .id' | sort -u))
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Checking $videocount video recordings for links..."
-		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $urlvideocount links found!"
-		if [ $urlvideocount = 0 ]; then
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $videorecordscount video recordings with links found!"
+		if [ $videorecordscount = 0 ]; then
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Skipping..."
 			continue
 		fi
-		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing $urlvideocount links..."
-		for url in ${!youtubeurl[@]}; do
-			currentprocess=$(( $url + 1 ))
-			dlurl="${youtubeurl[$url]}"
-			videotitle="$(cat "cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .title")"
-			videodisambiguation="$(cat "cache/$sanatizedartistname-$mbid-video-recordings.json" | jq -r ".[] | select(.relations | .[] .url | .resource==\"$dlurl\") .disambiguation")"
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing $videorecordscount video recordings..."
+		for id in ${!videorecordsid[@]}; do
+			currentprocess=$(( $id + 1 ))
+			mbrecordid="${videorecordsid[$id]}"
+			videotitle="$(echo "$videorecordsfile" | jq -r ".[] | select(.id==\"$mbrecordid\") | .title")"
+			videodisambiguation="$(echo "$videorecordsfile" | jq -r ".[] | select(.id==\"$mbrecordid\") | .disambiguation")"
+			dlurl=($(echo "$videorecordsfile" | jq -r ".[] | select(.id==\"$mbrecordid\") | .relations | .[] | .url | .resource" | sort -u))
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			sanatizedvideodisambiguation="$(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-			if [ ! -z "$videodisambiguation" ]; then
-				sanatizedvideodisambiguation=" ($(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/'))"
-			else
-				sanatizedvideodisambiguation=""
-			fi			
-			if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
-				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Downloading $videotitle ($dlurl)..."
-				$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}" -f bestvideo+bestaudio --merge-output-format mkv "$dlurl"  &> /dev/null
-				if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
-					FileAccessPermissions "$LidArtistPath" &> /dev/null
-					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Download Complete!"
+			for url in ${!dlurl[@]}; do
+				recordurl="${dlurl[$url]}"
+				if [ ! -z "$videodisambiguation" ]; then
+					sanatizedvideodisambiguation=" ($(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/'))"
 				else
-					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: Downloaded Failed!"
+					sanatizedvideodisambiguation=""
 				fi
-			else
-				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $urlvideocount :: $videotitle already downloaded!"
-			fi
+				if echo "$recordurl" | grep -i "apple" | read; then
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videorecordscount :: ERROR: ${sanatizedvideotitle}${sanatizedvideodisambiguation} incompatible with youtube-dl ($recordurl)..."
+					continue
+				fi
+				if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videorecordscount :: Downloading ${sanatizedvideotitle}${sanatizedvideodisambiguation} ($recordurl)..."
+					$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}" -f bestvideo+bestaudio --merge-output-format mkv "$recordurl"  &> /dev/null
+					if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
+						FileAccessPermissions "$LidArtistPath" &> /dev/null
+						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videorecordscount :: Download Complete!"
+						break
+					else
+						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videorecordscount :: Downloaded Failed!"
+					fi
+				else
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $currentprocess of $videorecordscount :: $videotitle already downloaded!"
+				fi
+			done
 		done
 		downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *" | wc -l)
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $downloadcount Vidoes Downloaded!"
