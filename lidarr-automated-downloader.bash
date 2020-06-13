@@ -59,19 +59,19 @@ configuration () {
 			gain="Disabled"
 		fi
 
-		if [ $ImportMode = match ] || [ $ImportMode = forced ] || [ $ImportMode = manual ]; then
-			echo "Import Mode: $ImportMode"
-		else
-			echo "ERROR: ImportMode setting invalid, currently set to: $ImportMode"
-			echo "ERROR: ImportMode Expected Valid Setting: match or forced or manual"
-			error=1
-		fi
-
 		if [ $AudioMode = wanted ] || [ $AudioMode = archive ]; then
-			echo "Audio Mode: $AudioMode"
+			echo "Audio: Mode: $AudioMode"
 		else
 			echo "ERROR: AudioMode setting invalid, currently set to: $AudioMode"
 			echo "ERROR: AudioMode Expected Valid Setting: wanted or archive"
+			error=1
+		fi
+
+		if [ $ImportMode = match ] || [ $ImportMode = forced ] || [ $ImportMode = manual ]; then
+			echo "Audio: Import Mode: $ImportMode"
+		else
+			echo "ERROR: ImportMode setting invalid, currently set to: $ImportMode"
+			echo "ERROR: ImportMode Expected Valid Setting: match or forced or manual"
 			error=1
 		fi
 		
