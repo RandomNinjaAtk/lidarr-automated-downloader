@@ -189,8 +189,6 @@ configuration () {
 		else
 			dlquality="flac"
 		fi
-		
-		dlquality="flac"
 		beetsmatch="false"
 	fi
 	
