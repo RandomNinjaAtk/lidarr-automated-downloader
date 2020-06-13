@@ -8,11 +8,11 @@
   * Support for output to a perferred format (FLAC / OPUS / MP3 / AAC / ALAC)
   * Beets tagging support for improved metadata
   * Replaygain tagging for lossless FLAC files
-  * Download Artist Artwork <br>
+  * Download Artist Artwork
 * Downloading **Music Videos** using online sources for use in popular applications (Plex/Kodi/Emby/Jellyfin): 
   * More Info: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki/Music-Videos
-* Schedule script to run via cronjob
-* Official Docker with everything built in!
+* Cron support, create a cron job to automatically run script at desired interval
+* Official Docker with everything built in! [lidarr-lad](https://github.com/RandomNinjaAtk/docker-lidarr-lad)
 
 ### Audio + Video (Plex Example)
 ![](https://raw.githubusercontent.com/RandomNinjaAtk/Scripts/master/images/plex-musicvideos.png)
