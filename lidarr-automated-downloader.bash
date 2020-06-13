@@ -47,17 +47,6 @@ configuration () {
 	
 	if [ $DownloadMode = Both ] || [ $DownloadMode = Audio ]; then
 		
-		if [ "$VerifyTrackCount" = "true" ]; then
-			vtc="Enabled"
-		else
-			vtc="Disabled"
-		fi
-		
-		if [ "$ReplaygainTagging" = "TRUE" ]; then
-			gain="Enabled"
-		else
-			gain="Disabled"
-		fi
 
 		if [ $AudioMode = wanted ] || [ $AudioMode = archive ]; then
 			echo "Audio: Mode: $AudioMode"
@@ -116,14 +105,22 @@ configuration () {
 			echo "ERROR: quality Expected Valid Setting: OPUS or AAC or FDK-AAC or MP3 or FLAC"
 			error=1
 		fi
-		echo "Audio: Download Track Count Verification: $vtc"
+		if [ "$VerifyTrackCount" = "true" ]; then
+			echo "Audio: Download Track Count Verification: Enabled"
+		else
+			echo "Audio: Download Track Count Verification: Disabled"
+		fi
 		if [ "${RequireQuality}" = true ]; then
 			echo "Audio: Require Download Quality Match: Enabled"
 		else
 			echo "Audio: Require Download Quality Match: Disabled"
 		fi
 		if [ "$quality" = "FLAC" ]; then
-			echo "Audio: Replaygain Tagging: $gain"
+			if [ "$ReplaygainTagging" = "TRUE" ]; then
+				echo "Audio: Replaygain Tagging: Enabled"
+			else
+				echo "Audio: Replaygain Tagging: Disabled"
+			fi
 		fi
 		if [ "$TagWithBeets" = "true" ]; then
 			echo "Audio: Beets Tagging: Enabled"
