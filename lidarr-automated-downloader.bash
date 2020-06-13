@@ -118,9 +118,9 @@ configuration () {
 		fi
 		echo "Audio: Download Track Count Verification: $vtc"
 		if [ "${RequireQuality}" = true ]; then
-			echo "Audio: Require Download Quality Match: ENABLED"
+			echo "Audio: Require Download Quality Match: Enabled"
 		else
-			echo "Audio: Require Download Quality Match: DISABLED"
+			echo "Audio: Require Download Quality Match: Disabled"
 		fi
 		if [ "$quality" = "FLAC" ]; then
 			echo "Audio: Replaygain Tagging: $gain"
@@ -130,11 +130,7 @@ configuration () {
 		else
 			echo "Audio: Beets Tagging: Disabled"
 		fi
-		if [ "$quality" != "MP3" ]; then
-			dlquality="flac"
-		else
-			dlquality="320"
-		fi
+		dlquality="flac"
 		beetsmatch="false"
 	fi
 	
