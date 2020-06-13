@@ -105,7 +105,7 @@ configuration () {
 			extension="m4a"
 		elif [ "$quality" = "MP3" ]; then
 			echo "Audio: Download Quality: $quality"
-			echo "Audio: Download Bitrate: 320k"
+			echo "Audio: Download Bitrate: ${ConversionBitrate}k"
 			extension="mp3"
 		elif [ "$quality" = "FLAC" ]; then
 			echo "Audio: Download Quality: $quality"
