@@ -6,6 +6,10 @@
 * Downloading **Music Videos** using online sources for use in popular applications (Plex/Kodi/Emby/Jellyfin): 
   * More Info: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki/Music-Videos
 
+### Audio + Video (Plex Example)
+![](https://raw.githubusercontent.com/RandomNinjaAtk/Scripts/master/images/plex-musicvideos.png)
+
+
 ## Additional Information
 Visit the wiki: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki (more info coming soon)
 
