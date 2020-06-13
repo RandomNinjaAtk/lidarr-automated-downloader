@@ -16,6 +16,7 @@ configuration () {
 	echo "######################################### CONFIGURATION VERIFICATION #########################################"
 	error=0
 	
+	# Verify Musicbrainz DB Connectivity
 	musicbrainzdbtest=$(curl -s "${musicbrainzurl}/ws/2/artist/f59c5520-5f46-4d2c-b2c4-822eabf53419?fmt=json")
 	musicbrainzdbtestname=$(echo "${musicbrainzdbtest}"| jq -r '.name')
 	if [ -z "$musicbrainzdbtestname" ]; then
@@ -37,6 +38,7 @@ configuration () {
 		fi
 	fi
 	
+	# Verify Download Mode
 	if [ $DownloadMode = Both ] || [ $DownloadMode = Audio ] || [ $DownloadMode = Video ]; then
 		echo "Download Audio/Video: $DownloadMode"
 	else
@@ -45,9 +47,10 @@ configuration () {
 		error=1
 	fi
 	
+	# Verify Audio Settings
 	if [ $DownloadMode = Both ] || [ $DownloadMode = Audio ]; then
 		
-
+		# Verify AudioMode
 		if [ $AudioMode = wanted ] || [ $AudioMode = archive ]; then
 			echo "Audio: Mode: $AudioMode"
 		else
@@ -55,7 +58,8 @@ configuration () {
 			echo "ERROR: AudioMode Expected Valid Setting: wanted or archive"
 			error=1
 		fi
-
+		
+		# Verify ImportMode
 		if [ $ImportMode = match ] || [ $ImportMode = forced ] || [ $ImportMode = manual ]; then
 			echo "Audio: Import Mode: $ImportMode"
 		else
@@ -64,6 +68,7 @@ configuration () {
 			error=1
 		fi
 		
+		# Verify downloaddir
 		if [ ! -z "$downloaddir" ]; then
 			echo "Audio: Download Path: $downloaddir"
 		else
@@ -71,7 +76,14 @@ configuration () {
 			echo "ERROR: downloaddir Expected Valid Setting: /your/path/to/dlclient/downloads/folder"
 			error=1
 		fi
+		if [ ! -d "$downloaddir" ]; then			
+			echo "ERROR: downloaddir setting invalid, currently set to: $downloaddir"
+			echo "ERROR: The downloaddir Folder does not exist, create the folder accordingly to resolve error"
+			echo "HINT: Check the path using the container CLI to verify it exists, command: ls \"$downloaddir\""
+			error=1
+		fi
 		
+		# Verify LidarrImportLocation		
 		if [ ! -z "$LidarrImportLocation" ]; then
 			echo "Audio: Lidarr Temp Import Path: $LidarrImportLocation"
 		else
@@ -79,7 +91,29 @@ configuration () {
 			echo "ERROR: LidarrImportLocation Expected Valid Setting: /your/path/to/temp/lidarr/import/folder"
 			error=1
 		fi
+		if [ ! -d "$LidarrImportLocation" ]; then			
+			echo "ERROR: LidarrImportLocation setting invalid, currently set to: $LidarrImportLocation"
+			echo "ERROR: The LidarrImportLocation Folder does not exist, create the folder accordingly to resolve error"
+			echo "HINT: Check the path using the container CLI to verify it exists, command: ls \"$LidarrImportLocation\""
+			error=1
+		fi
 		
+		# Verify PathToDLClient		
+		if [ ! -z "$PathToDLClient" ]; then
+			echo "Audio: DL Client Path: $PathToDLClient"
+		else
+			echo "ERROR: PathToDLClient setting invalid, currently set to: $PathToDLClient"
+			echo "ERROR: PathToDLClient Expected Valid Setting: /your/path/to/dlclient/files"
+			error=1
+		fi
+		if [ ! -d "$PathToDLClient" ]; then			
+			echo "ERROR: PathToDLClient setting invalid, currently set to: $PathToDLClient"
+			echo "ERROR: The PathToDLClient Folder does not exist, create the folder accordingly to resolve error"
+			echo "HINT: Check the path using the container CLI to verify it exists, command: ls \"$PathToDLClient\""
+			error=1
+		fi
+		
+		# Verify quality
 		if [ "$quality" = "OPUS" ]; then
 			echo "Audio: Download Quality: $quality"
 			echo "Audio: Download Bitrate: ${ConversionBitrate}k"
@@ -105,16 +139,22 @@ configuration () {
 			echo "ERROR: quality Expected Valid Setting: OPUS or AAC or FDK-AAC or MP3 or FLAC"
 			error=1
 		fi
+		
+		# Verify VerifyTrackCount
 		if [ "$VerifyTrackCount" = "true" ]; then
 			echo "Audio: Download Track Count Verification: Enabled"
 		else
 			echo "Audio: Download Track Count Verification: Disabled"
 		fi
+		
+		# Verify RequireQuality
 		if [ "${RequireQuality}" = true ]; then
 			echo "Audio: Require Download Quality Match: Enabled"
 		else
 			echo "Audio: Require Download Quality Match: Disabled"
 		fi
+		
+		# Verify ReplaygainTagging
 		if [ "$quality" = "FLAC" ]; then
 			if [ "$ReplaygainTagging" = "TRUE" ]; then
 				echo "Audio: Replaygain Tagging: Enabled"
@@ -122,11 +162,15 @@ configuration () {
 				echo "Audio: Replaygain Tagging: Disabled"
 			fi
 		fi
+		
+		# Verify TagWithBeets
 		if [ "$TagWithBeets" = "true" ]; then
 			echo "Audio: Beets Tagging: Enabled"
 		else
 			echo "Audio: Beets Tagging: Disabled"
 		fi
+		
+		# Verify RequireBeetsMatch
 		if [ "$RequireBeetsMatch" = true ]; then
 			echo "Audio: Beets Require Match: Enabled"
 		else
@@ -136,7 +180,9 @@ configuration () {
 		beetsmatch="false"
 	fi
 	
+	# verify Video Settings
 	if [ $DownloadMode = Both ] || [ $DownloadMode = Video ]; then
+		# verify VideoPath
 		if [ ! -z "$VideoPath" ]; then
 			echo "Video: Download Path: $VideoPath"
 		else
@@ -148,6 +194,20 @@ configuration () {
 			echo "ERROR: VideoPath setting invalid, currently set to: $VideoPath"
 			echo "ERROR: The VideoPath Folder does not exist, create the folder accordingly to resolve error"
 			echo "HINT: Check the path using the container CLI to verify it exists, command: ls \"$VideoPath\""
+			error=1
+		fi
+		
+		# verify YoutubeDL
+		if [ ! -z "$YoutubeDL" ]; then
+			echo "Video: YoutubeDL File Path: $YoutubeDL"
+		else
+			echo "ERROR: YoutubeDL setting invalid, currently set to: $YoutubeDL"
+			echo "ERROR: YoutubeDL Expected Valid Setting: /your/path/to/youtube-dl"
+			error=1
+		fi
+		if [ ! -f "$YoutubeDL" ]; then			
+			echo "ERROR: YoutubeDL setting invalid, currently set to: $YoutubeDL"
+			echo "ERROR: The File does not exist, install youtube-dl and place it in that location to resolve error"
 			error=1
 		fi
 	fi
