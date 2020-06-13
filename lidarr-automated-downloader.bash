@@ -1923,6 +1923,10 @@ CleanMusicbrainzLog
 
 CacheEngine
 
+if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ]; then
+	DownloadVideos
+fi
+
 if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Audio" ]; then
 	if [ $AudioMode = "wanted" ]; then
 		LidarrAlbums
@@ -1930,10 +1934,6 @@ if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Audio" ]; then
 	elif [ $AudioMode = "archive" ]; then
 		ArtistMode
 	fi
-fi
-
-if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ]; then
-	DownloadVideos
 fi
 
 CleanDLPath
