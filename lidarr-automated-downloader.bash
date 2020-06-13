@@ -176,6 +176,20 @@ configuration () {
 		else
 			echo "Audio: Beets Require Match: Disabled"
 		fi
+		
+		# Download MP3 if conversion bitrate equals native choice
+		if [ "$quality" = "MP3" ]; then
+			if [ "$ConversionBitrate" = "320" ]; then
+				dlquality="320"
+			elif [ "$ConversionBitrate" = "128" ]; then
+				dlquality="128"
+			else
+				dlquality="flac"
+			fi
+		else
+			dlquality="flac"
+		fi
+		
 		dlquality="flac"
 		beetsmatch="false"
 	fi
