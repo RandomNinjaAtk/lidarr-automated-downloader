@@ -76,7 +76,7 @@ configuration () {
 		fi
 		
 		if [ ! -z "$downloaddir" ]; then
-			echo "Audio Download Path: $downloaddir"
+			echo "Audio: Download Path: $downloaddir"
 		else
 			echo "ERROR: downloaddir setting invalid, currently set to: $downloaddir"
 			echo "ERROR: downloaddir Expected Valid Setting: /your/path/to/dlclient/downloads/folder"
@@ -84,7 +84,7 @@ configuration () {
 		fi
 		
 		if [ ! -z "$LidarrImportLocation" ]; then
-			echo "Lidarr Temp Import Path: $LidarrImportLocation"
+			echo "Audio: Lidarr Temp Import Path: $LidarrImportLocation"
 		else
 			echo "ERROR: LidarrImportLocation setting invalid, currently set to: $LidarrImportLocation"
 			echo "ERROR: LidarrImportLocation Expected Valid Setting: /your/path/to/temp/lidarr/import/folder"
@@ -92,43 +92,43 @@ configuration () {
 		fi
 		
 		if [ "$quality" = "OPUS" ]; then
-			echo "Download Quality: $quality"
-			echo "Download Bitrate: ${ConversionBitrate}k"
+			echo "Audio: Download Quality: $quality"
+			echo "Audio: Download Bitrate: ${ConversionBitrate}k"
 			extension="opus"
 		elif [ "$quality" = "AAC" ]; then
-			echo "Download Quality: $quality"
-			echo "Download Bitrate: ${ConversionBitrate}k"
+			echo "Audio: Download Quality: $quality"
+			echo "Audio: Download Bitrate: ${ConversionBitrate}k"
 			extension="m4a"
 		elif [ "$quality" = "FDK-AAC" ]; then
-			echo "Download Quality: $quality"
-			echo "Download Bitrate: ${ConversionBitrate}k"
+			echo "Audio: Download Quality: $quality"
+			echo "Audio: Download Bitrate: ${ConversionBitrate}k"
 			extension="m4a"
 		elif [ "$quality" = "MP3" ]; then
-			echo "Download Quality: $quality"
-			echo "Download Bitrate: 320k"
+			echo "Audio: Download Quality: $quality"
+			echo "Audio: Download Bitrate: 320k"
 			extension="mp3"
 		elif [ "$quality" = "FLAC" ]; then
-			echo "Download Quality: $quality"
-			echo "Download Bitrate: lossless"
+			echo "Audio: Download Quality: $quality"
+			echo "Audio: Download Bitrate: lossless"
 			extension="flac"
 		else
 			echo "ERROR: quality setting invalid, currently set to: $quality"
 			echo "ERROR: quality Expected Valid Setting: OPUS or AAC or FDK-AAC or MP3 or FLAC"
 			error=1
 		fi
-		echo "Download Track Count Verification: $vtc"
+		echo "Audio: Download Track Count Verification: $vtc"
 		if [ "$quality" = "FLAC" ]; then
-			echo "Replaygain Tagging: $gain"
+			echo "Audio: Replaygain Tagging: $gain"
 		fi
 		if [ "$TagWithBeets" = "true" ]; then
-			echo "Beets Tagging: Enabled"
+			echo "Audio: Beets Tagging: Enabled"
 		else
-			echo "Beets Tagging: Disabled"
+			echo "Audio: Beets Tagging: Disabled"
 		fi
 		if [ "$quality" != "MP3" ]; then
 			dlquality="flac"
 		else
-			dlquality="128"
+			dlquality="320"
 		fi
 		beetsmatch="false"
 	fi
