@@ -1890,7 +1890,7 @@ CacheEngine () {
 							dlnumber=$(( $offset + 100))
 						fi
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Video Cache :: Downloading page $i... ($offset - $dlnumber Results)"
-						curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-recording-page-$i.json"
+						curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&inc=url-rels&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-recording-page-$i.json"
 						sleep $ratelimit
 					fi
 				done
