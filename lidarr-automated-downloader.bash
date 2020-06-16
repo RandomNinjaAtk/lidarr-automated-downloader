@@ -1664,17 +1664,93 @@ CacheEngine () {
 		fi
 
 		if [ ! -f "cache/$sanatizedartistname-$mbid-info.json" ]; then
-			echo "${artistnumber} of ${wantedtotal} :: MBZDB Cache :: $LidArtistNameCap :: Caching Musicbrainz Artist Info..."
+			echo "${artistnumber} of ${wantedtotal} :: MBZDB CACHE :: $LidArtistNameCap :: Caching Musicbrainz Artist Info..."
 			curl -s "${musicbrainzurl}/ws/2/artist/$mbid?inc=url-rels&fmt=json" -o "cache/$sanatizedartistname-$mbid-info.json"
 			sleep $ratelimit
 		else 
-			echo "${artistnumber} of ${wantedtotal} :: MBZDB Cache :: $LidArtistNameCap :: Musicbrainz Cache Valid..."
+			echo "${artistnumber} of ${wantedtotal} :: MBZDB CACHE :: $LidArtistNameCap :: Musicbrainz Artist Info Cache Valid..."
 		fi
+
+		if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ] || [ $DownloadMode = "Audio" ]; then
+
+			records=$(curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json")
+			sleep $ratelimit
+			newrecordingcount=$(echo "${records}"| jq -r '."recording-count"')
+				
+			if [ ! -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+				curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
+				sleep $ratelimit
+			fi
+
+			recordingcount=$(cat "cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
+			
+			if [ $newrecordingcount != $recordingcount ]; then
+				echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap Cache needs update, cleaning..."
+				if [ -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
+					rm "cache/$sanatizedartistname-$mbid-recordings.json"
+				fi
+				if [ -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+					rm "cache/$sanatizedartistname-$mbid-recording-count.json"
+				fi
+				if [ -f "cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
+					rm "cache/$sanatizedartistname-$mbid-video-recordings.json"
+				fi
+				if [ ! -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
+					curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
+					sleep $ratelimit
+				fi
+			else
+				if [ ! -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
+					echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap :: Caching MBZDB $recordingcount Recordings..."
+				else
+					echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap :: MBZDB Recording Cache Is Valid..."
+				fi
+			fi
+
+			if [ ! -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
+				if [ ! -d "temp" ]; then
+					mkdir "temp"
+					sleep 0.1
+				fi	
+				offsetcount=$(( $recordingcount / 100 ))
+				for ((i=0;i<=$offsetcount;i++)); 
+				do
+					if [ ! -f "recording-page-$i.json" ]; then
+						if [ $i != 0 ]; then
+							offset=$(( $i * 100 ))
+							dlnumber=$(( $offset + 100))
+						else
+							offset=0
+							dlnumber=$(( $offset + 100))
+						fi
+						echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap Downloading page $i... ($offset - $dlnumber Results)"
+						curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&inc=url-rels&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-recording-page-$i.json"
+						sleep $ratelimit
+					fi
+				done
+
+
+				if [ ! -f "cache/$sanatizedartistname-recordings.json" ]; then
+					jq -s '.' temp/$mbid-recording-page-*.json > "cache/$sanatizedartistname-$mbid-recordings.json"
+				fi
+
+				if [ -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
+					rm temp/$mbid-recording-page-*.json
+					sleep .01
+				fi
+
+				if [ -d "temp" ]; then
+					sleep 0.1
+					rm -rf "temp"
+				fi
+			fi
+		fi
+
 
 		if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Audio" ]; then
 
 			if [ -z "${deezerartisturl}" ]; then	
-				echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
+				echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
 				mbjson=$(curl -s "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
 				deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 			fi	
@@ -1684,7 +1760,7 @@ CacheEngine () {
 					touch "musicbrainzerror.log"
 				fi		
 				if [ -f "musicbrainzerror.log" ]; then
-					echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: ERROR: musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
+					echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: ERROR: musicbrainz id: $mbid is missing deezer link, see: \"$(pwd)/musicbrainzerror.log\" for more detail..."
 					if cat "musicbrainzerror.log" | grep "$mbid" | read; then
 						sleep 0.1
 					else
@@ -1714,25 +1790,25 @@ CacheEngine () {
 					else
 						check="fail"
 						rm "cache/$sanatizedartistname-$sanatizedartistname-${DeezerArtistID}-info.json"
-						echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: Cached Arist Info invalid, cleaning up before caching..."
+						echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: Cached Arist Info invalid, cleaning up before caching..."
 					fi
 					if [ "$lidarralbumartistmbrainzid" != null ]; then
 						check="success"
 					else
 						check="fail"
 						rm "cache/$sanatizedartistname-${DeezerArtistID}-info.json"
-						echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: Cached Arist Info invalid, cleaning up before caching..."
+						echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: Cached Arist Info invalid, cleaning up before caching..."
 					fi
 					if [ $check = success ]; then
-						echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: Cached Artist Info verified..."
+						echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: Cached Artist Info verified..."
 					fi
 				elif ! [ -f "cache/$sanatizedartistname-${DeezerArtistID}-info.json" ]; then
 					if curl -sL --fail "https://api.deezer.com/artist/${DeezerArtistID}" -o "temp/${DeezerArtistID}-temp-info.json"; then
 						jq ". + {\"lidarr_artist_path\": \"$LidArtistPath\"} + {\"lidarr_artist_name\": \"$LidArtistNameCap\"} + {\"mbrainzid\": \"$mbid\"}" "temp/${DeezerArtistID}-temp-info.json" > "cache/$sanatizedartistname-${DeezerArtistID}-info.json"
-						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: Caching Artist Info..."
+						echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: AUDIO CACHE :: Caching Artist Info..."
 						rm "temp/${DeezerArtistID}-temp-info.json"
 					else
-						echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: ERROR: Cannot communicate with Deezer"
+						echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: ERROR: Cannot communicate with Deezer"
 						continue
 					fi
 				fi
@@ -1742,14 +1818,14 @@ CacheEngine () {
 						if [ ! -f "cache/$sanatizedartistname-$DeezerArtistID-album.json" ]; then
 							DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 							if [ -z "$DeezerArtistAlbumList" ]; then
-								echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: Audio Cache :: ERROR: Unable to retrieve albums from Deezer"										
+								echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: AUDIO CACHE :: ERROR: Unable to retrieve albums from Deezer"										
 							fi
 						fi				
 					else
 						DeezerArtistAlbumList=$(curl -s "https://api.deezer.com/artist/${DeezerArtistID}/albums&limit=1000")
 						newalbumlist="$(echo "${DeezerArtistAlbumList}" | jq ".data | .[] | .id" | wc -l)"
 						if [ -z "$DeezerArtistAlbumList" ] || [ -z "${newalbumlist}" ]; then
-							echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: ERROR: Unable to retrieve albums from Deezer"										
+							echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: ERROR: Unable to retrieve albums from Deezer"										
 						fi
 					fi
 				else
@@ -1761,21 +1837,21 @@ CacheEngine () {
 					if [ -f "cache/$sanatizedartistname-$DeezerArtistID-albumlist.json" ]; then
 						cachealbumlist="$(cat "cache/$sanatizedartistname-$DeezerArtistID-albumlist.json" | jq '.[].id' | wc -l)"
 						if [ "${newalbumlist}" -ne "${cachealbumlist}" ]; then
-							echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: Audio Cache :: Existing Cached Deezer Artist Album list is out of date, updating..."
+							echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: AUDIO CACHE :: Existing Cached Deezer Artist Album list is out of date, updating..."
 							rm "cache/$sanatizedartistname-${DeezerArtistID}-albumlist.json"
 							sleep 0.1
 						else
-							echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
+							echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
 							touch "cache/$DeezerArtistID-checked"
 						fi
 					fi
 				else
-					echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
+					echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: Exisiting Cached Deezer Artist (ID: ${DeezerArtistID}) Album List is current..."
 				fi
 				
 				# Cahche deezer artistid album list and save to file for re-use...
 				if [ ! -f "cache/$sanatizedartistname-$DeezerArtistID-albumlist.json" ]; then
-					echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: Caching Deezer Artist (ID: ${DeezerArtistID}) Album List..."
+					echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: Caching Deezer Artist (ID: ${DeezerArtistID}) Album List..."
 					
 					if [ -d "temp" ]; then
 						sleep 0.1
@@ -1798,7 +1874,7 @@ CacheEngine () {
 							rm "temp/${albumid}-temp-album.json"
 							sleep 0.1
 						else
-							echo "${artistnumber} of ${wantedtotal} :: Audio Cache :: $LidArtistNameCap :: Error getting album information"
+							echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: Error getting album information"
 						fi				
 					done
 					
@@ -1826,82 +1902,6 @@ CacheEngine () {
 				rm -rf "temp"
 			fi
 		fi 
-
-		if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ]; then
-
-			records=$(curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json")
-			sleep $ratelimit
-			newrecordingcount=$(echo "${records}"| jq -r '."recording-count"')
-				
-			if [ ! -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
-				curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
-				sleep $ratelimit
-			fi
-
-			recordingcount=$(cat "cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
-			
-			if [ $newrecordingcount != $recordingcount ]; then
-				echo "$artistnumber of $wantedtotal :: Video Cache :: $LidArtistNameCap Cache needs update, cleaning..."
-				if [ -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
-					rm "cache/$sanatizedartistname-$mbid-recordings.json"
-				fi
-				if [ -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
-					rm "cache/$sanatizedartistname-$mbid-recording-count.json"
-				fi
-				if [ -f "cache/$sanatizedartistname-$mbid-video-recordings.json" ]; then
-					rm "cache/$sanatizedartistname-$mbid-video-recordings.json"
-				fi
-				if [ ! -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
-					curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
-					sleep $ratelimit
-				fi
-			else
-				if [ ! -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
-					echo "$artistnumber of $wantedtotal :: Video Cache :: $LidArtistNameCap Caching $recordingcount Recordings..."
-				else
-					echo "$artistnumber of $wantedtotal :: Video Cache :: $LidArtistNameCap Video Cache Is Valid..."
-				fi
-			fi
-
-			if [ ! -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
-				if [ ! -d "temp" ]; then
-					mkdir "temp"
-					sleep 0.1
-				fi	
-				offsetcount=$(( $recordingcount / 100 ))
-				for ((i=0;i<=$offsetcount;i++)); 
-				do
-					if [ ! -f "recording-page-$i.json" ]; then
-						if [ $i != 0 ]; then
-							offset=$(( $i * 100 ))
-							dlnumber=$(( $offset + 100))
-						else
-							offset=0
-							dlnumber=$(( $offset + 100))
-						fi
-						echo "$artistnumber of $wantedtotal :: Video Cache :: $LidArtistNameCap Downloading page $i... ($offset - $dlnumber Results)"
-						curl -s "${musicbrainzurl}/ws/2/recording?artist=$mbid&inc=url-rels&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-recording-page-$i.json"
-						sleep $ratelimit
-					fi
-				done
-
-
-				if [ ! -f "cache/$sanatizedartistname-recordings.json" ]; then
-					jq -s '.' temp/$mbid-recording-page-*.json > "cache/$sanatizedartistname-$mbid-recordings.json"
-				fi
-
-				if [ -f "cache/$sanatizedartistname-$mbid-recordings.json" ]; then
-					rm temp/$mbid-recording-page-*.json
-					sleep .01
-				fi
-
-				if [ -d "temp" ]; then
-					sleep 0.1
-					rm -rf "temp"
-				fi
-			fi
-		fi
-
 	done
 	echo "######################################### $wantedtotal ARTISTS CACHED #########################################"
 }
