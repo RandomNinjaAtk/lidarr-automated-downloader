@@ -1570,7 +1570,7 @@ DownloadVideos () {
 					$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle" -f bestvideo+bestaudio --merge-output-format mkv "$youtubeurl" &> /dev/null
 					if [ -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" ]; then
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $urlnumber of $imvdbarurllistcount :: Download Complete!"
-						echo "Video :: Downloaded :: ${LidArtistNameCap} :: ${mbrecordid} :: $sanatizedartistname - $santizeimvdbvideotitle :: $youtubeurl" >> "download.log"
+						echo "Video :: Downloaded :: ${LidArtistNameCap} :: $imvdbvideotitle :: $youtubeurl" >> "download.log"
 					else
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $urlnumber of $imvdbarurllistcount :: Downloaded Failed!"
 					fi
