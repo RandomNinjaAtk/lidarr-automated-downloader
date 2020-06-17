@@ -1666,6 +1666,10 @@ DownloadVideos () {
 				else
 					continue
 				fi
+				if cat "download.log" | grep -i "$recordurl" | read; then
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: $videotitle already downloaded... (see: download.log)"
+					break
+				fi
 				youtubeid="$($python $YoutubeDL --get-id "$recordurl" 2> /dev/null)"
 				youtubeurl="https://www.youtube.com/watch?v=$youtubeid"
 				if [ -z "$youtubeid" ]; then
