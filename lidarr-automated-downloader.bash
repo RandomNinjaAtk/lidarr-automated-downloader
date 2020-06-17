@@ -1663,6 +1663,10 @@ DownloadVideos () {
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: $videotitle already downloaded... (see: download.log)"
 					break
 				fi
+				if cat "download.log" | grep -i "$youtubeurl" | read; then
+					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: $videotitle already downloaded... (see: download.log)"
+					break
+				fi
 				if [ ! -z "$videodisambiguation" ]; then
 					sanatizedvideodisambiguation=" ($(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/'))"
 				else
