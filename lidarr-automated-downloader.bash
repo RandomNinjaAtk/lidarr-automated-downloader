@@ -1594,6 +1594,18 @@ DownloadVideos () {
 					fi
 				fi
 			done
+		else
+			if ! [ -f "imvdberror.log" ]; then
+				touch "imvdberror.log"
+			fi
+			if [ -f "imvdberror.log" ]; then
+				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: ERROR: musicbrainz id: $mbid is missing IMVDB link, see: \"$(pwd)/imvdberror.log\" for more detail..."
+				if cat "imvdberror.log" | grep "$mbid" | read; then
+					sleep 0.1
+				else
+					echo "Update Musicbrainz Relationship Page: https://musicbrainz.org/artist/$mbid/relationships for \"${LidArtistNameCap}\" with IMVDB Artist Link" >> "imvdberror.log"
+				fi
+			fi
 		fi
 
 		recordingcount=$(cat "cache/$sanatizedartistname-$mbid-recording-count.json" | jq -r '."recording-count"')
