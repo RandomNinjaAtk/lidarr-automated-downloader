@@ -1555,7 +1555,7 @@ DownloadVideos () {
 			imvdbarurlfile="$(curl -s "https://imvdb.com/n/$imvdbslug")"
 			imvdbarurllist=($(echo "$imvdbarurlfile" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' |  grep -i ".com/video" | grep -i "$imvdbslug" | sort -u))
 			imvdbarurllistcount=$(echo "$imvdbarurlfile" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' |  grep -i ".com/video" | grep -i "$imvdbslug" | sort -u | wc -l)
-			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB Found, using it's database for videos..."
+			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: Aritst Link Found, using it's database for videos..."
 			for id in ${!imvdbarurllist[@]}; do
 				urlnumber=$(( $id + 1 ))
 				url="${imvdbarurllist[$id]}"
@@ -1599,7 +1599,7 @@ DownloadVideos () {
 				touch "imvdberror.log"
 			fi
 			if [ -f "imvdberror.log" ]; then
-				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: ERROR: musicbrainz id: $mbid is missing IMVDB link, see: \"$(pwd)/imvdberror.log\" for more detail..."
+				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: ERROR :: musicbrainz id: $mbid is missing IMVDB link, see: \"$(pwd)/imvdberror.log\" for more detail..."
 				if cat "imvdberror.log" | grep "$mbid" | read; then
 					sleep 0.1
 				else
