@@ -69,6 +69,8 @@ Execute script via CLI with the following command: `bash lidarr-automated-downlo
   * Log file containing list of albums that could not be found using normal or fuzzy matching, automatically cleared every Saturday via cron
 * musicbrainzerror.log
   * Log file containing list of artists without links, open log for more details
+* imvdberror.log
+  * Log file containing list of artists without links to IMVDb, open log for more details
 * download.log
   * Log file containing list of albums that were downloaded, automatically cleared every Saturday via cron
 
