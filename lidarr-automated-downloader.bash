@@ -1562,6 +1562,7 @@ DownloadVideos () {
 				imvdbvideoid=$(curl -s "$url" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' | grep "sandbox" | sed 's/^.*%2F//')
 				imvdbvideodata="$(curl -s https://imvdb.com/api/v1/video/$imvdbvideoid?include=sources)"
 				imvdbvideotitle="$(echo "$imvdbvideodata" | jq -r ".song_title")"
+				imvdbvideodirectors="$(echo "$imvdbvideodata" | jq -r ".directors | .[] | .entity_name")"
 				imvdbvideoyear="$(echo "$imvdbvideodata" | jq -r ".year")"
 				santizeimvdbvideotitle="$(echo "$imvdbvideotitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 				imvdbvideotitleyoutubeid="$(echo "$imvdbvideodata" | jq -r ".sources | .[] | select(.source==\"youtube\") | .source_data" | head -n 1)"
@@ -1609,7 +1610,7 @@ DownloadVideos () {
 if [ -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" ]; then
 if [ ! -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo" ]; then
 	if [ -z "$imvdbvideoyear" ]; then
-		year="$youtubeyear"rtist/1036b808-f58c-4a3e-b461-a2c4492ecf1b/relationships
+		year="$youtubeyear"
 	else
 		year="$imvdbvideoyear"
 	fi
@@ -1639,6 +1640,20 @@ if [ ! -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo" ]; the
 		genre="    <genre></genre>"
 	fi
 
+	if [ ! -z "$imvdbvideodirectors" ]; then
+		OUT=""
+		SAVEIFS=$IFS
+		IFS=$(echo -en "\n\b")
+		for f in $imvdbvideodirectors
+		do
+			OUT=$OUT"    <director>$f</director>\n"
+		done
+		IFS=$SAVEIFS
+		director="$(echo -e "$OUT")"
+	else
+		director="    <director></director>"
+	fi
+
   echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: NFO Writer :: Writing NFO for $imvdbvideotitle"
 cat <<EOF > "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo"
 <musicvideo>
@@ -1648,7 +1663,7 @@ cat <<EOF > "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo"
     <album>$album</album>
     <plot></plot>
 $genre
-    <director></director>
+$director
     <premiered></premiered>
     <year>$year</year>
     <studio></studio>
