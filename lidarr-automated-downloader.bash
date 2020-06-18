@@ -1741,8 +1741,10 @@ fi
 					break
 				fi
 				if [ ! -z "$videodisambiguation" ]; then
+					nfovideodisambiguation="$videodisambiguation"
 					sanatizedvideodisambiguation=" ($(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/'))"
 				else
+					nfovideodisambiguation=""
 					sanatizedvideodisambiguation=""
 				fi
 				if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
@@ -1786,7 +1788,7 @@ if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvi
   echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: NFO Writer :: Writing NFO for $videotitle"
 cat <<EOF > "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.nfo"
 <musicvideo>
-    <title>$videotitle</title>
+    <title>${videotitle}${nfovideodisambiguation}</title>
     <userrating>$youtubeaveragerating</userrating>
     <track></track>
     <album>$album</album>
