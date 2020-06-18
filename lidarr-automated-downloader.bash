@@ -1977,6 +1977,71 @@ CacheEngine () {
 					rm -rf "temp"
 				fi
 			fi
+
+
+
+			if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ] || [ $DownloadMode = "Audio" ]; then
+
+				releases=$(curl -s "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=recordings&limit=1&offset=0&fmt=json")
+				sleep $ratelimit
+				newreleasecount=$(echo "${releases}"| jq -r '."release-count"')
+					
+				if [ ! -f "cache/$sanatizedartistname-$mbid-releases.json" ]; then
+					releasecount=$(echo "${releases}"| jq -r '."release-count"')
+				else
+					releasecount=$(cat "cache/$sanatizedartistname-$mbid-releases.json" | jq -r '.[] | ."release-count"' | head -n 1)
+				fi
+				
+				if [ $newreleasecount != $releasecount ]; then
+					echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap :: Cache needs update, cleaning..."
+					if [ -f "cache/$sanatizedartistname-$mbid-releases.json" ]; then
+						rm "cache/$sanatizedartistname-$mbid-releases.json"
+					fi
+				fi
+				if [ ! -f "cache/$sanatizedartistname-$mbid-releases.json" ]; then
+					echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap :: Caching $releasecount releases..."
+				else
+					echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap :: Releases Cache Is Valid..."
+				fi
+
+				if [ ! -f "cache/$sanatizedartistname-$mbid-releases.json" ]; then
+					if [ ! -d "temp" ]; then
+						mkdir "temp"
+						sleep 0.1
+					fi	
+					offsetcount=$(( $releasecount / 100 ))
+					for ((i=0;i<=$offsetcount;i++)); 
+					do
+						if [ ! -f "release-page-$i.json" ]; then
+							if [ $i != 0 ]; then
+								offset=$(( $i * 100 ))
+								dlnumber=$(( $offset + 100))
+							else
+								offset=0
+								dlnumber=$(( $offset + 100))
+							fi
+							echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap :: Downloading Releases page $i... ($offset - $dlnumber Results)"
+							curl -s "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=recordings+url-rels&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-releases-page-$i.json"
+							sleep $ratelimit
+						fi
+					done
+
+
+					if [ ! -f "cache/$sanatizedartistname-releases.json" ]; then
+						jq -s '.' temp/$mbid-releases-page-*.json > "cache/$sanatizedartistname-$mbid-releases.json"
+					fi
+
+					if [ -f "cache/$sanatizedartistname-$mbid-releases.json" ]; then
+						rm temp/$mbid-releases-page-*.json
+						sleep .01
+					fi
+
+					if [ -d "temp" ]; then
+						sleep 0.1
+						rm -rf "temp"
+					fi
+				fi
+			fi
 		fi
 
 
