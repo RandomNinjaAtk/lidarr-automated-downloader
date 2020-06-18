@@ -1623,6 +1623,22 @@ if [ ! -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo" ]; the
 	else
 		thumb=""
 	fi
+	# Genre
+	genres="$(echo "$mbzartistinfo" | jq -r '.genres | .[] | .name' | sort -u)"
+	if [ ! -z "$genres" ]; then
+		OUT=""
+		SAVEIFS=$IFS
+		IFS=$(echo -en "\n\b")
+		for f in $genres
+		do
+			OUT=$OUT"    <genre>$f</genre>\n"
+		done
+		IFS=$SAVEIFS
+		genre="$(echo -e "$OUT")"
+	else
+		genre="    <genre></genre>"
+	fi
+
   echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: NFO Writer :: Writing NFO for $imvdbvideotitle"
 cat <<EOF > "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo"
 <musicvideo>
@@ -1631,7 +1647,7 @@ cat <<EOF > "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo"
     <track></track>
     <album>$album</album>
     <plot></plot>
-    <genre></genre>
+$genre
     <director></director>
     <premiered></premiered>
     <year>$year</year>
@@ -1785,6 +1801,21 @@ if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvi
 	else
 		thumb=""
 	fi
+	# Genre
+	genres="$(echo "$mbzartistinfo" | jq -r '.genres | .[] | .name' | sort -u)"
+	if [ ! -z "$genres" ]; then
+		OUT=""
+		SAVEIFS=$IFS
+		IFS=$(echo -en "\n\b")
+		for f in $genres
+		do
+			OUT=$OUT"    <genre>$f</genre>\n"
+		done
+		IFS=$SAVEIFS
+		genre="$(echo -e "$OUT")"
+	else
+		genre="    <genre></genre>"
+	fi
   echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: NFO Writer :: Writing NFO for $videotitle"
 cat <<EOF > "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.nfo"
 <musicvideo>
@@ -1793,7 +1824,7 @@ cat <<EOF > "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatized
     <track></track>
     <album>$album</album>
     <plot></plot>
-    <genre></genre>
+$genre
     <director></director>
     <premiered></premiered>
     <year>$year</year>
