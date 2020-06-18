@@ -1778,8 +1778,8 @@ if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvi
 	else
 		album=""
 	fi
-	if [ -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" ]; then
-		thumb="$sanatizedartistname - $santizeimvdbvideotitle.jpg"
+	if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.jpg" ]; then
+		thumb="$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.jpg"
 	else
 		thumb=""
 	fi
