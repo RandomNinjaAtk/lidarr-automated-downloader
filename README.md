@@ -21,6 +21,7 @@
       * Title
       * Year
       * Artist
+      * Thumbnail Image
       * Artist Genre Tags (If available from Musicbrainz)
       * Director (If available from IMVDb)      
       * Album (If available from Youtube Data)
