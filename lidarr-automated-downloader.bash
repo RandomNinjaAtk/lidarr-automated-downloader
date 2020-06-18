@@ -1562,9 +1562,20 @@ DownloadVideos () {
 				imvdbvideoid=$(curl -s "$url" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' | grep "sandbox" | sed 's/^.*%2F//')
 				imvdbvideodata="$(curl -s https://imvdb.com/api/v1/video/$imvdbvideoid?include=sources)"
 				imvdbvideotitle="$(echo "$imvdbvideodata" | jq -r ".song_title")"
+				imvdbvideoyear="$(echo "$imvdbvideodata" | jq -r ".year")"
 				santizeimvdbvideotitle="$(echo "$imvdbvideotitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 				imvdbvideotitleyoutubeid="$(echo "$imvdbvideodata" | jq -r ".sources | .[] | select(.source==\"youtube\") | .source_data" | head -n 1)"
 				youtubeurl="https://www.youtube.com/watch?v=$imvdbvideotitleyoutubeid"
+				youtubedata="$($python $YoutubeDL -j $youtubeurl  2> /dev/null)"
+				if [ -z "$youtubedata" ]; then
+					continue
+				fi
+				youtubethumbnail="$(echo "$youtubedata" | jq -r '.thumbnails | reverse | .[] | .url' | head -n 1)"
+				youtubeuploaddate="$(echo "$youtubedata" | jq -r '.upload_date')"
+				youtubeyear="$(echo ${youtubeuploaddate:0:4})"
+				youtubeaveragerating="$(echo "$youtubedata" | jq -r '.average_rating')"
+				youtubealbum="$(echo "$youtubedata" | jq -r '.album')"
+				sanatizedvideodisambiguation=""
 				if ! [ -f "download.log" ]; then
 					touch "download.log"
 				fi
@@ -1581,6 +1592,7 @@ DownloadVideos () {
 					$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle" -f bestvideo+bestaudio --merge-output-format mkv --no-mtime --geo-bypass "$youtubeurl" &> /dev/null
 					if [ -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" ]; then
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: Download Complete!"
+						ffmpeg -i "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" -vframes 1 -an -s 640x360 -ss 30 "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" &> /dev/null
 						echo "Video :: Downloaded :: IMVDB :: ${LidArtistNameCap} :: $imvdbvideotitleyoutubeid :: $youtubeurl :: $santizeimvdbvideotitle" >> "download.log"
 					else
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: Downloaded Failed!"
@@ -1593,6 +1605,43 @@ DownloadVideos () {
 						echo "Video :: Downloaded :: IMVDB :: ${LidArtistNameCap} :: $imvdbvideotitleyoutubeid :: $youtubeurl :: $santizeimvdbvideotitle" >> "download.log"
 					fi
 				fi
+
+if [ -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" ]; then
+if [ ! -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo" ]; then
+	if [ -z "$imvdbvideoyear" ]; then
+		year="$youtubeyear"rtist/1036b808-f58c-4a3e-b461-a2c4492ecf1b/relationships
+	else
+		year="$imvdbvideoyear"
+	fi
+	if [ "$youtubealbum" != "null" ]; then
+		album="$youtubealbum"
+	else
+		album=""
+	fi
+	if [ -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" ]; then
+		thumb="$sanatizedartistname - $santizeimvdbvideotitle.jpg"
+	else
+		thumb=""
+	fi
+  echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: NFO Writer :: Writing NFO for $imvdbvideotitle"
+cat <<EOF > "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo"
+<musicvideo>
+    <title>$imvdbvideotitle</title>
+    <userrating>$youtubeaveragerating</userrating>
+    <track></track>
+    <album>$album</album>
+    <plot></plot>
+    <genre></genre>
+    <director></director>
+    <premiered></premiered>
+    <year>$year</year>
+    <studio></studio>
+    <artist>$LidArtistNameCap</artist>
+    <thumb>$thumb</thumb>
+</musicvideo>
+EOF
+fi
+fi
 			done
 		else
 			if ! [ -f "imvdberror.log" ]; then
@@ -1649,7 +1698,6 @@ DownloadVideos () {
 			dlurl=($(echo "$videorecordsfile" | jq -r "select(.id==\"$mbrecordid\") | .relations | .[] | .url | .resource" | sort -u))
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 			sanatizedvideodisambiguation="$(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
-				
 			if ! [ -f "download.log" ]; then
 				touch "download.log"
 			fi
@@ -1670,7 +1718,16 @@ DownloadVideos () {
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: $videotitle already downloaded... (see: download.log)"
 					break
 				fi
-				youtubeid="$($python $YoutubeDL --get-id "$recordurl" 2> /dev/null)"
+				youtubedata="$($python $YoutubeDL -j $recordurl 2> /dev/null)"
+				if [ -z "$youtubedata" ]; then
+					continue
+				fi
+				youtubethumbnail="$(echo "$youtubedata" | jq -r '.thumbnails | reverse | .[] | .url' | head -n 1)"
+				youtubeuploaddate="$(echo "$youtubedata" | jq -r '.upload_date')"
+				youtubeyear="$(echo ${youtubeuploaddate:0:4})"
+				youtubeaveragerating="$(echo "$youtubedata" | jq -r '.average_rating')"
+				youtubealbum="$(echo "$youtubedata" | jq -r '.album')"
+				youtubeid="$(echo "$youtubedata" | jq -r '.id')"
 				youtubeurl="https://www.youtube.com/watch?v=$youtubeid"
 				if [ -z "$youtubeid" ]; then
 					continue
@@ -1690,10 +1747,11 @@ DownloadVideos () {
 				fi
 				if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: Downloading ${sanatizedvideotitle}${sanatizedvideodisambiguation} ($youtubeurl)..."
-					$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}" -f bestvideo+bestaudio --merge-output-format mkv --no-mtime --geo-bypass "$youtubeurl" &> /dev/null
-					if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then 
+					$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}" -f bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best --merge-output-format mkv --no-mtime --geo-bypass "$youtubeurl" &> /dev/null
+					if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then
 						FileAccessPermissions "$LidArtistPath" &> /dev/null
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: Download Complete!"
+						ffmpeg -i "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" -vframes 1 -an -s 640x360 -ss 30 "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.jpg" &> /dev/null
 						echo "Video :: Downloaded :: MBZDB :: ${LidArtistNameCap} :: $youtubeid :: $youtubeurl :: ${sanatizedvideotitle}${sanatizedvideodisambiguation}" >> "download.log"
 						break
 					else
@@ -1708,6 +1766,42 @@ DownloadVideos () {
 					fi
 				fi
 			done
+if [ -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" ]; then
+if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.nfo" ]; then
+	if [ "$youtubeyear" != "null" ]; then
+		year="$youtubeyear"
+	else
+		year=""
+	fi
+	if [ "$youtubealbum" != "null" ]; then
+		album="$youtubealbum"
+	else
+		album=""
+	fi
+	if [ -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" ]; then
+		thumb="$sanatizedartistname - $santizeimvdbvideotitle.jpg"
+	else
+		thumb=""
+	fi
+  echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: NFO Writer :: Writing NFO for $videotitle"
+cat <<EOF > "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.nfo"
+<musicvideo>
+    <title>$videotitle</title>
+    <userrating>$youtubeaveragerating</userrating>
+    <track></track>
+    <album>$album</album>
+    <plot></plot>
+    <genre></genre>
+    <director></director>
+    <premiered></premiered>
+    <year>$year</year>
+    <studio></studio>
+    <artist>$LidArtistNameCap</artist>
+    <thumb>$thumb</thumb>
+</musicvideo>
+EOF
+fi
+fi
 		done
 		downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *" | wc -l)
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $downloadcount Videos Downloaded!"
