@@ -17,11 +17,21 @@
   * Downloads using Highest available quality for both audio and video
   * Saves thumbnail of video locally for Plex/Kodi/Jellyfin/Emby usage
   * Writes metadata into Kodi/Jellyfin/Emby compliant NFO file
+    * Tagged Data includes
+      * Title
+      * Year
+      * Artist
+      * Artist Genre Tags (If available from Musicbrainz)
+      * Director (If available from IMVDb)      
+      * Album (If available from Youtube Data)
 * Cron support, create a cron job to automatically run script at desired interval
 * Official Docker with everything built in! [lidarr-lad](https://github.com/RandomNinjaAtk/docker-lidarr-lad)
 
 ### Audio + Video (Plex Example)
 ![](https://raw.githubusercontent.com/RandomNinjaAtk/Scripts/master/images/plex-musicvideos.png)
+
+### Video Example (Kodi)
+![](https://raw.githubusercontent.com/RandomNinjaAtk/Scripts/master/images/kodi-music-videos.png)
 
 
 ## Additional Information
