@@ -1577,6 +1577,7 @@ DownloadVideos () {
 				youtubeaveragerating="$(echo "$youtubedata" | jq -r '.average_rating')"
 				youtubealbum="$(echo "$youtubedata" | jq -r '.album')"
 				sanatizedvideodisambiguation=""
+				
 				if ! [ -f "download.log" ]; then
 					touch "download.log"
 				fi
@@ -1588,6 +1589,56 @@ DownloadVideos () {
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: $imvdbvideotitle already downloaded... (see: download.log)"
 					continue
 				fi
+				
+				releasesfile="$(cat "cache/$sanatizedartistname-$mbid-releases.json")"
+				releasetrackid=($(echo "$releasesfile" | jq -r '.[] | .releases |.[] | select(.country=="US") | .media | .[] | .tracks | .[] | .id'))
+				trackmatch="false"
+				for id in ${!releasetrackid[@]}; do 
+					trackid="${releasetrackid[$id]}"
+					releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .title")"
+					releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .date")"
+					releaseyear="$(echo ${releasedate:0:4})"
+					tracktitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .title")"
+					trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .position")"
+					if [ "$imvdbvideotitle" = "$tracktitle" ]; then
+						trackmatch="true"
+						break
+					fi
+				done
+				if [ "$trackmatch" = "false" ]; then
+					releasetrackid=($(echo "$releasesfile" | jq -r '.[] | .releases |.[] | select(.country=="XW") | .media | .[] | .tracks | .[] | .id'))
+					for id in ${!releasetrackid[@]}; do 
+						trackid="${releasetrackid[$id]}"
+						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .title")"
+						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .date")"
+						releaseyear="$(echo ${releasedate:0:4})"
+						tracktitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .title")"
+						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .position")"
+						if [ "$imvdbvideotitle" = "$tracktitle" ]; then
+							trackmatch="true"
+							break
+						fi
+					done
+				else
+					releasetrackid=($(echo "$releasesfile" | jq -r '.[] | .releases |.[] | .media | .[] | .tracks | .[] | .id'))
+					for id in ${!releasetrackid[@]}; do 
+						trackid="${releasetrackid[$id]}"
+						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .title")"
+						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .date")"
+						releaseyear="$(echo ${releasedate:0:4})"
+						tracktitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .title")"
+						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .position")"
+						if [ "$imvdbvideotitle" = "$tracktitle" ]; then
+							trackmatch="true"
+							break
+						fi
+					done
+				fi
+				if [ "$trackmatch" = "true" ]; then
+					youtubealbum="$releasetitle"
+					youtubeyear="$releaseyear"
+				fi
+				
 				if [ ! -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" ]; then
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: Downloading $imvdbvideotitle ($youtubeurl)..."
 					$python $YoutubeDL -o "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle" -f bestvideo+bestaudio --merge-output-format mkv --no-mtime --geo-bypass "$youtubeurl" &> /dev/null
@@ -1655,13 +1706,19 @@ if [ ! -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo" ]; the
 	else
 		director="    <director></director>"
 	fi
-
+	if [ "$trackmatch" = "true" ]; then
+		year="$youtubeyear"
+		album="$youtubealbum"
+		track="$trackposition"
+	else
+		track=""
+	fi
   echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: NFO Writer :: Writing NFO for $imvdbvideotitle"
 cat <<EOF > "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo"
 <musicvideo>
     <title>$imvdbvideotitle</title>
     <userrating>$youtubeaveragerating</userrating>
-    <track></track>
+    <track>$track</track>
     <album>$album</album>
     <plot></plot>
 $genre
@@ -1765,6 +1822,7 @@ fi
 				if [ -z "$youtubeid" ]; then
 					continue
 				fi
+
 				if cat "download.log" | grep -i ":: $youtubeid ::" | read; then
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: $videotitle already downloaded... (see: download.log)"
 					break
@@ -1773,6 +1831,56 @@ fi
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: $videotitle already downloaded... (see: download.log)"
 					break
 				fi
+				
+				releasesfile="$(cat "cache/$sanatizedartistname-$mbid-releases.json")"
+				releasetrackid=($(echo "$releasesfile" | jq -r '.[] | .releases |.[] | select(.country=="US") | .media | .[] | .tracks | .[] | .id'))
+				trackmatch="false"
+				for id in ${!releasetrackid[@]}; do 
+					trackid="${releasetrackid[$id]}"
+					releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .title")"
+					releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .date")"
+					releaseyear="$(echo ${releasedate:0:4})"
+					tracktitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .title")"
+					trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .position")"
+					if [ "$imvdbvideotitle" = "$tracktitle" ]; then
+						trackmatch="true"
+						break
+					fi
+				done
+				if [ "$trackmatch" = "false" ]; then
+					releasetrackid=($(echo "$releasesfile" | jq -r '.[] | .releases |.[] | select(.country=="XW") | .media | .[] | .tracks | .[] | .id'))
+					for id in ${!releasetrackid[@]}; do 
+						trackid="${releasetrackid[$id]}"
+						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .title")"
+						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .date")"
+						releaseyear="$(echo ${releasedate:0:4})"
+						tracktitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .title")"
+						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .position")"
+						if [ "$imvdbvideotitle" = "$tracktitle" ]; then
+							trackmatch="true"
+							break
+						fi
+					done
+				else
+					releasetrackid=($(echo "$releasesfile" | jq -r '.[] | .releases |.[] | .media | .[] | .tracks | .[] | .id'))
+					for id in ${!releasetrackid[@]}; do 
+						trackid="${releasetrackid[$id]}"
+						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .title")"
+						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.media | .[] | .tracks | .[] | .id==\"$trackid\") | .date")"
+						releaseyear="$(echo ${releasedate:0:4})"
+						tracktitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .title")"
+						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | .media | .[] | .tracks | .[] | select(.id==\"$trackid\") | .position")"
+						if [ "$imvdbvideotitle" = "$tracktitle" ]; then
+							trackmatch="true"
+							break
+						fi
+					done
+				fi
+				if [ "$trackmatch" = "true" ]; then
+					youtubealbum="$releasetitle"
+					youtubeyear="$releaseyear"
+				fi
+				
 				if [ ! -z "$videodisambiguation" ]; then
 					nfovideodisambiguation=" ($videodisambiguation)"
 					sanatizedvideodisambiguation=" ($(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/'))"
@@ -1833,12 +1941,19 @@ if [ ! -f "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvi
 	else
 		genre="    <genre></genre>"
 	fi
+	if [ "$trackmatch" = "true" ]; then
+		year="$youtubeyear"
+		album="$youtubealbum"
+		track="$trackposition"
+	else
+		track=""
+	fi
   echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: NFO Writer :: Writing NFO for $videotitle"
 cat <<EOF > "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.nfo"
 <musicvideo>
     <title>${videotitle}${nfovideodisambiguation}</title>
     <userrating>$youtubeaveragerating</userrating>
-    <track></track>
+    <track>$track</track>
     <album>$album</album>
     <plot></plot>
 $genre
