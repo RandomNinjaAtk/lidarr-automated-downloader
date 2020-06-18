@@ -1850,7 +1850,7 @@ CacheEngine () {
 
 		if [ ! -f "cache/$sanatizedartistname-$mbid-info.json" ]; then
 			echo "${artistnumber} of ${wantedtotal} :: MBZDB CACHE :: $LidArtistNameCap :: Caching Musicbrainz Artist Info..."
-			curl -s "${musicbrainzurl}/ws/2/artist/$mbid?inc=url-rels&fmt=json" -o "cache/$sanatizedartistname-$mbid-info.json"
+			curl -s "${musicbrainzurl}/ws/2/artist/$mbid?inc=url-rels+genres&fmt=json" -o "cache/$sanatizedartistname-$mbid-info.json"
 			sleep $ratelimit
 		else 
 			echo "${artistnumber} of ${wantedtotal} :: MBZDB CACHE :: $LidArtistNameCap :: Musicbrainz Artist Info Cache Valid..."
