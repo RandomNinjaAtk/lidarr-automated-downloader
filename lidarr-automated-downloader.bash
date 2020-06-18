@@ -1609,10 +1609,12 @@ DownloadVideos () {
 
 if [ -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" ]; then
 if [ ! -f "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.nfo" ]; then
-	if [ -z "$imvdbvideoyear" ]; then
+	if [ "$imvdbvideoyear" != "null" ]; then
+		year="$imvdbvideoyear"
+	elif [ "$youtubeyear" != "null" ]; then
 		year="$youtubeyear"
 	else
-		year="$imvdbvideoyear"
+		year=""
 	fi
 	if [ "$youtubealbum" != "null" ]; then
 		album="$youtubealbum"
