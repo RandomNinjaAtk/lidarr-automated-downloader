@@ -1757,7 +1757,7 @@ fi
 					break
 				fi
 				if [ ! -z "$videodisambiguation" ]; then
-					nfovideodisambiguation="$videodisambiguation"
+					nfovideodisambiguation=" ($videodisambiguation)"
 					sanatizedvideodisambiguation=" ($(echo "${videodisambiguation}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/'))"
 				else
 					nfovideodisambiguation=""
