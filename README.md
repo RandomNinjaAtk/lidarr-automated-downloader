@@ -12,7 +12,11 @@
   * Downloads Synced Lyrics for use with Plex/Kodi
   * Support for automatic imports into Lidarr
 * Downloading **Music Videos** using online sources for use in popular applications (Plex/Kodi/Emby/Jellyfin): 
-  * More Info: https://github.com/RandomNinjaAtk/lidarr-automated-downloader/wiki/Music-Videos
+  * Support for IMVDb (https://imvdb.com) to find videos
+  * Support for Musicbrainz Database (https://musicbrainz.org) to find videos
+  * Downloads using Highest available quality for both audio and video
+  * Saves thumbnail of video locally for Plex/Kodi/Jellyfin/Emby usage
+  * Writes metadata into Kodi/Jellyfin/Emby compliant NFO file
 * Cron support, create a cron job to automatically run script at desired interval
 * Official Docker with everything built in! [lidarr-lad](https://github.com/RandomNinjaAtk/docker-lidarr-lad)
 
