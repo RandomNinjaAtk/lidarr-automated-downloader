@@ -1546,6 +1546,8 @@ DownloadVideos () {
 		sanatizedartistname="$(echo "${LidArtistNameCap}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 		recordingsfile="$(cat "cache/$sanatizedartistname-$mbid-recordings.json")"
 		mbzartistinfo="$(cat "cache/$sanatizedartistname-$mbid-info.json")"
+		releasesfile="$(cat "cache/$sanatizedartistname-$mbid-releases.json")"
+		normalizecase="$(echo ${releasesfile,,})"
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing"
 
 		imvdburl="$(echo "$mbzartistinfo" | jq -r ".relations | .[] | .url | select(.resource | contains(\"imvdb\")) | .resource")"
@@ -1562,6 +1564,7 @@ DownloadVideos () {
 				imvdbvideoid=$(curl -s "$url" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' | grep "sandbox" | sed 's/^.*%2F//')
 				imvdbvideodata="$(curl -s https://imvdb.com/api/v1/video/$imvdbvideoid?include=sources)"
 				imvdbvideotitle="$(echo "$imvdbvideodata" | jq -r ".song_title")"
+				normalizetitlecase="${imvdbvideotitle,,}"
 				imvdbvideodirectors="$(echo "$imvdbvideodata" | jq -r ".directors | .[] | .entity_name")"
 				imvdbvideoyear="$(echo "$imvdbvideodata" | jq -r ".year")"
 				santizeimvdbvideotitle="$(echo "$imvdbvideotitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
@@ -1577,6 +1580,13 @@ DownloadVideos () {
 				youtubeaveragerating="$(echo "$youtubedata" | jq -r '.average_rating')"
 				youtubealbum="$(echo "$youtubedata" | jq -r '.album')"
 				sanatizedvideodisambiguation=""
+				if [ "$imvdbvideoyear" != "null" ]; then
+					year="$imvdbvideoyear"
+				elif [ "$youtubeyear" != "null" ]; then
+					year="$youtubeyear"
+				else
+					year=""
+				fi
 				
 				if ! [ -f "download.log" ]; then
 					touch "download.log"
@@ -1591,37 +1601,36 @@ DownloadVideos () {
 				fi
 				
 				trackmatch="false"
-				releasesfile="$(cat "cache/$sanatizedartistname-$mbid-releases.json")"
 				if [ "$trackmatch" = "false" ]; then
-					releasematch="$(echo "$releasesfile" | jq -r ".[] | .releases | reverse | .[] | select(.country==\"US\") | select(.media | .[] | .tracks | .[] | .title==\"$imvdbvideotitle\") | .id" | head -n 1)"
+					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.country==\"us\" and .status==\"official\") | select(.date | contains(\"$year\")) | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
 					if [ ! -z "$releasematch" ]; then
 						trackmatch="true"	
 						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .title")"
 						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .date")"
 						releaseyear="$(echo ${releasedate:0:4})"
-						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$imvdbvideotitle\") | .number" | head -n 1)"
+						trackposition="$(echo "$normalizecase" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$normalizetitlecase\") | .position" | head -n 1)"
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: MBZDB MATCH :: $imvdbvideotitle :: US :: $releaseyear :: $releasetitle :: Track Number $trackposition"
 					fi
 				fi
 				if [ "$trackmatch" = "false" ]; then
-					releasematch="$(echo "$releasesfile" | jq -r ".[] | .releases | reverse | .[] | select(.country==\"XW\") | select(.media | .[] | .tracks | .[] | .title==\"$imvdbvideotitle\") | .id" | head -n 1)"
+					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.country==\"xw\" and .status==\"official\") | select(.date | contains(\"$year\"))| select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
 					if [ ! -z "$releasematch" ]; then
 						trackmatch="true"	
 						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .title")"
 						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .date")"
 						releaseyear="$(echo ${releasedate:0:4})"
-						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$imvdbvideotitle\") | .number" | head -n 1)"
+						trackposition="$(echo "$normalizecase" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$normalizetitlecase\") | .position" | head -n 1)"
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: MBZDB MATCH :: $imvdbvideotitle :: XW :: $releaseyear :: $releasetitle :: Track Number $trackposition"
 					fi
 				fi
 				if [ "$trackmatch" = "false" ]; then
-					releasematch="$(echo "$releasesfile" | jq -r ".[] | .releases | reverse | .[] | select(.media | .[] | .tracks | .[] | .title==\"$imvdbvideotitle\") | .id" | head -n 1)"
+					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.status==\"official\") | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
 					if [ ! -z "$releasematch" ]; then
 						trackmatch="true"	
 						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .title")"
 						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .date")"
 						releaseyear="$(echo ${releasedate:0:4})"
-						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$imvdbvideotitle\") | .number" | head -n 1)"
+						trackposition="$(echo "$normalizecase" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$normalizetitlecase\") | .position" | head -n 1)"
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: MBZDB MATCH :: $imvdbvideotitle :: ANY :: $releaseyear :: $releasetitle :: Track Number $trackposition"
 					fi
 				fi
@@ -1779,6 +1788,7 @@ fi
 			currentprocess=$(( $id + 1 ))
 			mbrecordid="${videorecordsid[$id]}"
 			videotitle="$(echo "$videorecordsfile" | jq -r "select(.id==\"$mbrecordid\") | .title")"
+			normalizetitlecase="$(echo ${videotitle,,})"
 			videodisambiguation="$(echo "$videorecordsfile" | jq -r "select(.id==\"$mbrecordid\") | .disambiguation")"
 			dlurl=($(echo "$videorecordsfile" | jq -r "select(.id==\"$mbrecordid\") | .relations | .[] | .url | .resource" | sort -u))
 			sanatizedvideotitle="$(echo "${videotitle}" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
@@ -1830,35 +1840,35 @@ fi
 				trackmatch="false"
 				releasesfile="$(cat "cache/$sanatizedartistname-$mbid-releases.json")"
 				if [ "$trackmatch" = "false" ]; then
-					releasematch="$(echo "$releasesfile" | jq -r ".[] | .releases | reverse | .[] | select(.country==\"US\") | select(.media | .[] | .tracks | .[] | .title==\"$videotitle\") | .id" | head -n 1)"
+					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.country==\"us\" and .status==\"official\") | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
 					if [ ! -z "$releasematch" ]; then
 						trackmatch="true"	
 						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .title")"
 						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .date")"
 						releaseyear="$(echo ${releasedate:0:4})"
-						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$videotitle\") | .number" | head -n 1)"
+						trackposition="$(echo "$normalizecase" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$normalizetitlecase\") | .position" | head -n 1)"
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: MBZDB MATCH :: $videotitle :: US :: $releaseyear :: $releasetitle :: Track Number $trackposition"
 					fi
 				fi
 				if [ "$trackmatch" = "false" ]; then
-					releasematch="$(echo "$releasesfile" | jq -r ".[] | .releases | reverse | .[] | select(.country==\"XW\") | select(.media | .[] | .tracks | .[] | .title==\"$videotitle\") | .id" | head -n 1)"
+					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.country==\"xw\" and .status==\"official\") | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
 					if [ ! -z "$releasematch" ]; then
 						trackmatch="true"	
 						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .title")"
 						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .date")"
 						releaseyear="$(echo ${releasedate:0:4})"
-						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$videotitle\") | .number" | head -n 1)"
+						trackposition="$(echo "$normalizecase" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$normalizetitlecase\") | .position" | head -n 1)"
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: MBZDB MATCH :: $videotitle :: XW :: $releaseyear :: $releasetitle :: Track Number $trackposition"
 					fi
 				fi
 				if [ "$trackmatch" = "false" ]; then
-					releasematch="$(echo "$releasesfile" | jq -r ".[] | .releases | reverse | .[] | select(.media | .[] | .tracks | .[] | .title==\"$videotitle\") | .id" | head -n 1)"
+					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.status==\"official\") | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
 					if [ ! -z "$releasematch" ]; then
 						trackmatch="true"	
 						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .title")"
 						releasedate="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .date")"
 						releaseyear="$(echo ${releasedate:0:4})"
-						trackposition="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$videotitle\") | .number" | head -n 1)"
+						trackposition="$(echo "$normalizecase" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\")| .media | .[] | .tracks | .[] | select(.title==\"$normalizetitlecase\") | .position" | head -n 1)"
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: MBZDB MATCH :: $videotitle :: ANY :: $releaseyear :: $releasetitle :: Track Number $trackposition"
 					fi
 				fi
