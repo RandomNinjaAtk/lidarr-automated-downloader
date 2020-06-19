@@ -1557,6 +1557,7 @@ DownloadVideos () {
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: Aritst Link Found, using it's database for videos..."
 			imvdbcache="$(cat "cache/$sanatizedartistname-$mbid-imvdb.json")"
 			imvdbids=($(echo "$imvdbcache" | jq -r ".[] | .id"))
+			imvdbarurllistcount="$(echo "$imvdbcache" | jq -r ".[] | .id" | wc -l)"
 			for id in ${!imvdbids[@]}; do
 				urlnumber=$(( $id + 1 ))
 				imvdbid="${imvdbids[$id]}"
