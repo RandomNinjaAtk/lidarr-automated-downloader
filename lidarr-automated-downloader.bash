@@ -1530,6 +1530,7 @@ ArtistMode () {
 		done
 	done
 }
+
 DownloadVideos () {
 	echo "######################################### DOWNLOADING VIDEOS #########################################"
 	wantit=$(curl -s --header "X-Api-Key:"${LidarrApiKey} --request GET  "$LidarrUrl/api/v1/Artist/")
@@ -1546,22 +1547,20 @@ DownloadVideos () {
 		recordingsfile="$(cat "cache/$sanatizedartistname-$mbid-recordings.json")"
 		mbzartistinfo="$(cat "cache/$sanatizedartistname-$mbid-info.json")"
 		releasesfile="$(cat "cache/$sanatizedartistname-$mbid-releases.json")"
-		normalizecase="$(echo ${releasesfile,,})"
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Processing"
-
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Normalizing MBZDB Release Info (Capitalization)"
+		normalizecase="$(echo ${releasesfile,,})"
 		imvdburl="$(echo "$mbzartistinfo" | jq -r ".relations | .[] | .url | select(.resource | contains(\"imvdb\")) | .resource")"
 		imvdbslug="$(basename "$imvdburl")"
-		
-		if [ ! -z "$imvdburl" ]; then
-			imvdbarurlfile="$(curl -s "https://imvdb.com/n/$imvdbslug")"
-			imvdbarurllist=($(echo "$imvdbarurlfile" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' |  grep -i ".com/video" | grep -i "$imvdbslug" | sort -u))
-			imvdbarurllistcount=$(echo "$imvdbarurlfile" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' |  grep -i ".com/video" | grep -i "$imvdbslug" | sort -u | wc -l)
+
+		if [ -f "cache/$sanatizedartistname-$mbid-imvdb.json" ]; then
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: Aritst Link Found, using it's database for videos..."
-			for id in ${!imvdbarurllist[@]}; do
+			imvdbcache="$(cat "cache/$sanatizedartistname-$mbid-imvdb.json")"
+			imvdbids=($(echo "$imvdbcache" | jq -r ".[] | .id"))
+			for id in ${!imvdbids[@]}; do
 				urlnumber=$(( $id + 1 ))
-				url="${imvdbarurllist[$id]}"
-				imvdbvideoid=$(curl -s "$url" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' | grep "sandbox" | sed 's/^.*%2F//')
-				imvdbvideodata="$(curl -s https://imvdb.com/api/v1/video/$imvdbvideoid?include=sources)"
+				imvdbid="${imvdbids[$id]}"
+				imvdbvideodata="$(echo "$imvdbcache" | jq -r ".[] | select(.id==$imvdbid) | .")"
 				imvdbvideotitle="$(echo "$imvdbvideodata" | jq -r ".song_title")"
 				normalizetitlecase="${imvdbvideotitle,,}"
 				imvdbvideodirectors="$(echo "$imvdbvideodata" | jq -r ".directors | .[] | .entity_name")"
@@ -2190,6 +2189,60 @@ CacheEngine () {
 			fi
 		fi
 
+		if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ]; then
+
+			mbzartistinfo="$(cat "cache/$sanatizedartistname-$mbid-info.json")"
+			imvdburl="$(echo "$mbzartistinfo" | jq -r ".relations | .[] | .url | select(.resource | contains(\"imvdb\")) | .resource")"
+			if [ -z "$imvdburl" ]; then
+				continue
+			fi
+			
+			imvdbslug="$(basename "$imvdburl")"
+			imvdbarurlfile="$(curl -s "https://imvdb.com/n/$imvdbslug")"
+			imvdbarurllist=($(echo "$imvdbarurlfile" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' |  grep -i ".com/video" | grep -i "$imvdbslug" | sort -u))
+			imvdbarurllistcount=$(echo "$imvdbarurlfile" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' |  grep -i ".com/video" | grep -i "$imvdbslug" | sort -u | wc -l)
+
+			if [ -f "cache/$sanatizedartistname-$mbid-imvdb.json" ]; then
+				cachedimvdbcount="$(cat "cache/$sanatizedartistname-$mbid-imvdb.json" | jq -r '.[] | .id' | wc -l)"
+			else
+				cachedimvdbcount="0"
+			fi
+
+			if [ $imvdbarurllistcount -ne $cachedimvdbcount ]; then
+				echo "$artistnumber of $wantedtotal :: IMVDB CACHE :: $LidArtistNameCap :: Cache out of date"
+				if [ -f "cache/$sanatizedartistname-$mbid-imvdb.json" ]; then
+					rm "cache/$sanatizedartistname-$mbid-imvdb.json"
+				fi
+			else
+				echo "$artistnumber of $wantedtotal :: IMVDB CACHE :: $LidArtistNameCap :: Cache Valid"
+			fi
+
+			if [ ! -f "cache/$sanatizedartistname-$mbid-imvdb.json" ]; then
+				echo "$artistnumber of $wantedtotal :: IMVDB CACHE :: $LidArtistNameCap :: Caching Releases"
+				if [ ! -d "temp" ]; then
+					mkdir "temp"
+					sleep 0.1
+				fi
+				for id in ${!imvdbarurllist[@]}; do
+					urlnumber=$(( $id + 1 ))
+					url="${imvdbarurllist[$id]}"
+					imvdbvideoid=$(curl -s "$url" | grep -Eoi '<a [^>]+>' |  grep -Eo 'href="[^\"]+"' | grep -Eo '(http|https)://[^"]+' | grep "sandbox" | sed 's/^.*%2F//')
+					echo "$artistnumber of $wantedtotal :: IMVDB CACHE :: $LidArtistNameCap :: Downloading Release $urlnumber Info"
+					curl -s "https://imvdb.com/api/v1/video/$imvdbvideoid?include=sources" -o "temp/$mbid-imvdb-$urlnumber.json"
+				done
+
+				if [ ! -f "cache/$sanatizedartistname-$mbid-imvdb.json" ]; then
+					jq -s '.' temp//$mbid-imvdb-*.json > "cache/$sanatizedartistname-$mbid-imvdb.json"
+				fi
+				if [ -f "cache/$sanatizedartistname-$mbid-imvdb.json" ]; then
+					echo "$artistnumber of $wantedtotal :: IMVDB CACHE :: $LidArtistNameCap :: Caching Complete"
+				fi
+				if [ -d "temp" ]; then
+					sleep 0.1
+					rm -rf "temp"
+				fi
+			fi
+		fi
 
 		if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Audio" ]; then
 
