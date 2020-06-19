@@ -2087,7 +2087,7 @@ CacheEngine () {
 
 			if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ] || [ $DownloadMode = "Audio" ]; then
 
-				releases=$(curl -s "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=genres+recordings+url-rels&fmt=json&limit=1&offset=0&fmt=json")
+				releases=$(curl -s "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=genres+recordings+url-rels&limit=1&offset=0&fmt=json")
 				sleep $ratelimit
 				newreleasecount=$(echo "${releases}"| jq -r '."release-count"')
 					
@@ -2126,7 +2126,7 @@ CacheEngine () {
 								dlnumber=$(( $offset + 100))
 							fi
 							echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap :: Downloading Releases page $i... ($offset - $dlnumber Results)"
-							curl -s "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=genres+recordings+url-rels&fmt=json&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-releases-page-$i.json"
+							curl -s "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=genres+recordings+url-rels&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-releases-page-$i.json"
 							sleep $ratelimit
 						fi
 					done
