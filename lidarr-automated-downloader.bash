@@ -1568,23 +1568,6 @@ DownloadVideos () {
 				santizeimvdbvideotitle="$(echo "$imvdbvideotitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 				imvdbvideotitleyoutubeid="$(echo "$imvdbvideodata" | jq -r ".sources | .[] | select(.source==\"youtube\") | .source_data" | head -n 1)"
 				youtubeurl="https://www.youtube.com/watch?v=$imvdbvideotitleyoutubeid"
-				youtubedata="$($python $YoutubeDL -j $youtubeurl  2> /dev/null)"
-				if [ -z "$youtubedata" ]; then
-					continue
-				fi
-				youtubethumbnail="$(echo "$youtubedata" | jq -r '.thumbnails | reverse | .[] | .url' | head -n 1)"
-				youtubeuploaddate="$(echo "$youtubedata" | jq -r '.upload_date')"
-				youtubeyear="$(echo ${youtubeuploaddate:0:4})"
-				youtubeaveragerating="$(echo "$youtubedata" | jq -r '.average_rating')"
-				youtubealbum="$(echo "$youtubedata" | jq -r '.album')"
-				sanatizedvideodisambiguation=""
-				if [ "$imvdbvideoyear" != "null" ]; then
-					year="$imvdbvideoyear"
-				elif [ "$youtubeyear" != "null" ]; then
-					year="$youtubeyear"
-				else
-					year=""
-				fi
 				
 				if ! [ -f "download.log" ]; then
 					touch "download.log"
@@ -1597,6 +1580,18 @@ DownloadVideos () {
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: $imvdbvideotitle already downloaded... (see: download.log)"
 					continue
 				fi
+
+				youtubedata="$($python $YoutubeDL -j $youtubeurl  2> /dev/null)"
+				if [ -z "$youtubedata" ]; then
+					continue
+				fi
+
+				youtubethumbnail="$(echo "$youtubedata" | jq -r '.thumbnails | reverse | .[] | .url' | head -n 1)"
+				youtubeuploaddate="$(echo "$youtubedata" | jq -r '.upload_date')"
+				youtubeyear="$(echo ${youtubeuploaddate:0:4})"
+				youtubeaveragerating="$(echo "$youtubedata" | jq -r '.average_rating')"
+				youtubealbum="$(echo "$youtubedata" | jq -r '.album')"
+				sanatizedvideodisambiguation=""
 				
 				trackmatch="false"
 				if [ "$trackmatch" = "false" ]; then
