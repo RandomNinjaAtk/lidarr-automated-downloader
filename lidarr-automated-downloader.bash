@@ -1655,7 +1655,7 @@ DownloadVideos () {
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: Download Complete!"
 						ffmpeg -i "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" -vframes 1 -an -s 640x360 -ss 30 "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" &> /dev/null
 						mv "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" "$VideoPath/temp.mkv"
-						ffmpeg -i "$VideoPath/temp.mkv" -i "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" -y -c:v copy -c:a copy -metadata author="$LidArtistNameCap" -metadata title="$imvdbvideotitle" -attach "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" -metadata:s:t mimetype=image/jpeg "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv"
+						ffmpeg -i "$VideoPath/temp.mkv" -i "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" -y -c:v copy -c:a copy -metadata author="$LidArtistNameCap" -metadata title="$imvdbvideotitle" -attach "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.jpg" -metadata:s:t mimetype=image/jpeg "$VideoPath/$sanatizedartistname - $santizeimvdbvideotitle.mkv" &> /dev/null
 						rm "$VideoPath/temp.mkv"
 						echo "Video :: Downloaded :: IMVDB :: ${LidArtistNameCap} :: $imvdbvideotitleyoutubeid :: $youtubeurl :: $santizeimvdbvideotitle" >> "download.log"
 					else
@@ -1928,7 +1928,7 @@ fi
 						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: Download Complete!"
 						ffmpeg -i "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" -vframes 1 -an -s 640x360 -ss 30 "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.jpg" &> /dev/null
 						mv "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" "$VideoPath/temp.mkv"
-						ffmpeg -i "$VideoPath/temp.mkv" -i "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.jpg" -y -c:v copy -c:a copy -metadata author="$LidArtistNameCap" -metadata title="$videotitle${nfovideodisambiguation}" -attach "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.jpg" -metadata:s:t mimetype=image/jpeg "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv"
+						ffmpeg -i "$VideoPath/temp.mkv" -i "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.jpg" -y -c:v copy -c:a copy -metadata author="$LidArtistNameCap" -metadata title="$videotitle${nfovideodisambiguation}" -attach "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.jpg" -metadata:s:t mimetype=image/jpeg "$VideoPath/$sanatizedartistname - ${sanatizedvideotitle}${sanatizedvideodisambiguation}.mkv" &> /dev/null
 						rm "$VideoPath/temp.mkv"
 						echo "Video :: Downloaded :: MBZDB :: ${LidArtistNameCap} :: $youtubeid :: $youtubeurl :: ${sanatizedvideotitle}${sanatizedvideodisambiguation}" >> "download.log"
 						break
