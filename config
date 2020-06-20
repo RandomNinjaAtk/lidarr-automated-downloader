@@ -52,3 +52,5 @@ amount="1000000000" # Maximum: 1000000000 :: Number of wanted albums to look for
 ############ Music Video Options
 VideoPath="/path/to/vides" # Location of music videos
 YoutubeDL="/usr/local/bin/youtube-dl" # Path to youtube-dl application, executed using python
+CountryCode="us" # set the country code for preferred video matching, uses Musicbrainz Country Codes, lowercase only.
+RequireVideoMatch="true" # true = enabled :: Only keep videos that could be matched to a Musicbrainz music track.
