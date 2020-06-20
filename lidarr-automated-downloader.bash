@@ -1596,7 +1596,7 @@ DownloadVideos () {
 				
 				trackmatch="false"
 				if [ "$trackmatch" = "false" ]; then
-					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.country==\"us\" and .status==\"official\" and .date!=\"\") | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
+					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.country==\"$CountryCode\" and .status==\"official\" and .date!=\"\") | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
 					if [ ! -z "$releasematch" ]; then
 						trackmatch="true"	
 						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .title")"
@@ -1639,6 +1639,9 @@ DownloadVideos () {
 				fi
 				if [ "$trackmatch" = "false" ]; then
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: MBZDB MATCH :: ERROR :: $imvdbvideotitle could not be matched to Musicbrainz Track Title"
+					if [ "$RequireVideoMatch" = "true" ]; then
+						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: MBZDB MATCH :: ERROR :: Require Match Enabled, skipping..."
+					fi
 				fi
 
 				if [ "$trackmatch" = "true" ]; then
@@ -1861,7 +1864,7 @@ fi
 				trackmatch="false"
 				releasesfile="$(cat "cache/$sanatizedartistname-$mbid-releases.json")"
 				if [ "$trackmatch" = "false" ]; then
-					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.country==\"us\" and .status==\"official\" and .date!=\"\") | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
+					releasematch="$(echo "$normalizecase" | jq -s -r ".[] | .[] | .releases | sort_by(.date) | .[] | select(.country==\"$CountryCode\" and .status==\"official\" and .date!=\"\") | select(.media | .[] | .tracks | .[] | .title==\"$normalizetitlecase\") | .id" | head -n 1)"
 					if [ ! -z "$releasematch" ]; then
 						trackmatch="true"	
 						releasetitle="$(echo "$releasesfile" | jq -r ".[] | .releases | .[] | select(.id==\"$releasematch\") | .title")"
@@ -1904,6 +1907,9 @@ fi
 				fi
 				if [ "$trackmatch" = "false" ]; then
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: MBZDB MATCH :: ERROR :: $videotitle could not be matched to Musicbrainz Track Title"
+					if [ "$RequireVideoMatch" = "true" ]; then
+						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: MBZDB MATCH :: ERROR :: Require Match Enabled, skipping..."
+					fi
 				fi
 
 				if [ "$trackmatch" = "true" ]; then
