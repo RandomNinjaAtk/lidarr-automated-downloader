@@ -225,7 +225,7 @@ configuration () {
 		
 		# Country Code
 		if [ ! -z "$CountryCode" ]; then
-			echo "Country Code: $CountryCode"
+			echo "Video: Country Code: $CountryCode"
 		else
 			echo "ERROR: CountryCode is empty, please configure wtih a valid Country Code (lowercase)"
 			error=1
@@ -233,7 +233,7 @@ configuration () {
 		
 		# RequireVideoMatch
 		if [ "$RequireVideoMatch" = "true" ]; then
-			echo "Require Video Match: ENABLED"
+			echo "Video: Require Video Match: ENABLED"
 		else
 			echo "Require Video Match: DISABLED"
 		fi
