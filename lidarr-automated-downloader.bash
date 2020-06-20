@@ -1923,7 +1923,7 @@ fi
 				if [ "$trackmatch" = "false" ]; then
 					echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: MBZDB MATCH :: ERROR :: $videotitle could not be matched to Musicbrainz Track Title"
 					if [ "$RequireVideoMatch" = "true" ]; then
-						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: IMVDB :: $urlnumber of $imvdbarurllistcount :: MBZDB MATCH :: ERROR :: Require Match Enabled, skipping..."
+						echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: MBZDB :: $currentprocess of $videorecordscount :: MBZDB MATCH :: ERROR :: Require Match Enabled, skipping..."
 					fi
 				fi
 
