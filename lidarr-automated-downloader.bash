@@ -222,6 +222,21 @@ configuration () {
 			echo "ERROR: The File does not exist, install youtube-dl and place it in that location to resolve error"
 			error=1
 		fi
+		
+		# Country Code
+		if [ ! -z "$CountryCode" ]; then
+			echo "Country Code: $CountryCode"
+		else
+			echo "ERROR: CountryCode is empty, please configure wtih a valid Country Code (lowercase)"
+			error=1
+		fi
+		
+		# RequireVideoMatch
+		if [ "$RequireVideoMatch" = "true" ]; then
+			echo "Require Video Match: ENABLED"
+		else
+			echo "Require Video Match: DISABLED"
+		fi
 	fi
 
 	if [ $error = 1 ]; then
