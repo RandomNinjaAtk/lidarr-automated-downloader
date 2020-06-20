@@ -16,15 +16,21 @@
   * Support for Musicbrainz Database (https://musicbrainz.org) to find videos
   * Downloads using Highest available quality for both audio and video
   * Saves thumbnail of video locally for Plex/Kodi/Jellyfin/Emby usage
+  * Matching videos with Musicbrainz Artist track info
   * Writes metadata into Kodi/Jellyfin/Emby compliant NFO file
     * Tagged Data includes
-      * Title
-      * Year
-      * Artist
+      * Matched Title (MusicBrainz), fallback to IMVDb or Record Title (MusicBrainz)
+      * Matched Year (MusicBrainz)
+      * Matched Artist (MusicBrainz)
       * Thumbnail Image
-      * Artist Genre Tags (If available from Musicbrainz)
+      * Matched Release Genre Tags (MusicBrainz), fallback to Artist Genere Tags (MusicBrainz)
       * Director (If available from IMVDb)      
-      * Album (If available from Youtube Data)
+      * Matched Album (MusicBrainz), fallback to YouTube (If available)
+  * Embeds metadata into Music Video file
+    * Tagged Data includes
+      * Matched Title (MusicBrainz), fallback to IMVDb or Record Title (MusicBrainz)
+      * Thumbnail Image
+      * Matched Artist, aka Author (MusicBrainz)
 * Cron support, create a cron job to automatically run script at desired interval
 * Official Docker with everything built in! [lidarr-lad](https://github.com/RandomNinjaAtk/docker-lidarr-lad)
 
@@ -107,6 +113,8 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `YoutubeDL` |  Path to youtube-dl application, executed using python |
 | `musicbrainzurl` |  Change to use different musicbrainz mirror... |
 | `ratelimit` |  musicbrainz rate limit, musicbrainz allows only 1 connection per second, max setting is 10 |
+| `CountryCode` | Set the country code for preferred video matching, uses Musicbrainz Country Codes, lowercase only. |
+| `RequireVideoMatch` | true = enabled :: Only keep videos that could be matched to a Musicbrainz music track. |
 
 # Lidarr Configuration Recommendations
 
