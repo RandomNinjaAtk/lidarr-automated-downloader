@@ -237,6 +237,20 @@ configuration () {
 		else
 			echo "Require Video Match: DISABLED"
 		fi
+		
+		# videoformat
+		if [ ! -z "$videoformat" ]; then
+			echo "Video: Format Set To: $videoformat"
+		else
+			echo "Video: Format Set To: --format bestvideo[vcodec!*=av01]+bestaudio[ext=m4a]"
+		fi
+		
+		# videofilter
+		if [ ! -z "$videofilter" ]; then
+			echo "Video: Filter: ENABLED ($videoformat)"
+		else
+			echo "Video: Filter: DISABLED"
+		fi
 	fi
 
 	if [ $error = 1 ]; then
@@ -1567,8 +1581,6 @@ DownloadVideos () {
 
 	if [ ! -z "$videofilter" ]; then
 		videofilter="$videofilter"
-	else
-		videofilter="live"
 	fi
 
 	for id in ${!MBArtistID[@]}; do
