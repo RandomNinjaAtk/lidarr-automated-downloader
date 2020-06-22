@@ -55,4 +55,4 @@ YoutubeDL="/usr/local/bin/youtube-dl" # Path to youtube-dl application, executed
 CountryCode="US" # set the country code for preferred video matching, uses Musicbrainz Country Codes
 RequireVideoMatch="true" # true = enabled :: Only keep videos that could be matched to a Musicbrainz music track.
 videoformat="--format bestvideo[vcodec!*=av01]+bestaudio[ext=m4a]" # For gudience, please see youtube-dl documentation
-videofilter="live" # This will filter out videos Matching MusicBrainz secondary release type and album disambiguation
+videofilter="live" # This will filter out videos Matching MusicBrainz secondary release type and album disambiguation (single word only)
