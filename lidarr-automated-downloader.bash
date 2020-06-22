@@ -247,7 +247,7 @@ configuration () {
 		
 		# videofilter
 		if [ ! -z "$videofilter" ]; then
-			echo "Video: Filter: ENABLED ($videoformat)"
+			echo "Video: Filter: ENABLED ($videofilter)"
 		else
 			echo "Video: Filter: DISABLED"
 		fi
