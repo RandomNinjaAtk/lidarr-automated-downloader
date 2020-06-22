@@ -1844,7 +1844,7 @@ VideoNFOWriter () {
  			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $db :: $currentprocess of $videocount :: NFO WRITER :: Writing NFO for ${videotitle}${nfovideodisambiguation}"
 cat <<EOF > "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.nfo"
 <musicvideo>
-    <title>$videotitle</title>
+    <title>${videotitle}${nfovideodisambiguation}</title>
     <userrating>$youtubeaveragerating</userrating>
     <track>$track</track>
     <album>$album</album>
