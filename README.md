@@ -79,6 +79,9 @@ Execute script via CLI with the following command: `bash lidarr-automated-downlo
   * Log file containing list of artists without links to IMVDb, open log for more details
 * download.log
   * Log file containing list of albums that were downloaded, automatically cleared every Saturday via cron
+* cookies.txt
+  * OPTIONAL :: Include this file in your script directory for youtube-dl to be able to use it automatically for authentication. You may require this to avoid throttling...
+
 
 ## Configuration
 
@@ -115,6 +118,8 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `ratelimit` |  musicbrainz rate limit, musicbrainz allows only 1 connection per second, max setting is 10 |
 | `CountryCode` | Set the country code for preferred video matching, uses Musicbrainz Country Codes, lowercase only. |
 | `RequireVideoMatch` | true = enabled :: Only keep videos that could be matched to a Musicbrainz music track. |
+| `videoformat` | For guidence, please see youtube-dl documentation |
+| `videofilter` | This will filter out videos Matching MusicBrainz secondary release type and album disambiguation (single word only) |
 
 # Lidarr Configuration Recommendations
 
