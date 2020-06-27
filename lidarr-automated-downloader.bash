@@ -1209,6 +1209,9 @@ conversion () {
 			echo "ERROR: ffmpeg not installed, please install ffmpeg to use this conversion feature"
 			sleep 5
 		fi
+		if [ "${TagWithBeets}" = true ]; then
+			beetstagging
+		fi
 	fi
 }
 
