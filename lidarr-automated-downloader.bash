@@ -285,6 +285,10 @@ ImportFunction () {
 		if [ ! -d "${LidArtistPath}" ]; then
 			mkdir -p "${LidArtistPath}"
 		fi
+		if [ -d "$LidArtistPath/$libalbumfolder" ]; then
+			rm -rf "$LidArtistPath/$libalbumfolder"
+			sleep 0.5
+		fi
 		mv "${LidarrImportLocation}/${importalbumfolder}" "$LidArtistPath/$libalbumfolder"
 		FolderAccessPermissions "$LidArtistPath/$libalbumfolder"
 		FileAccessPermissions "$LidArtistPath/$libalbumfolder"
