@@ -285,19 +285,24 @@ ImportFunction () {
 		if [ ! -d "${LidArtistPath}" ]; then
 			mkdir -p "${LidArtistPath}"
 		fi
-		if [ -d "$LidArtistPath/$libalbumfolder" ]; then
-			rm -rf "$LidArtistPath/$libalbumfolder"
-			sleep 0.5
-		fi
-		mv "${LidarrImportLocation}/${importalbumfolder}" "$LidArtistPath/$libalbumfolder"
-		FolderAccessPermissions "$LidArtistPath/$libalbumfolder"
-		FileAccessPermissions "$LidArtistPath/$libalbumfolder"
-		LidarrProcessIt=$(curl -s $LidarrUrl/api/v1/command -X POST -d "{\"name\": \"RescanFolders\", \"folders\": [\"$LidArtistPath/$libalbumfolder\"]}" --header "X-Api-Key:${LidarrApiKey}" );
-		if [ $AudioMode = archive ]; then
-			echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: IMPORT :: Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
-		fi
-		if [ $AudioMode = wanted ]; then
-			echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: IMPORT :: Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
+		if [ ! -d "$LidArtistPath/$libalbumfolder" ]; then
+			mv "${LidarrImportLocation}/${importalbumfolder}" "$LidArtistPath/$libalbumfolder"
+			FolderAccessPermissions "$LidArtistPath/$libalbumfolder"
+			FileAccessPermissions "$LidArtistPath/$libalbumfolder"
+			LidarrProcessIt=$(curl -s $LidarrUrl/api/v1/command -X POST -d "{\"name\": \"RescanFolders\", \"folders\": [\"$LidArtistPath/$libalbumfolder\"]}" --header "X-Api-Key:${LidarrApiKey}" );
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: IMPORT :: Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: IMPORT :: Notified Lidarr to scan $LidArtistPath/$libalbumfolder"
+			fi
+		else
+			if [ $AudioMode = archive ]; then
+				echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: IMPORT :: Skipping..."
+			fi
+			if [ $AudioMode = wanted ]; then
+				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: IMPORT :: Skipping..."
+			fi
 		fi
 	elif [ "$ImportMode" = "manual" ]; then
 		if [ $AudioMode = archive ]; then
@@ -1445,6 +1450,10 @@ ArtistMode () {
 					continue
 				elif [ -d "${LidarrImportLocation}/${importalbumfolder}" ]; then
 					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate ($albumtypecaps), already downloaded but waiting for import..."
+					ImportFunction
+					continue
+				elif [ -d "${LidarrImportLocation}/${libalbumfolder}" ]; then
+					echo "${artistnumber} of ${wantedtotal} :: ARCHIVING :: $LidArtistNameCap :: $albumnumber of $totalnumberalbumlist :: Duplicate ($albumtypecaps), already downloaded and imported..."
 					ImportFunction
 					continue
 				elif [ "$albumtypecaps" = "ALBUM" ]; then
