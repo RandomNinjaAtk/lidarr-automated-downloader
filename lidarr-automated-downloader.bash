@@ -1598,14 +1598,12 @@ DownloadVideos () {
 		cookies=""
 	fi
 
-	if [ ! -z "$videoformat" ]; then
-		videoformat="$videoformat"
-	else
+	if [ -z "$videoformat" ]; then
 		videoformat="--format bestvideo[vcodec*=avc1]+bestaudio[ext=m4a]"
 	fi
 
-	if [ ! -z "$videofilter" ]; then
-		videofilter="$videofilter"
+	if [ -z "$videofilter" ]; then
+		videofilter=""
 	fi
 
 	for id in ${!MBArtistID[@]}; do
@@ -1713,7 +1711,7 @@ DownloadVideos () {
 		if [ $videocount = 0 ]; then
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Skipping..."
 			if [ ! -z "$imvdburl" ]; then
-				downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *" | wc -l)
+				downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *.mp4" | wc -l)
 				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $downloadcount Videos Downloaded!"
 			fi
 			continue
@@ -1727,7 +1725,7 @@ DownloadVideos () {
 		if [ $videocount = 0 ]; then
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: Skipping..."
 			if [ ! -z "$imvdburl" ]; then
-				downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *" | wc -l)
+				downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *.mp4" | wc -l)
 				echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $downloadcount Videos Downloaded!"
 			fi
 			continue
@@ -1808,10 +1806,10 @@ DownloadVideos () {
 
 			done
 		done
-		downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *.mkv" | wc -l)
+		downloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "$sanatizedartistname - *.mp4" | wc -l)
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $downloadcount Videos Downloaded!"
 	done
-	totaldownloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "*.mkv" | wc -l)
+	totaldownloadcount=$(find "$VideoPath" -mindepth 1 -maxdepth 1 -type f -iname "*.mp4" | wc -l)
 	echo "######################################### $totaldownloadcount VIDEOS DOWNLOADED #########################################"
 }
 
