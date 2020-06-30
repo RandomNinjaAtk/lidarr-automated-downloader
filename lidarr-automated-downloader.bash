@@ -235,7 +235,7 @@ configuration () {
 		if [ "$RequireVideoMatch" = "true" ]; then
 			echo "Video: Require Video Match: ENABLED"
 		else
-			echo "Require Video Match: DISABLED"
+			echo "Video: Require Video Match: DISABLED"
 		fi
 		
 		# videoformat
