@@ -16,6 +16,8 @@
   * Support for Musicbrainz Database (https://musicbrainz.org) to find videos
   * Downloads using Highest available quality for both audio and video
   * Saves thumbnail of video locally for Plex/Kodi/Jellyfin/Emby usage
+  * iTunes compatible files, drag and drop iTunes support
+  * Optimize files for faststart playback
   * Matching videos with Musicbrainz Artist track info
   * Writes metadata into Kodi/Jellyfin/Emby compliant NFO file
     * Tagged Data includes
@@ -29,8 +31,12 @@
   * Embeds metadata into Music Video file
     * Tagged Data includes
       * Matched Title (MusicBrainz), fallback to IMVDb or Record Title (MusicBrainz)
+      * Matched Year (MusicBrainz)
+      * Matched Artist (MusicBrainz)
+      * Matched Album Artist (MusicBrainz)
       * Thumbnail Image
-      * Matched Artist, aka Author (MusicBrainz)
+      * Matched Release Genre Tags (MusicBrainz), fallback to Artist Genere Tags (MusicBrainz)
+      * Matched Album (MusicBrainz), fallback to YouTube (If available)
 * Cron support, create a cron job to automatically run script at desired interval
 * Official Docker with everything built in! [lidarr-lad](https://github.com/RandomNinjaAtk/docker-lidarr-lad)
 
