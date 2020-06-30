@@ -19,6 +19,7 @@
   * iTunes compatible files, drag and drop iTunes support
   * Optimize files for faststart playback
   * Matching videos with Musicbrainz Artist track info
+  * Embed subtitles if available matching desired language
   * Writes metadata into Kodi/Jellyfin/Emby compliant NFO file
     * Tagged Data includes
       * Matched Title (MusicBrainz), fallback to IMVDb or Record Title (MusicBrainz)
@@ -126,6 +127,7 @@ Modify the "config" file to set your configuration settings using a text editor 
 | `RequireVideoMatch` | true = enabled :: Only keep videos that could be matched to a Musicbrainz music track. |
 | `videoformat` | For guidence, please see youtube-dl documentation |
 | `videofilter` | This will filter out videos Matching MusicBrainz secondary release type and album disambiguation (single word only) |
+| `subtitlelanguage` | Desired Language Code :: For guidence, please see youtube-dl documentation |
 
 # Lidarr Configuration Recommendations
 
