@@ -1993,7 +1993,7 @@ VideoMatch () {
 
 			# Use artist genres, if release group genres don't exist
 			if [ -z "$releasegroupgenres" ]; then
-				releasegroupgenres="$(echo "$mbzartistinfo" | jq -r '.genres[] | .name' | sort -u)"
+				releasegroupgenres="$(echo "$mbzartistinfo" | jq -r '.genres[] | .name' | sort -u | sed -e "s/\b\(.\)/\u\1/g")"
 			fi
 
 			if [ "$skip" = false ]; then
