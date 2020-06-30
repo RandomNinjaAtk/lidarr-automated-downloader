@@ -251,6 +251,15 @@ configuration () {
 		else
 			echo "Video: Filter: DISABLED"
 		fi
+		
+		# subtitlelanguage
+		if [ ! -z "$subtitlelanguage" ]; then
+			subtitlelanguage="${subtitlelanguage,,}"
+			echo "Video: Subtitle Language: $subtitlelanguage"
+		else
+			subtitlelanguage="en"
+			echo "Video: Subtitle Language: $subtitlelanguage"
+		fi
 	fi
 
 	if [ $error = 1 ]; then
@@ -2057,7 +2066,7 @@ VideoDownload () {
 			rm "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}".*
 		fi
 		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $db :: $currentprocess of $videocount :: DOWNLOAD :: ${videotitle}${nfovideodisambiguation} :: Processing ($youtubeurl)... with youtube-dl"
-		$python $YoutubeDL ${cookies} -o "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}" ${videoformat} --write-sub --sub-lang en --embed-subs --merge-output-format mp4 --no-mtime --geo-bypass "$youtubeurl" &> /dev/null
+		$python $YoutubeDL ${cookies} -o "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}" ${videoformat} --write-sub --sub-lang $subtitlelanguage --embed-subs --merge-output-format mp4 --no-mtime --geo-bypass "$youtubeurl" &> /dev/null
 		if [ -f "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mp4" ]; then
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $db :: $currentprocess of $videocount :: DOWNLOAD :: ${videotitle}${nfovideodisambiguation} :: Complete!"
 			ffmpeg -y \
