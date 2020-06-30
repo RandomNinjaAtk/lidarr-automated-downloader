@@ -56,3 +56,4 @@ CountryCode="US" # set the country code for preferred video matching, uses Music
 RequireVideoMatch="true" # true = enabled :: Only keep videos that could be matched to a Musicbrainz music track.
 videoformat="--format bestvideo[vcodec*=avc1]+bestaudio[ext=m4a]" # For guidence, please see youtube-dl documentation
 videofilter="live" # This will filter out videos Matching MusicBrainz secondary release type and album disambiguation (single word only)
+subtitlelanguage="en" # Desired Language Code :: For guidence, please see youtube-dl documentation
