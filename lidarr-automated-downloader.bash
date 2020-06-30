@@ -242,7 +242,7 @@ configuration () {
 		if [ ! -z "$videoformat" ]; then
 			echo "Video: Format Set To: $videoformat"
 		else
-			echo "Video: Format Set To: --format bestvideo[vcodec!*=av01]+bestaudio[ext=m4a]"
+			echo "Video: Format Set To: --format bestvideo[vcodec*=avc1]+bestaudio[ext=m4a]"
 		fi
 		
 		# videofilter
@@ -1592,7 +1592,7 @@ DownloadVideos () {
 	if [ ! -z "$videoformat" ]; then
 		videoformat="$videoformat"
 	else
-		videoformat="--format bestvideo[vcodec!*=av01]+bestaudio[ext=m4a]"
+		videoformat="--format bestvideo[vcodec*=avc1]+bestaudio[ext=m4a]"
 	fi
 
 	if [ ! -z "$videofilter" ]; then
@@ -1808,7 +1808,7 @@ DownloadVideos () {
 
 VideoNFOWriter () {
 
-	if [ -f "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mkv" ]; then
+	if [ -f "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mp4" ]; then
 		if [ ! -f "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.nfo" ]; then
 			if [ "$videoyear" != "null" ]; then
 				year="$videoyear"
@@ -2005,7 +2005,7 @@ VideoMatch () {
 				sanitizevideotitle="$(echo "$videotitle" | sed -e 's/[\\/:\*\?"<>\|\x01-\x1F\x7F]//g' -e 's/^\(nul\|prn\|con\|lpt[0-9]\|com[0-9]\|aux\)\(\.\|$\)//i' -e 's/^\.*$//' -e 's/^$/NONAME/')"
 				videoyear="$releasegroupyear"
 				videoalbum="$releasegrouptitle"
-				videogenres="$releasegroupgenres"
+				videogenres="$(echo "$releasegroupgenres" | sed -e "s/\b\(.\)/\u\1/g")"
 				break
 			else
 				trackmatch=false
@@ -2024,15 +2024,65 @@ VideoDownload () {
 		nfovideodisambiguation=""
 		sanitizedvideodisambiguation=""
 	fi
-	if [ ! -f "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mkv" ]; then
-		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $db :: $currentprocess of $videocount :: DOWNLOAD :: ${videotitle}${nfovideodisambiguation} :: Processing ($youtubeurl)... with youtube-dl"
-		$python $YoutubeDL ${cookies} -o "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}" ${videoformat} --merge-output-format mkv --no-mtime --geo-bypass "$youtubeurl" &> /dev/null
+	if [ "$videoyear" != "null" ]; then
+		year="$videoyear"
+	else
+		year=""
+	fi
+	if [ "$videoalbum" != "null" ]; then
+		album="$videoalbum"
+	else
+		album=""
+	fi
+	# Genre
+	if [ ! -z "$videogenres" ]; then
+		genres="$(echo "$videogenres" | sort -u)"
+		OUT=""
+		SAVEIFS=$IFS
+		IFS=$(echo -en "\n\b")
+		for f in $genres
+		do
+			OUT=$OUT"$f / "
+		done
+		IFS=$SAVEIFS
+		genre="${OUT%???}"
+	fi
+	if [ "$trackmatch" = "true" ]; then
+		track="$videotrackposition"
+	else
+		track=""
+	fi
+	if [ ! -f "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mp4" ]; then
 		if [ -f "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mkv" ]; then
+			rm "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}".*
+		fi
+		echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $db :: $currentprocess of $videocount :: DOWNLOAD :: ${videotitle}${nfovideodisambiguation} :: Processing ($youtubeurl)... with youtube-dl"
+		$python $YoutubeDL ${cookies} -o "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}" ${videoformat} --write-sub --sub-lang en --embed-subs --merge-output-format mp4 --no-mtime --geo-bypass "$youtubeurl" &> /dev/null
+		if [ -f "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mp4" ]; then
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $db :: $currentprocess of $videocount :: DOWNLOAD :: ${videotitle}${nfovideodisambiguation} :: Complete!"
-			ffmpeg -i "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mkv" -vframes 1 -an -s 640x360 -ss 30 "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.jpg" &> /dev/null
-			mv "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mkv" "$VideoPath/temp.mkv"
-			ffmpeg -i "$VideoPath/temp.mkv" -i "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.jpg" -y -c:v copy -c:a copy -metadata author="$LidArtistNameCap" -metadata title="$videotitle" -attach "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.jpg" -metadata:s:t mimetype=image/jpeg "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mkv" &> /dev/null
-			rm "$VideoPath/temp.mkv"
+			ffmpeg -y \
+				-i "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mp4" \
+				-vframes 1 -an -s 640x360 -ss 30 \
+				"$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.jpg" &> /dev/null
+			mv "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mp4" "$VideoPath/temp.mp4"
+			ffmpeg -y \
+				-i "$VideoPath/temp.mp4" \
+				-i "$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.jpg" \
+				-map 0 -map 1 -c copy -c:v:1 jpg -disposition:v:1 attached_pic \
+				-c:v copy \
+				-c:a copy \
+				-c:s copy \
+				-metadata title="${videotitle}${nfovideodisambiguation}" \
+				-metadata artist="$LidArtistNameCap" \
+				-metadata album_artist="$LidArtistNameCap" \
+				-metadata album="$album" \
+				-metadata date="$year" \
+				-metadata genre="$genre" \
+				-metadata track="$track" \
+				-metadata media_type="6" \
+				-movflags +faststart \
+				"$VideoPath/$sanatizedartistname - ${sanitizevideotitle}${sanitizedvideodisambiguation}.mp4" &> /dev/null
+			rm "$VideoPath/temp.mp4"
 			echo "Video :: Downloaded :: $db :: ${LidArtistNameCap} :: $youtubeid :: $youtubeurl :: ${videotitle}${nfovideodisambiguation}" >> "download.log"
 		else
 			echo "$artistnumber of $wantedtotal :: $LidArtistNameCap :: $db :: $currentprocess of $videocount :: DOWNLOAD :: ${videotitle}${nfovideodisambiguation} :: Downloaded Failed!"
