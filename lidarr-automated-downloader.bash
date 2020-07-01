@@ -20,9 +20,11 @@ configuration () {
 	# Verify Musicbrainz DB Connectivity
 	musicbrainzdbtest=$(curl -s -A "$agent" "${musicbrainzurl}/ws/2/artist/f59c5520-5f46-4d2c-b2c4-822eabf53419?fmt=json")
 	musicbrainzdbtestname=$(echo "${musicbrainzdbtest}"| jq -r '.name')
-	if [ -z "$musicbrainzdbtestname" ]; then
+	if [ "$musicbrainzdbtestname" != "Linkin Park" ]; then
 		echo "ERROR: Cannot communicate with Musicbrainz"
-		echo "ERROR: Invalid URL: $musicbrainzurl"
+		echo "ERROR: Expected Response \"Linkin Park\", received response \"$musicbrainzdbtestname\""
+		echo "ERROR: URL might be Invalid: $musicbrainzurl"
+		echo "ERROR: Remote Mirror may be throttling connection..."
 		echo "ERROR: Link used for testing: ${musicbrainzurl}/ws/2/artist/f59c5520-5f46-4d2c-b2c4-822eabf53419?fmt=json"
 		echo "ERROR: Please correct error, consider using official Musicbrainz URL: https://musicbrainz.org"
 		error=1
