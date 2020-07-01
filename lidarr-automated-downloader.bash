@@ -11,13 +11,14 @@
 
 ############ Import Script Settings
 source ./config
+agent="lidarr-automated-downloader ( https://github.com/RandomNinjaAtk/lidarr-automated-downloader )"
 
 configuration () {
 	echo "######################################### CONFIGURATION VERIFICATION #########################################"
 	error=0
 	
 	# Verify Musicbrainz DB Connectivity
-	musicbrainzdbtest=$(curl -s -A "Headphones" "${musicbrainzurl}/ws/2/artist/f59c5520-5f46-4d2c-b2c4-822eabf53419?fmt=json")
+	musicbrainzdbtest=$(curl -s -A "$agent" "${musicbrainzurl}/ws/2/artist/f59c5520-5f46-4d2c-b2c4-822eabf53419?fmt=json")
 	musicbrainzdbtestname=$(echo "${musicbrainzdbtest}"| jq -r '.name')
 	if [ -z "$musicbrainzdbtestname" ]; then
 		echo "ERROR: Cannot communicate with Musicbrainz"
@@ -637,7 +638,7 @@ ProcessLidarrAlbums () {
 			# Get Deezer ArtistID from Musicbrainz if not found in Lidarr
 			if [ -z "${wantitalbumartistdeezerid}" ]; then	
 				echo "$currentprocess of $wantittotal :: $wantitalbumartistname :: $wantitalbumtitle :: ERROR: Fallback to musicbrainz for url..."
-				mbjson=$(curl -s -A "Headphones" "${musicbrainzurl}/ws/2/artist/${wantitalbumartistmbid}?inc=url-rels&fmt=json")
+				mbjson=$(curl -s -A "$agent" "${musicbrainzurl}/ws/2/artist/${wantitalbumartistmbid}?inc=url-rels&fmt=json")
 				wantitalbumartistdeezerid=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 			fi	
 			
@@ -1369,7 +1370,7 @@ ArtistMode () {
 		
 		if [ -z "${deezerartisturl}" ]; then	
 			echo "${artistnumber} of ${wantedtotal} :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
-			mbjson=$(curl -s -A "Headphones" "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
+			mbjson=$(curl -s -A "$agent" "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
 			deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 		fi	
 		
@@ -2135,7 +2136,7 @@ CacheEngine () {
 		lidarrartistposterextension="$(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .images | .[] | select(.coverType==\"poster\") | .extension")"
 		lidarrartistposterlink="${LidarrUrl}${lidarrartistposterurl}${lidarrartistposterextension}"
 		deezerartisturl=($(echo "${wantit}" | jq -r ".[] | select(.foreignArtistId==\"${mbid}\") | .links | .[] | select(.name==\"deezer\") | .url"))
-		mbrainzurlcount=$(curl -s -A "Headphones" "${musicbrainzurl}/ws/2/artist/$mbid?inc=url-rels&fmt=json" | jq -r ".relations | .[] | .url | .resource" | wc -l)
+		mbrainzurlcount=$(curl -s -A "$agent" "${musicbrainzurl}/ws/2/artist/$mbid?inc=url-rels&fmt=json" | jq -r ".relations | .[] | .url | .resource" | wc -l)
 		sleep $ratelimit
 		if [ -f "cache/$sanatizedartistname-$mbid-info.json" ]; then
 			cachedurlcount=$(cat "cache/$sanatizedartistname-$mbid-info.json" | jq -r ".relations | .[] | .url | .resource" | wc -l)
@@ -2146,7 +2147,7 @@ CacheEngine () {
 
 		if [ ! -f "cache/$sanatizedartistname-$mbid-info.json" ]; then
 			echo "${artistnumber} of ${wantedtotal} :: MBZDB CACHE :: $LidArtistNameCap :: Caching Musicbrainz Artist Info..."
-			curl -s -A "Headphones" "${musicbrainzurl}/ws/2/artist/$mbid?inc=url-rels+genres&fmt=json" -o "cache/$sanatizedartistname-$mbid-info.json"
+			curl -s -A "$agent" "${musicbrainzurl}/ws/2/artist/$mbid?inc=url-rels+genres&fmt=json" -o "cache/$sanatizedartistname-$mbid-info.json"
 			sleep $ratelimit
 		else 
 			echo "${artistnumber} of ${wantedtotal} :: MBZDB CACHE :: $LidArtistNameCap :: Musicbrainz Artist Info Cache Valid..."
@@ -2154,12 +2155,12 @@ CacheEngine () {
 
 		if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ] || [ $DownloadMode = "Audio" ]; then
 
-			records=$(curl -s -A "Headphones" "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json")
+			records=$(curl -s -A "$agent" "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json")
 			sleep $ratelimit
 			newrecordingcount=$(echo "${records}"| jq -r '."recording-count"')
 				
 			if [ ! -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
-				curl -s -A "Headphones" "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
+				curl -s -A "$agent" "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
 				sleep $ratelimit
 			fi
 
@@ -2177,7 +2178,7 @@ CacheEngine () {
 					rm "cache/$sanatizedartistname-$mbid-video-recordings.json"
 				fi
 				if [ ! -f "cache/$sanatizedartistname-$mbid-recording-count.json" ]; then
-					curl -s -A "Headphones" "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
+					curl -s -A "$agent" "${musicbrainzurl}/ws/2/recording?artist=$mbid&limit=1&offset=0&fmt=json" -o "cache/$sanatizedartistname-$mbid-recording-count.json"
 					sleep $ratelimit
 				fi
 			else
@@ -2205,7 +2206,7 @@ CacheEngine () {
 							dlnumber=$(( $offset + 100))
 						fi
 						echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap Downloading page $i... ($offset - $dlnumber Results)"
-						curl -s -A "Headphones" "${musicbrainzurl}/ws/2/recording?artist=$mbid&inc=url-rels&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-recording-page-$i.json"
+						curl -s -A "$agent" "${musicbrainzurl}/ws/2/recording?artist=$mbid&inc=url-rels&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-recording-page-$i.json"
 						sleep $ratelimit
 					fi
 				done
@@ -2230,7 +2231,7 @@ CacheEngine () {
 
 			if [ $DownloadMode = "Both" ] || [ $DownloadMode = "Video" ] || [ $DownloadMode = "Audio" ]; then
 
-				releases=$(curl -s -A "Headphones" "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=genres+recordings+url-rels+release-groups&limit=1&offset=0&fmt=json")
+				releases=$(curl -s -A "$agent" "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=genres+recordings+url-rels+release-groups&limit=1&offset=0&fmt=json")
 				sleep $ratelimit
 				newreleasecount=$(echo "${releases}"| jq -r '."release-count"')
 					
@@ -2269,7 +2270,7 @@ CacheEngine () {
 								dlnumber=$(( $offset + 100))
 							fi
 							echo "$artistnumber of $wantedtotal :: MBZDB CACHE :: $LidArtistNameCap :: Downloading Releases page $i... ($offset - $dlnumber Results)"
-							curl -s -A "Headphones" "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=genres+recordings+url-rels+release-groups&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-releases-page-$i.json"
+							curl -s -A "$agent" "${musicbrainzurl}/ws/2/release?artist=$mbid&inc=genres+recordings+url-rels+release-groups&limit=100&offset=$offset&fmt=json" -o "temp/$mbid-releases-page-$i.json"
 							sleep $ratelimit
 						fi
 					done
@@ -2350,7 +2351,7 @@ CacheEngine () {
 
 			if [ -z "${deezerartisturl}" ]; then	
 				echo "${artistnumber} of ${wantedtotal} :: AUDIO CACHE :: $LidArtistNameCap :: ERROR: Fallback to musicbrainz for url..."
-				mbjson=$(curl -s -A "Headphones" "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
+				mbjson=$(curl -s -A "$agent" "${musicbrainzurl}/ws/2/artist/${mbid}?inc=url-rels&fmt=json")
 				deezerartisturl=($(echo "$mbjson" | jq -r '.relations | .[] | .url | select(.resource | contains("deezer")) | .resource'))		
 			fi	
 			
