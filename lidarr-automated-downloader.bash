@@ -140,7 +140,7 @@ configuration () {
 			extension="flac"
 		else
 			echo "ERROR: quality setting invalid, currently set to: $quality"
-			echo "ERROR: quality Expected Valid Setting: OPUS or AAC or FDK-AAC or MP3 or FLAC"
+			echo "ERROR: quality Expected Valid Setting: OPUS or AAC or FDK-AAC or MP3 or ALAC or FLAC"
 			error=1
 		fi
 		
