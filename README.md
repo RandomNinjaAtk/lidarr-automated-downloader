@@ -1,6 +1,12 @@
 
 # lidarr-automated-downloader (LAD)
 
+# Deprecated
+
+This repository is now deprecated, will no longer be updated and is being set to archived. This script was a lot to maintain and I have split it into multiple scripts going forward to simplify maintenance.
+* For Audio: https://github.com/RandomNinjaAtk/docker-amd
+* For Videos: https://github.com/RandomNinjaAtk/docker-amvd
+
 ## Features
 * Complete automation for downloading Music Audio & Video files
 * Downloading **Music** using online sources and importing them into Lidarr Automatically
